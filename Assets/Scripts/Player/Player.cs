@@ -1,6 +1,6 @@
 using UnityEngine;
-
-public class Player : MonoBehaviour
+using Fusion;
+public class Player : NetworkBehaviour
 {
     // Start is called before the first frame update
     void Start()
