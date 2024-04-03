@@ -2,15 +2,23 @@ using UnityEngine;
 using Fusion;
 public class Player : NetworkBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private IPlayerBehaviour _playerState;
+    public IPlayerBehaviour PlayerState { get => _playerState;}
+    private NetworkRunner _runner;
+    public override void Spawned()
     {
-        
+        _runner = Runner; 
+        SetUpPlayerBehaviour();
     }
-
-    // Update is called once per frame
-    void Update()
+    private void SetUpPlayerBehaviour()
     {
-        
+        if (_runner.GameMode == GameMode.Single)
+        {
+            _playerState = new OfflinePlayerBehaviour();
+        }
+        else
+        {
+            _playerState = new OnlinePlayerBehaviour();
+        }
     }
 }
