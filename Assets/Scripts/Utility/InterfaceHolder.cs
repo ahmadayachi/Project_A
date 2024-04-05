@@ -17,3 +17,11 @@ public interface ICard
 {
 
 }
+public interface ICardBehaviour
+{
+
+}
+public interface IGameModeBehaviour
+{
+
+}
