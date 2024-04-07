@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f92665abc6f831e4db34fe00cc431e79, type: 3}
+  m_Name: Cartoonish Card Deck
+  m_EditorClassIdentifier: 
+  HeartSprites:
+  - {fileID: 21300000, guid: c5df18807116958478ea68e86b38599c, type: 3}
+  - {fileID: 21300000, guid: 47cf0b48f1176a8429332ab27d9672aa, type: 3}
+  - {fileID: 21300000, guid: 0dbd5a433776d5a4fa740a673d770603, type: 3}
+  - {fileID: 21300000, guid: 054d429cea6d9b44c89712d259fd83fc, type: 3}
+  - {fileID: 21300000, guid: 7807473e68bb5ee4d86f567d41c3e851, type: 3}
+  - {fileID: 21300000, guid: b2696b2ce1bb3b84780de68a74ba6002, type: 3}
+  - {fileID: 21300000, guid: 1144d730edd9c6e4d867f211c6516518, type: 3}
+  - {fileID: 21300000, guid: 75b8af104e9c3e64e835cb13d2ec8602, type: 3}
+  DiamondSprites:
+  - {fileID: 21300000, guid: 961cca6eab5734a4ea155160aca4856a, type: 3}
+  - {fileID: 21300000, guid: 09edc40b83e0d6748bc66d7c2a0d538a, type: 3}
+  - {fileID: 21300000, guid: 31f37c4bfc43b5440ada14c19bc8d921, type: 3}
+  - {fileID: 21300000, guid: 2c845e2ac18158f42bc8b76f0cb500af, type: 3}
+  - {fileID: 21300000, guid: 467919c73b6aa184d95bf65950e89fd7, type: 3}
+  - {fileID: 21300000, guid: 63500703b51a10645949bf85cc18888e, type: 3}
+  - {fileID: 21300000, guid: 1020ee9320892a843b6aea74e298f320, type: 3}
+  - {fileID: 21300000, guid: a6210755a49b5a048b70830cf6ceaf78, type: 3}
+  SpideSprites:
+  - {fileID: 21300000, guid: e6f257c51b2b05741a6a8135b030d1ef, type: 3}
+  - {fileID: 21300000, guid: de718d64c696a3d44a5bad68f9a0faac, type: 3}
+  - {fileID: 21300000, guid: 217f975cee86d8e4a8bfa07b552a0b33, type: 3}
+  - {fileID: 21300000, guid: eec4b6ce4cc81ee47a56b137b5f6ffc8, type: 3}
+  - {fileID: 21300000, guid: e67a481fe808a9342b52009be1427b46, type: 3}
+  - {fileID: 21300000, guid: cf95acd9295ad434d9db263298fc80e5, type: 3}
+  - {fileID: 21300000, guid: f14084d08e0d66c41bede95f8e7358bf, type: 3}
+  - {fileID: 21300000, guid: 305b24469e913d942849dd695f691d51, type: 3}
+  CloverSprites:
+  - {fileID: 21300000, guid: 13f3a7992ac86754b93fd233beb6d733, type: 3}
+  - {fileID: 21300000, guid: 75bf06c7dfbe84c4d8bebd90713b003a, type: 3}
+  - {fileID: 21300000, guid: b8e3e5bb4bfc78e49889bc509b99e87b, type: 3}
+  - {fileID: 21300000, guid: f5edba6a51fdae340b4c0f0ba123d743, type: 3}
+  - {fileID: 21300000, guid: b4e6db3d09ee43340ad9ccd944e1db60, type: 3}
+  - {fileID: 21300000, guid: 676004576e67ba74caae7b4336ceb8d6, type: 3}
+  - {fileID: 21300000, guid: 9ff7c5db91c656844bce67ed50169ee4, type: 3}
+  - {fileID: 21300000, guid: 11f9c1df94c3bef48bfbf2285d3c505e, type: 3}

@@ -7,11 +7,11 @@ public class Dealer
 {
     private IDealerBehaviour _dealerBehaviour;
     public List<ICard> DeckOfCards { get => _dealerBehaviour.DeckOfCards; }
-    public Dealer (GameMode gameMode)
+    public Dealer (NetworkRunner _runner)
     {
-        if (gameMode == GameMode.Single)
-            _dealerBehaviour = new OfflineDealerBehaviour();
+        if (_runner.GameMode == GameMode.Single)
+            _dealerBehaviour = new OfflineDealerBehaviour(_runner);
         else
-            _dealerBehaviour = new OnlineDealerBehaviour();
+            _dealerBehaviour = new OnlineDealerBehaviour(_runner);
     }
 }
