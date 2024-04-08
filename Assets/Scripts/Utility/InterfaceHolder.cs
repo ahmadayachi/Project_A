@@ -15,7 +15,12 @@ public interface IDealerBehaviour
 }
 public interface ICard
 {
-    void SetUpcard(byte Rank, byte ID, string Suite);
+    byte Rank { get;}
+    byte ID { get; }
+    string Suite { get;}
+    void SetRank(byte rank);
+    void SetID(byte id);
+    void SetSuite(string suite);
 }
 public interface ICardBehaviour
 {

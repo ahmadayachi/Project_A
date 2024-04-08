@@ -6,16 +6,9 @@ using UnityEngine;
 public abstract class DealerBehaviourBase : IDealerBehaviour
 {
     public List<ICard> DeckOfCards { get; set; }
-    private byte[] _beloteCardRanks;
+    private  readonly byte[] _beloteCardRanks = { 7, 8, 9, 11, 12, 13, 10, 1 };
     private NetworkPrefabRef _cardPrefab = AssetLoader.PrefabContainer.CardPrefab;
-    protected NetworkRunner _runner;
-    private void SetUpCardRanksArray()
-    {
-        _beloteCardRanks = new byte[]
-        {
-            7,8,9,11,12,13,10,1
-        };
-    }
+    protected NetworkRunner _runner;  
     public void CreateDeck()
     {
         var deckSprites = AssetLoader.DeckContainerInstance;
@@ -42,6 +35,9 @@ public abstract class DealerBehaviourBase : IDealerBehaviour
         }
         NetworkObject cardObject = _runner.Spawn(_cardPrefab);
         ICard card = cardObject.GetComponent<ICard>();
-        card.SetUpcard(rank,ID,suite);
+        DeckOfCards.Add(card);
+        card.SetRank(rank);
+        card.SetID(ID);
+        card.SetSuite(suite);
     }
 }

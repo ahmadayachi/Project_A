@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
   m_Name: 'Deck Sprites '
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: 'Deck Sprites '
   m_Data:
     m_SerializedData: []
   m_GUID: d78cafe0e6e9ba24ba75c490bd6370fa
   m_SerializeEntries:
   - m_GUID: cc5a41b6a826f724cb15046573ad032a
-    m_Address: Assets/prefabs/Deck/Cartoonish Card Deck.asset
+    m_Address: CartoonishCD
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
