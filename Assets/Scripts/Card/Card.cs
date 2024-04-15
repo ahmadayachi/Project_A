@@ -3,19 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Card : NetworkBehaviour, ICard
+public class Card : MonoBehaviour, ICard
 {
 
     private ICardBehaviour _activeCardBehaviour;
     private NetworkRunner _runner;
 
     #region Card Properties
-    [Networked] private byte _rank { get; set;}
-    [Networked] private byte _id { get; set;}
-    [Networked] private string _suite { get; set;}
-    public byte Rank { get =>_rank;}
-    public byte ID { get=>_id;}
-    public string Suite { get=>_suite;}
+    private byte _rank { get; set; }
+    public byte Rank { get => _rank; }
+    private byte _id { get; set; }
+    public byte ID { get => _id; }
+    private CardSuite _suite { get; set; }
+    public CardSuite Suite { get => _suite; }
+    private ICardUI _cardUI { get; set;}
+    public ICardUI CardUI { get => _cardUI; }
     #endregion
     public void SetRank(byte rank)
     {
@@ -25,21 +27,8 @@ public class Card : NetworkBehaviour, ICard
     {
         _id = id;
     }
-    public void SetSuite(string suite)
+    public void SetSuite(CardSuite suite)
     {
         _suite = suite;
-    }
-    public override void Spawned()
-    {
-        _runner = Runner;
-        SetUpCardBehaviour();
-    }
-    private void SetUpCardBehaviour()
-    {
-        if(_runner==null) return;
-        if(_runner.GameMode==GameMode.Single)
-            _activeCardBehaviour = new OfflineCardBehaviour();
-        else 
-            _activeCardBehaviour = new OnlineCardBehaviour();
     }
 }

@@ -1,17 +1,33 @@
-using Fusion;
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
-public class Dealer 
+public class Dealer : State
 {
-    private IDealerBehaviour _dealerBehaviour;
-    public List<ICard> DeckOfCards { get => _dealerBehaviour.DeckOfCards; }
-    public Dealer (NetworkRunner _runner)
+    //private IDealerBehaviour _dealerBehaviour;
+    //public List<ICard> DeckOfCards { get => _dealerBehaviour.DeckOfCards; }
+    //public Dealer (NetworkRunner _runner)
+    //{
+    //    if (_runner.GameMode == GameMode.Single)
+    //        _dealerBehaviour = new OfflineDealerBehaviour(_runner);
+    //    else
+    //        _dealerBehaviour = new OnlineDealerBehaviour(_runner);
+    //}
+
+
+    public override void Start<T>(T arg)
     {
-        if (_runner.GameMode == GameMode.Single)
-            _dealerBehaviour = new OfflineDealerBehaviour(_runner);
-        else
-            _dealerBehaviour = new OnlineDealerBehaviour(_runner);
+        if (!Extention.AreSameType<T, DealerArguments>(arg))
+        {
+#if Log
+            Debug.LogError("wrong argument passed !");
+#endif
+            return;
+        }
+
     }
+    public override void ForceEnd()
+    {
+        throw new System.NotImplementedException();
+    }
+
 }
