@@ -38,6 +38,6 @@ public abstract class DealerBehaviourBase : IDealerBehaviour
         DeckOfCards.Add(card);
         card.SetRank(rank);
         card.SetID(ID);
-        card.SetSuite(suite);
+        //card.SetSuite(suite);
     }
 }

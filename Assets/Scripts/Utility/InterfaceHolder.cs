@@ -45,10 +45,10 @@ public struct CardIdentity
 }
 public enum CardSuite
 {
-    S = 1,
-    D = 2,
-    H = 3,
-    C = 4
+    S,
+    D,
+    H,
+    C
 }
 #endregion
 public interface IDealerBehaviour
@@ -80,15 +80,15 @@ public struct DealerArguments
 #region enums
 public enum GameState
 {
-    GameStarted=1,
-    GameOver=2
+    GameStarted,
+    GameOver
 }
 public enum RoundState
 {
-    FirstPlayerTurn=1,
-    PassTurn=2,
-    PlayerTurn=3,
-    RoundOver=4
+    FirstPlayerTurn,
+    PassTurn, 
+    PlayerTurn,
+    RoundOver
 }
 
 #endregion

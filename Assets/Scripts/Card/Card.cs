@@ -31,4 +31,14 @@ public class Card : MonoBehaviour, ICard
     {
         _suite = suite;
     }
+
+    public void Enable()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void Disable()
+    {
+        throw new System.NotImplementedException();
+    }
 }
