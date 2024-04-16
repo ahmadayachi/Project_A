@@ -5,22 +5,28 @@ using UnityEngine;
 
 public class GameManager :NetworkBehaviour
 {
+    private Dealer _dealer;
+
+    #region Deck props
+    private const int BeloteDeckSize = 32;
+    private byte _maxPlayerCards;
+   /// <summary>
+   /// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount 
+   /// </summary>
+    public byte MaxPlayerCards { get => _maxPlayerCards;}
+    #endregion
+
     #region Player Propertys 
     [Networked, Capacity(8)] public NetworkArray<NetworkObject> Clients { get; }
     private byte _playernumber;
     public byte PlayerNumber { get => _playernumber;}
     #endregion
-    private Dealer _dealer;
+
 
     #region Dealer Setup
-    private void Awake()
-    {
-       
-    }
+
     #endregion
-    private const int BeloteDeckSize = 32;
-    private byte _maxPlayerCards;
-    public byte MaxPlayerCards { get => _maxPlayerCards;}
+
     public void SetNumberOfPlayers(int numberOfPlayers)
     {
         if(numberOfPlayers<=8 && numberOfPlayers>0)
@@ -33,10 +39,18 @@ public class GameManager :NetworkBehaviour
     }
     private void SetMaxPlayerCards()
     {
+        if ( _playernumber == 0)
+        {
+#if Log
+            Debug.LogError("player number need to be > 0 before setting the max player cards ");
+#endif
+            return;
+        }
         byte playerCards = 1;
         while ((BeloteDeckSize - (playerCards * PlayerNumber) > 0))
         {
             playerCards++;
         }
+        _maxPlayerCards = (byte)(playerCards-1);
     }
 }

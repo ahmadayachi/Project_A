@@ -127,7 +127,7 @@ public class CardPool
     }
 
 
-    public ICard CreateACard(CardIdentity cardIdentity)
+    public ICard CreateACard(CardInfo cardIdentity)
     {
         if (TryGetUsedCard(out ICard card))
         {

@@ -6,21 +6,26 @@ using UnityEngine.TestTools;
 
 public class MaxPlayerCardsTest
 {
-    // A Test behaves as an ordinary method
+
+    private const byte _beloteDeckSize = 32;
+    private byte _maxPlayerCards;
     [Test]
     public void MaxPlayerCardsTestSimplePasses()
     {
-        
-        // Use the Assert class to test conditions
+        byte playerNumber = 9;
+        _maxPlayerCards = SetMaxPlayerCards(playerNumber);
+        Assert.AreEqual(3, _maxPlayerCards);
     }
 
-    // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
-    // `yield return null;` to skip a frame.
-    [UnityTest]
-    public IEnumerator MaxPlayerCardsTestWithEnumeratorPasses()
+    #region private methods
+    private byte SetMaxPlayerCards(byte playerNumber)
     {
-        // Use the Assert class to test conditions.
-        // Use yield to skip a frame.
-        yield return null;
+        byte playerCards = 1;
+        while ((_beloteDeckSize - (playerCards * playerNumber) > 0))
+        {
+            playerCards++;
+        }
+        return (byte)(playerCards - 1);
     }
+    #endregion
 }

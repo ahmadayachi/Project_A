@@ -107,10 +107,10 @@ public static class CardManager
     public const int STANDARD_DECK_CARD_NUMBER = 13;
     public const int CARD_TYPE_NUMBER = 4;
 
-    private static CardIdentity[] cards = new CardIdentity[DEFAULT_DECK_SIZE];
+    private static CardInfo[] cards = new CardInfo[DEFAULT_DECK_SIZE];
     private static CardSuite lastChoosenType = default;
 
-    public static CardIdentity GetCard(int ID)
+    public static CardInfo GetCard(int ID)
     {
         return cards[ID];
     }
@@ -134,7 +134,7 @@ public static class CardManager
             return;
         }
         int newLength = cards.Length + STANDARD_DECK_CARD_NUMBER * numberOfTimes;
-        CardIdentity[] _newArray = new CardIdentity[newLength];
+        CardInfo[] _newArray = new CardInfo[newLength];
         int i = 0;
         for (i = 0; i < cards.Length; i++)
         {

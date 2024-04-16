@@ -2,6 +2,7 @@
 
 
 
+using Fusion;
 using System.Collections.Generic;
 
 #region Interfaces
@@ -10,24 +11,43 @@ public interface IPlayerBehaviour
 {
 
 }
-public interface IPlayer
+public interface IPlayer:ICardReceiver
 {
-
+    string Name {get;}
+    void SetPlayerName(string playerName);
+    string ID {get;}
+    void SetPlayerID(string playerID);
+    void SetCardCounter(byte cardCounter);
+    CardInfo[] PlayerHand { get;}
+    void ClearHand();
+    /// <summary>
+    /// if true player cant/wont have cards or play 
+    /// </summary>
+    NetworkBool IsPlayerOut {get;}
+}
+public interface ICardReceiver
+{
+    byte maxCards { get;}
+    void AddCard(CardInfo card);
 }
 #endregion
 
 #region Card stuff  
-public interface ICard
+public interface ICard : ICardInfo
 {
-    byte Rank { get; }
-    byte ID { get; }
-    CardSuite Suite { get; }
     ICardUI CardUI { get; }
     void SetRank(byte rank);
     void SetID(byte id);
     void SetSuite(CardSuite suite);
     void Enable();
     void Disable();
+    CardInfo ToCardInfo();
+}
+public interface ICardInfo
+{
+    byte Rank { get; }
+    byte ID { get; }
+    CardSuite Suite { get; }
 }
 public interface ICardUI
 {
@@ -37,7 +57,7 @@ public interface ICardBehaviour
 {
 
 }
-public struct CardIdentity
+public struct CardInfo
 {
     public byte Rank;
     public byte ID;
@@ -71,7 +91,8 @@ public interface IState<T> where T : struct
 #region Structs
 public struct DealerArguments
 {
-
+    public CardInfo[] DeckToDeal;
+    public ICardReceiver[] Players;
 }
 
 #endregion
@@ -85,10 +106,21 @@ public enum GameState
 }
 public enum RoundState
 {
+    /// <summary>
+/// the player that plays when a round just started, this player will have fewer choices to play 
+/// </summary>
     FirstPlayerTurn,
+    /// <summary>
+    /// when a player passes the turn 
+    /// </summary>
     PassTurn, 
+    /// <summary>
+    /// a normal player turn, were all choices are available
+    /// </summary>
     PlayerTurn,
+    /// <summary>
+    /// Round ended , after check if game is over else just start a new round 
+    /// </summary>
     RoundOver
 }
-
 #endregion
