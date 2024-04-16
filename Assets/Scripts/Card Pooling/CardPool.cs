@@ -214,8 +214,8 @@ public class CardPool
 
         _cards = _newArray;
         // _arrayIndex++;
-        //unsure but should ask for clean up specifically previous array
-        GC.Collect();
+        ////unsure but should ask for clean up specifically previous array
+        //GC.Collect();
     }
     private ICard InstantiateCard()
     {

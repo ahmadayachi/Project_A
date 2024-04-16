@@ -159,12 +159,14 @@ public static class CardManager
 
 
         //unsure but should ask for clean up specifically previous array
-        GC.Collect();
+        //GC.Collect();
     }
 
     private static void PopulateArray(int startIndex = 0)
     {
+#if Log
         Debug.Log($"PopulateArray at index {startIndex}");
+#endif
         int arrayIndex = startIndex;
         for (int i = 0; i < STANDARD_DECK_CARD_NUMBER; i++)
         {

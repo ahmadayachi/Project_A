@@ -5,10 +5,6 @@ using UnityEngine;
 
 public class Card : MonoBehaviour, ICard
 {
-
-    private ICardBehaviour _activeCardBehaviour;
-    private NetworkRunner _runner;
-
     #region Card Properties
     private byte _rank { get; set; }
     public byte Rank { get => _rank; }
