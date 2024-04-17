@@ -3,6 +3,7 @@
 
 
 using Fusion;
+using System;
 using System.Collections.Generic;
 
 #region Interfaces
@@ -20,14 +21,14 @@ public interface IPlayer:ICardReceiver
     void SetCardCounter(byte cardCounter);
     CardInfo[] PlayerHand { get;}
     void ClearHand();
+}
+public interface ICardReceiver
+{
     /// <summary>
     /// if true player cant/wont have cards or play 
     /// </summary>
     NetworkBool IsPlayerOut {get;}
-}
-public interface ICardReceiver
-{
-    byte maxCards { get;}
+    byte MaxCards { get;}
     void AddCard(CardInfo card);
 }
 #endregion
@@ -62,6 +63,7 @@ public struct CardInfo
     public byte Rank;
     public byte ID;
     public CardSuite Suite;
+    public bool IsValid;
 }
 public enum CardSuite
 {
@@ -93,6 +95,7 @@ public struct DealerArguments
 {
     public CardInfo[] DeckToDeal;
     public ICardReceiver[] Players;
+    public Action OnDealerStateEnds;
 }
 
 #endregion
