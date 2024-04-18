@@ -108,7 +108,7 @@ public static class CardManager
     public const int CARD_TYPE_NUMBER = 4;
 
     private static CardInfo[] cards = new CardInfo[DEFAULT_DECK_SIZE];
-    private static CardSuite lastChoosenType = default;
+    private static CardSuit lastChoosenType = default;
 
     public static CardInfo GetCard(int ID)
     {
@@ -149,7 +149,7 @@ public static class CardManager
             for (int j = 0; j < STANDARD_DECK_CARD_NUMBER; j++)
             {
                 cards[arrayIndex].Rank = (byte)j;
-                cards[arrayIndex].Suite = lastChoosenType;
+                cards[arrayIndex].Suit = lastChoosenType;
                 arrayIndex++;
             }
             lastChoosenType++;
@@ -173,7 +173,7 @@ public static class CardManager
             for (int j = 0; j < CARD_TYPE_NUMBER; j++)
             {
                 cards[arrayIndex].Rank = (byte)i;
-                cards[arrayIndex].Suite = (CardSuite)j;
+                cards[arrayIndex].Suit = (CardSuit)j;
                 arrayIndex++;
             }
         }

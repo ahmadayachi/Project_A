@@ -46,20 +46,54 @@ public static class Extention
             array[RandomIndex] = temp;
         }
     }
-    public static void AddCard(this CardInfo[] array, CardInfo card)
+    public static bool AddCard(this CardInfo[] array, CardInfo card)
     {
+        if (!card.IsValid)
+            return false;
+        bool CardIsAdded = false;
         for (int index = 0; index < array.Length; index++)
         {
             if (!array[index].IsValid)
             {
                 array[index] = card;
-                return;
+                CardIsAdded = true;
+                break;
             }
         }
-#if Log
-        Debug.LogError("No available spot in the array.");
-#endif
+        return CardIsAdded;
     }
+    /// <summary>
+    /// If Cards Are Same (returns True ) , (Returns False ) if either Cards are not valid 
+    /// </summary>
+    /// <param name="firstCard"></param>
+    /// <param name="secondCard"></param>
+    /// <returns></returns>
+    public static bool AreSameCard(CardInfo firstCard, CardInfo secondCard)
+    {
+        if (!firstCard.IsValid || !secondCard.IsValid)
+            return false;
 
+        return (firstCard.ID == secondCard.ID &&
+                firstCard.Rank == secondCard.Rank &&
+                firstCard.Suit == secondCard.Suit);
+    }
+    public static bool RemoveCard(this CardInfo[] array, CardInfo cardToRemove)
+    {
+        //blocking if card is not instentiated 
+        if(cardToRemove.IsValid) return false;
+        
+        bool IsCardRemoved = false;
+
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (AreSameCard(array[index],cardToRemove))
+            {
+                array[index] = new CardInfo();
+                IsCardRemoved = true;
+                break;
+            }
+        }
+        return IsCardRemoved;
+    }
     #endregion
 }

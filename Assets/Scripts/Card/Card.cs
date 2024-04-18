@@ -10,8 +10,8 @@ public class Card : MonoBehaviour, ICard
     public byte Rank { get => _rank; }
     private byte _id { get; set; }
     public byte ID { get => _id; }
-    private CardSuite _suite { get; set; }
-    public CardSuite Suite { get => _suite; }
+    private CardSuit _suite { get; set; }
+    public CardSuit Suite { get => _suite; }
     private ICardUI _cardUI { get; set;}
     public ICardUI CardUI { get => _cardUI; }
     #endregion
@@ -23,7 +23,7 @@ public class Card : MonoBehaviour, ICard
     {
         _id = id;
     }
-    public void SetSuite(CardSuite suite)
+    public void SetSuite(CardSuit suite)
     {
         _suite = suite;
     }

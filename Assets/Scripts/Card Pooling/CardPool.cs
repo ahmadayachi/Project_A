@@ -134,7 +134,7 @@ public class CardPool
             //adjust it to needs and return it
             card.SetRank(cardIdentity.Rank);
             card.SetID(cardIdentity.ID);
-            card.SetSuite(cardIdentity.Suite);
+            card.SetSuite(cardIdentity.Suit);
             card.Enable();
             return card;
         }
@@ -155,7 +155,7 @@ public class CardPool
         _arrayIndex++;
         cardToReturn.SetRank(cardIdentity.Rank);
         cardToReturn.SetID(cardIdentity.ID);
-        cardToReturn.SetSuite(cardIdentity.Suite);
+        cardToReturn.SetSuite(cardIdentity.Suit);
         cardToReturn.Enable();
 
         return cardToReturn;

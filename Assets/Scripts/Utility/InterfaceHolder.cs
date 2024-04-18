@@ -28,7 +28,10 @@ public interface ICardReceiver
     /// if true player cant/wont have cards or play 
     /// </summary>
     NetworkBool IsPlayerOut {get;}
-    byte MaxCards { get;}
+    /// <summary>
+    /// how much Cards to deal 
+    /// </summary>
+    byte CardsCounter { get;}
     void AddCard(CardInfo card);
 }
 #endregion
@@ -39,7 +42,7 @@ public interface ICard : ICardInfo
     ICardUI CardUI { get; }
     void SetRank(byte rank);
     void SetID(byte id);
-    void SetSuite(CardSuite suite);
+    void SetSuite(CardSuit suite);
     void Enable();
     void Disable();
     CardInfo ToCardInfo();
@@ -48,7 +51,7 @@ public interface ICardInfo
 {
     byte Rank { get; }
     byte ID { get; }
-    CardSuite Suite { get; }
+    CardSuit Suite { get; }
 }
 public interface ICardUI
 {
@@ -62,10 +65,14 @@ public struct CardInfo
 {
     public byte Rank;
     public byte ID;
-    public CardSuite Suite;
+    public CardSuit Suit;
     public bool IsValid;
+    public override string ToString()
+    {
+        return $"Ivalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
+    }
 }
-public enum CardSuite
+public enum CardSuit
 {
     S,
     D,

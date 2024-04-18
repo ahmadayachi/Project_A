@@ -69,7 +69,7 @@ public class Dealer : State
             //jumping players that cant reciese cards 
             if (player.IsPlayerOut)
                 continue;
-            for (byte jindex = 0; jindex < player.MaxCards; jindex++)
+            for (byte jindex = 0; jindex < player.CardsCounter; jindex++)
             {
                 player.AddCard(deck[arrayIndex]);
                 arrayIndex++;
@@ -81,7 +81,8 @@ public class Dealer : State
         //invoking callback for (some UI shet)
         arguments.OnDealerStateEnds?.Invoke();
     }
-    private void RiffleShuffle(CardInfo[] deck)
+    //revert to private 
+    public void RiffleShuffle(CardInfo[] deck)
     {
         // creating a random cut which represent the point to slipt the deck 
         int deckLength = deck.Length;
@@ -114,14 +115,14 @@ public class Dealer : State
 
         //refilling the deck from the two splits 
         int firstIndex = 0;
-        int secondIndex = firstIndex++;
+        int secondIndex = 1;
         int topHalfIndex = 0;
         bottomHalfIndex = 0;
         while (secondIndex < deckLength)
         {
             if (_stopDealing) return;
             // if can add from top half 
-            if (topHalfIndex < cut)
+            if (topHalfIndex < cut && firstIndex < deckLength)
             {
                 deck[firstIndex] = topHalf[topHalfIndex++];
                 firstIndex += 2;
