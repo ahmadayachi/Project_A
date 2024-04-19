@@ -8,10 +8,10 @@ using UnityEngine.TestTools;
 
 public class SinglePeerBase
 {
-    protected const int BeloteDeckSize = 32;
+    protected const byte BeloteDeckSize = 32;
     private readonly byte[] _beloteCardRanks = { 7, 8, 9, 11, 12, 13, 10, 1 };
     protected  CardInfo[] FakeDeck = new CardInfo[BeloteDeckSize];
-    private const int SuitsNumber = 4;
+    private const byte SuitsNumber = 4;
     protected byte MaxPlayerCards;
     protected FakePlayer[] FakePlayers;
     //[UnitySetUp]
@@ -30,25 +30,20 @@ public class SinglePeerBase
     {
         CardInfo card;
         byte CardID = 1;
-        for(int suitIndex = 0; suitIndex < SuitsNumber; suitIndex++)
+        int arrayIndex = 0;
+        for(byte suitIndex = 0; suitIndex < SuitsNumber; suitIndex++)
         {
-            for(int rankIndex=0;rankIndex<_beloteCardRanks.Length; rankIndex++)
+            for(byte rankIndex=0;rankIndex<_beloteCardRanks.Length; rankIndex++)
             {
                 card = new CardInfo()
                 {
                     Rank = _beloteCardRanks[rankIndex],
                     ID = CardID++,
-                    Suit =(CardSuit)suitIndex,
+                    Suit =suitIndex,
                     IsValid = true
                 };
 
-                if (!FakeDeck.AddCard(card))
-                {
-#if Log
-                    Debug.LogError("Failed to Add card to Deck in Deck Creation !");
-#endif
-                    return;
-                }
+                FakeDeck[arrayIndex++] = card;
             }
         }
     }

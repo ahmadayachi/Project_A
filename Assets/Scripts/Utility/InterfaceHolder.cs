@@ -1,7 +1,4 @@
 
-
-
-
 using Fusion;
 using System;
 using System.Collections.Generic;
@@ -42,7 +39,7 @@ public interface ICard : ICardInfo
     ICardUI CardUI { get; }
     void SetRank(byte rank);
     void SetID(byte id);
-    void SetSuite(CardSuit suite);
+    void SetSuite(byte suite);
     void Enable();
     void Disable();
     CardInfo ToCardInfo();
@@ -51,7 +48,7 @@ public interface ICardInfo
 {
     byte Rank { get; }
     byte ID { get; }
-    CardSuit Suite { get; }
+    byte Suit { get; }
 }
 public interface ICardUI
 {
@@ -65,7 +62,7 @@ public struct CardInfo
 {
     public byte Rank;
     public byte ID;
-    public CardSuit Suit;
+    public byte Suit;
     public bool IsValid;
     public override string ToString()
     {
@@ -74,10 +71,10 @@ public struct CardInfo
 }
 public enum CardSuit
 {
-    S,
-    D,
-    H,
-    C
+    S=0,
+    D=1,
+    H=2,
+    C=3
 }
 #endregion
 public interface IDealerBehaviour
@@ -104,7 +101,6 @@ public struct DealerArguments
     public ICardReceiver[] Players;
     public Action OnDealerStateEnds;
 }
-
 #endregion
 
 

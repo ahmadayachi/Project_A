@@ -10,11 +10,28 @@ public class Card : MonoBehaviour, ICard
     public byte Rank { get => _rank; }
     private byte _id { get; set; }
     public byte ID { get => _id; }
-    private CardSuit _suite { get; set; }
-    public CardSuit Suite { get => _suite; }
+    private byte _suit { get; set; }
+    public byte Suit { get => _suit; }
     private ICardUI _cardUI { get; set;}
     public ICardUI CardUI { get => _cardUI; }
     #endregion
+    private void Awake()
+    {
+        SetCardUI();
+    }
+    private void SetCardUI()
+    {
+        if (_cardUI != null) return;
+        ICardUI cardUI = GetComponent<ICardUI>();
+        if (cardUI == null)
+        {
+#if Log
+            Debug.LogError("There Is No UICard Component attached to Card GameObject!");
+#endif
+            return;
+        }
+        _cardUI = CardUI;
+    }
     public void SetRank(byte rank)
     {
         _rank = rank;
@@ -23,9 +40,9 @@ public class Card : MonoBehaviour, ICard
     {
         _id = id;
     }
-    public void SetSuite(CardSuit suite)
+    public void SetSuite(byte suite)
     {
-        _suite = suite;
+        _suit = (byte)suite;
     }
 
     public void Enable()
@@ -40,6 +57,11 @@ public class Card : MonoBehaviour, ICard
 
     public CardInfo ToCardInfo()
     {
-        throw new System.NotImplementedException();
+        CardInfo info = new CardInfo();
+        info.ID = _id;
+        info.Rank = _rank;
+        info.Suit = _suit;
+        info.IsValid = true;
+        return info;
     }
 }
