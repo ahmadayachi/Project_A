@@ -14,14 +14,14 @@ public class DealerTest:SinglePeerBase
     public void FakeDeckCreationTest()
     {
         FillFakeDeck(); 
-        Assert.IsTrue(IsAValidBeloteDeck(FakeDeck),"Deck is not a valid Belote Deck !");
+        Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck),"Deck is not a valid Belote Deck !");
     }
 
     [Test]
     public void DealingTest()
     {
         FillFakeDeck();
-        Assert.IsTrue(IsAValidBeloteDeck(FakeDeck), "Deck is not a valid Belote Deck !");
+        Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck), "Deck is not a valid Belote Deck !");
         CreateFakePlayers(PlayersNumber);
         Assert.IsTrue(ArePlayersValid(FakePlayers), "Players Ares Not Valid!");
         _dealer = new Dealer();
@@ -41,7 +41,7 @@ public class DealerTest:SinglePeerBase
     public void DeckShufflingTest()
     {
         FillFakeDeck();
-        Assert.IsTrue(IsAValidBeloteDeck(FakeDeck), "Deck is not a valid Belote Deck !");
+        Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck), "Deck is not a valid Belote Deck !");
         CardInfo[] FakeDeckClone = new CardInfo[FakeDeck.Length];
         Array.Copy(FakeDeck, FakeDeckClone, FakeDeck.Length);
         Assert.False(IsDeckShuffled(FakeDeck, FakeDeckClone), "Deck should not be Shuffled");

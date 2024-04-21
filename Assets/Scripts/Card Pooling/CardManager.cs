@@ -1,3 +1,6 @@
+using Codice.CM.Common;
+using System;
+using System.Linq;
 using UnityEngine;
 
 
@@ -100,17 +103,14 @@ public static class CardManager
         }
     }
 #endif
-    public const byte DEFAULT_DECK_SIZE = 32;
-    /// <summary>
-    /// this represents the Ranks number of standart Deck +1
-    /// </summary>
-    public const byte STANDARD_DECK_CARD_RANKS = 14;
-    public const byte CARD_SUIT_NUMBER = 4;
-    private static CardInfo[] _cards = new CardInfo[DEFAULT_DECK_SIZE];
+    public const byte BELOTE_DECK_SUIT_SIZE = 8;
+    public const byte STANDARD_DECK_SUIT_SIZE = 13;
+    private static CardInfo[] _cards;
     /// <summary>
     /// Standart Belote Deck
     /// </summary>
-    public static CardInfo[] Deck { get => _cards;}
+    public static CardInfo[] Deck { get => _cards; }
+
     public static CardInfo GetCard(byte ID)
     {
         if (ID <= 0)
@@ -124,43 +124,102 @@ public static class CardManager
         return _cards[ID - 1];
     }
 
-    public static void Init()
+    public static void Init(DeckInfo deckInfo)
     {
-        CreateDeck();
+        CreateDeck(deckInfo);
+    }
+    public static void Reset()
+    {
+        Array.Clear(_cards, 0, _cards.Length);
     }
 
-  
-    private static void CreateDeck()
+    //Create Deck Dynamically
+    private static void CreateDeck(DeckInfo deckInfo)
     {
-        CardInfo card;
-        byte DeckIndex = 0;
-        //declared this because i didnt want to cast (DeckIndex+1)
-        byte CardID = 1;
-        byte ace = 1;
-        for (byte suitIndex = 0; suitIndex < CARD_SUIT_NUMBER; suitIndex++)
+        //blocking is suits number is not enough
+        if (deckInfo.SuitsNumber < 1)
         {
-            for (byte rankIndex = 7; rankIndex < STANDARD_DECK_CARD_RANKS; rankIndex++)
+#if Log
+            Debug.LogError($"{deckInfo.SuitsNumber} this Suit number is too low to create a deck!");
+#endif
+            return;
+        }
+
+
+        //setting up deck size 
+        int deckSize = SetCardsArraySize(deckInfo.DeckType,
+                                         deckInfo.SuitsNumber,
+                                         deckInfo.CustomSuit == null ? 0 : deckInfo.CustomSuit.Length);
+        if (deckSize <= 0)
+        {
+#if Log
+            Debug.LogError($"Invalid Deck Size ! deckSize={deckSize}");
+#endif 
+            return;
+        }
+        _cards = new CardInfo[deckSize];
+
+        //setting up starting index of the loop and maxIterations
+        byte startingRankIndex;
+        byte maxIterations;
+
+        if (deckInfo.CustomSuit == null)
+        {
+            startingRankIndex = (byte)deckInfo.DeckType;
+            maxIterations = (STANDARD_DECK_SUIT_SIZE + 1);
+        }
+        else
+        {
+            startingRankIndex = 0;
+            maxIterations = (byte)deckInfo.CustomSuit.Length;
+        }
+
+        //filling the cards array
+        byte cardsDeckIndex = 0;
+        CardInfo card;
+        byte cardID = 1;
+        byte ace = 1;
+        byte cardRank = 0;
+
+        for (byte suitIndex = 0; suitIndex < deckInfo.SuitsNumber; suitIndex++)
+        {
+            //adding the suit Ranks
+            for (byte rankIndex = startingRankIndex; rankIndex < maxIterations; rankIndex++)
             {
+                cardRank = deckInfo.CustomSuit == null ? rankIndex : deckInfo.CustomSuit[rankIndex];
                 card = new CardInfo()
                 {
-
-                    Rank = rankIndex,
-                    ID = CardID++,
+                    Rank = cardRank,
+                    ID = cardID++,
                     Suit = suitIndex,
                     IsValid = true
                 };
 
-                _cards[DeckIndex++] = card;
+                _cards[cardsDeckIndex++] = card;
             }
-            card = new CardInfo()
+            // adding Ace at the end of a suit (only needed when it is not a custom deck) 
+            if (deckInfo.CustomSuit == null)
             {
-                Rank = ace,
-                ID = CardID++,
-                Suit = suitIndex,
-                IsValid = true
-            };
-            //index shouldve been postly incremented
-            _cards[DeckIndex] = card;
+                card = new CardInfo()
+                {
+                    Rank = ace,
+                    ID = cardID++,
+                    Suit = suitIndex,
+                    IsValid = true
+                };
+                _cards[cardsDeckIndex++] = card;
+            }
         }
+    }
+    private static int SetCardsArraySize(DeckType deckType, byte SuitsNumber, int CustomArrayLengh)
+    {
+        int deckSize = 0;
+        switch (deckType)
+        {
+            case DeckType.Standard: deckSize = (SuitsNumber * STANDARD_DECK_SUIT_SIZE); break;
+            case DeckType.Belote: deckSize = (SuitsNumber * BELOTE_DECK_SUIT_SIZE); break;
+            case DeckType.Custom: deckSize = (SuitsNumber * CustomArrayLengh); break;
+        }
+        return deckSize;
     }
 }

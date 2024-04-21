@@ -68,6 +68,7 @@ public struct CardInfo
     {
         return $"Ivalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
     }
+
 }
 public enum CardSuit
 {
@@ -100,6 +101,13 @@ public struct DealerArguments
     public CardInfo[] DeckToDeal;
     public ICardReceiver[] Players;
     public Action OnDealerStateEnds;
+
+}
+public struct DeckInfo
+{
+    public DeckType DeckType;
+    public byte SuitsNumber;
+    public byte[] CustomSuit;
 }
 #endregion
 
@@ -128,5 +136,20 @@ public enum RoundState
     /// Round ended , after check if game is over else just start a new round 
     /// </summary>
     RoundOver
+}
+public enum DeckType
+{
+    /// <summary>
+    /// a standart Deck will contain all Ranks from Ace to king 
+    /// </summary>
+    Standard=2,
+    /// <summary>
+    /// A Belote Deck will Contain Ranks from 7 to Ace excluding these ranks (2,3,4,5,6)
+    /// </summary>
+    Belote = 7,
+    /// <summary>
+    /// A Custom Deck that Can Have Any Ranks the players Choose with min of 8 Ranks
+    /// </summary>
+    Custom = 69
 }
 #endregion

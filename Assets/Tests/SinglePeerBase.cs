@@ -1,3 +1,5 @@
+
+//#define UsingUnityTest
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,29 +11,31 @@ using UnityEngine.TestTools;
 public class SinglePeerBase
 {
     protected const byte BeloteDeckSize = 32;
+    protected const byte StandardSuitsNumber = 4;
     private readonly byte[] _beloteCardRanks = { 7, 8, 9, 11, 12, 13, 10, 1 };
     protected  CardInfo[] FakeDeck = new CardInfo[BeloteDeckSize];
-    private const byte SuitsNumber = 4;
     protected byte MaxPlayerCards;
     protected FakePlayer[] FakePlayers;
-    //[UnitySetUp]
-    //[Timeout(600000)]
-    //public IEnumerator MultiPeerSetup()
-    //{
-    //    yield return new EnterPlayMode();
-    //}
-    //[UnityTearDown]
-    //public IEnumerator TearDown()
-    //{
-    //    Debug.Log("Test Completed !");
-    //    yield return new ExitPlayMode();
-    //}
+#if UsingUnityTest   
+    [UnitySetUp]
+    [Timeout(600000)]
+    public IEnumerator MultiPeerSetup()
+    {
+        yield return new EnterPlayMode();
+    }
+    [UnityTearDown]
+    public IEnumerator TearDown()
+    {
+        Debug.Log("Test Completed !");
+        yield return new ExitPlayMode();
+    }
+#endif
     protected void FillFakeDeck()
     {
         CardInfo card;
         byte CardID = 1;
         int arrayIndex = 0;
-        for(byte suitIndex = 0; suitIndex < SuitsNumber; suitIndex++)
+        for(byte suitIndex = 0; suitIndex < StandardSuitsNumber; suitIndex++)
         {
             for(byte rankIndex=0;rankIndex<_beloteCardRanks.Length; rankIndex++)
             {
@@ -48,11 +52,11 @@ public class SinglePeerBase
         }
     }
     /// <summary>
-    /// returns true is the provided Deck is a Belote Deck and the Cards within are valid
+    /// returns true is the provided Deck is a Belote Deck with an Original Size (32) and the Cards within are valid
     /// </summary>
     /// <param name="deck"></param>
     /// <returns></returns>
-    protected bool IsAValidBeloteDeck(CardInfo[] deck)
+    protected bool IsAValidBeloteDeckWithAStandartSize(CardInfo[] deck)
     {
         if(deck.Length != BeloteDeckSize)
         {
@@ -156,7 +160,6 @@ public class SinglePeerBase
         }
         return true;
     }
-
     protected bool IsDeckShuffled(CardInfo[] refrenceDeck, CardInfo[] shuffledDeck)
     {
         if(refrenceDeck == null||shuffledDeck==null) return false;

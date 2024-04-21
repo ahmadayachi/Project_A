@@ -20,7 +20,7 @@ public class Dealer : State
         else
         {
 #if Log
-            Debug.LogError("wrong argument passed !");
+            Debug.LogError("  wrong Dealer argument passed !");
 #endif
         }
     }
@@ -114,24 +114,20 @@ public class Dealer : State
         Array.Clear(deck, 0, deckLength);
 
         //refilling the deck from the two splits 
-        int firstIndex = 0;
-        int secondIndex = 1;
         int topHalfIndex = 0;
         bottomHalfIndex = 0;
-        while (secondIndex < deckLength)
+        for (int deckIndex = 0; deckIndex < deckLength; deckIndex++)
         {
             if (_stopDealing) return;
             // if can add from top half 
-            if (topHalfIndex < cut && firstIndex < deckLength)
+            if (topHalfIndex < cut && deckIndex < deckLength)
             {
-                deck[firstIndex] = topHalf[topHalfIndex++];
-                firstIndex += 2;
+                deck[deckIndex] = topHalf[topHalfIndex++];
             }
             //if can can add from bottom half 
-            if (bottomHalfIndex < bottomHalflength && secondIndex < deckLength)
+            if (bottomHalfIndex < bottomHalflength && deckIndex < deckLength)
             {
-                deck[secondIndex] = BottomHalf[bottomHalfIndex++];
-                secondIndex += 2;
+                deck[++deckIndex] = BottomHalf[bottomHalfIndex++];
             }
         }
     }

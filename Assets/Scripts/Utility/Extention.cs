@@ -28,7 +28,7 @@ public static class Extention
             return false;
         }
     }
-    #region Array extentions
+    #region Cards Array extentions
     /// <summary>
     /// Fisher-Yates shuffle 
     /// </summary>
@@ -94,6 +94,25 @@ public static class Extention
             }
         }
         return IsCardRemoved;
+    }
+    /// <summary>
+    /// the total Number of Cards that are Valid In this Array 
+    /// </summary>
+    /// <param name="array"></param>
+    /// <returns></returns>
+    public static int CardsCount(this CardInfo[] array)
+    {
+        int count = 0;
+        for(int index = 0;index < array.Length; index++)
+        {
+            if ((array[index].IsValid))
+                count++;
+        }
+        return count;
+    }
+    public static bool IsCardsArrayEmpty(this CardInfo[] array)
+    {
+        return array.CardsCount() == 0;
     }
     #endregion
 }

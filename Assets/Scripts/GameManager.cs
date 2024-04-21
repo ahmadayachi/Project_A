@@ -9,6 +9,7 @@ public class GameManager :NetworkBehaviour
 
     #region Deck props
     private const int BeloteDeckSize = 32;
+
     private byte _maxPlayerCards;
    /// <summary>
    /// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount 
