@@ -149,7 +149,7 @@ public static class CardManager
         //setting up deck size 
         int deckSize = SetCardsArraySize(deckInfo.DeckType,
                                          deckInfo.SuitsNumber,
-                                         deckInfo.CustomSuit == null ? 0 : deckInfo.CustomSuit.Length);
+                                         deckInfo.CustomSuitRanks == null ? 0 : deckInfo.CustomSuitRanks.Length);
         if (deckSize <= 0)
         {
 #if Log
@@ -163,7 +163,7 @@ public static class CardManager
         byte startingRankIndex;
         byte maxIterations;
 
-        if (deckInfo.CustomSuit == null)
+        if (deckInfo.CustomSuitRanks == null)
         {
             startingRankIndex = (byte)deckInfo.DeckType;
             maxIterations = (STANDARD_DECK_SUIT_SIZE + 1);
@@ -171,7 +171,7 @@ public static class CardManager
         else
         {
             startingRankIndex = 0;
-            maxIterations = (byte)deckInfo.CustomSuit.Length;
+            maxIterations = (byte)deckInfo.CustomSuitRanks.Length;
         }
 
         //filling the cards array
@@ -186,7 +186,7 @@ public static class CardManager
             //adding the suit Ranks
             for (byte rankIndex = startingRankIndex; rankIndex < maxIterations; rankIndex++)
             {
-                cardRank = deckInfo.CustomSuit == null ? rankIndex : deckInfo.CustomSuit[rankIndex];
+                cardRank = deckInfo.CustomSuitRanks == null ? rankIndex : deckInfo.CustomSuitRanks[rankIndex];
                 card = new CardInfo()
                 {
                     Rank = cardRank,
@@ -198,7 +198,7 @@ public static class CardManager
                 _cards[cardsDeckIndex++] = card;
             }
             // adding Ace at the end of a suit (only needed when it is not a custom deck) 
-            if (deckInfo.CustomSuit == null)
+            if (deckInfo.CustomSuitRanks == null)
             {
                 card = new CardInfo()
                 {

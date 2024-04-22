@@ -6,7 +6,6 @@ using UnityEngine.TestTools;
 
 public class CardManagerTest : SinglePeerBase
 {
-
     private const int MaxSuitsNumber = 8;
     private const string Belote = "Belote";
     private const string Standard = "Standart";
@@ -36,6 +35,7 @@ public class CardManagerTest : SinglePeerBase
                               Belote,
                               CardManager.BELOTE_DECK_SUIT_SIZE);
     }
+
     [UnityTest]
     public IEnumerator BeloteDeckCreationAllSizeTest()
     {
@@ -44,31 +44,20 @@ public class CardManagerTest : SinglePeerBase
                                             CardManager.BELOTE_DECK_SUIT_SIZE);
     }
 
-    [Test]
-    public void CustomDeckCreationTest()
+    [UnityTest]
+    public IEnumerator CustomDeckCreationTest()
     {
-        // Use the Assert class to test conditions
+        //I let the UI handle the min Size of a Custom Deck
+        byte[] CutomDeck = new byte[] { 1, 3, 8, 12, 13, 11, 9, 5 };
+        yield return DeckSizeCheckCoroutine(DeckType.Custom,
+                                            Custom,
+                                            (byte)CutomDeck.Length,
+                                            CutomDeck);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     #region private Routines
-    private IEnumerator DeckSizeCheckCoroutine(DeckType decktype, string LogHeader, byte SuitSize)
+
+    private IEnumerator DeckSizeCheckCoroutine(DeckType decktype, string LogHeader, byte SuitSize, byte[] CustomDeck = null)
     {
         Assert.IsNull(CardManager.Deck);
 
@@ -78,16 +67,20 @@ public class CardManagerTest : SinglePeerBase
             DeckInfo standartDeckInfo = new DeckInfo();
             standartDeckInfo.DeckType = decktype;
             standartDeckInfo.SuitsNumber = (byte)SuitIndex;
+            if (CustomDeck != null)
+            {
+                standartDeckInfo.CustomSuitRanks = CustomDeck;
+            }
             CardManager.Init(standartDeckInfo);
             Assert.NotNull(CardManager.Deck);
             yield return null;
 
-            //spitting the dick out 
+            //spitting the dick out
             LogDeck(CardManager.Deck, $"{LogHeader} Deck with Suits Number {SuitIndex}");
 
-            //cheking if the Deck size is what it is xD expected to be (stack rabbi ysabrou w barra ) 
+            //cheking if the Deck size is what it is xD expected to be (stack rabbi ysabrou w barra )
             int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
-            int actualDeckSize = CardManager.Deck.CardsCount();
+            int actualDeckSize = CardManager.Deck.ValidCardsCount();
             Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
 #if Log
             Debug.Log($" suits Index {SuitIndex}, {LogHeader} Deck Size{actualDeckSize}");
@@ -102,11 +95,11 @@ public class CardManagerTest : SinglePeerBase
             yield return new WaitForSeconds(1);
         }
     }
-    #endregion
 
-
+    #endregion private Routines
 
     #region private methods
+
     private void StandardSizeDeckCheck(DeckType deck, int suitSize, string LogHeader, byte SuitSize)
     {
         Assert.IsNull(CardManager.Deck);
@@ -118,15 +111,22 @@ public class CardManagerTest : SinglePeerBase
         CardManager.Init(standartDeckInfo);
 
         Assert.NotNull(CardManager.Deck);
-        //cheking if the Deck size is what it is xD expected to be 
+        //cheking if the Deck size is what it is xD expected to be
         int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
-        int actualDeckSize = CardManager.Deck.CardsCount();
+        int actualDeckSize = CardManager.Deck.ValidCardsCount();
         Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
 #if Log
         Debug.Log($"{LogHeader} Deck Size{actualDeckSize}");
 #endif
+        bool isaStandartDeck = false;
+        if (deck == DeckType.Standard)
+            isaStandartDeck = IsaStandartDeck(CardManager.Deck);
+        else if (deck == DeckType.Belote)
+            isaStandartDeck = IsaStandartBeloteDeck(CardManager.Deck);
+        Assert.IsTrue(isaStandartDeck);
+
         LogDeck(CardManager.Deck, $"{LogHeader} Deck");
     }
-    #endregion
 
+    #endregion private methods
 }

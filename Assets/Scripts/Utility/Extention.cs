@@ -1,12 +1,9 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class Extention
 {
     /// <summary>
-    /// returns true if the two types are the same 
+    /// returns true if the two types are the same
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="X"></typeparam>
@@ -14,6 +11,7 @@ public static class Extention
     /// <param name="type2"></param>
     /// <returns></returns>
     public static bool AreSameType<T, X>(T typeToCheck) => typeToCheck is X;
+
     public static bool TryCastToStruct<T, X>(T structToCast, out X result) where X : struct
     {
         if (structToCast is X)
@@ -23,21 +21,23 @@ public static class Extention
         }
         else
         {
-            //default is null 
+            //default is null
             result = default;
             return false;
         }
     }
+
     #region Cards Array extentions
+
     /// <summary>
-    /// Fisher-Yates shuffle 
+    /// Fisher-Yates shuffle
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="array"></param>
     public static void Shuffle<T>(this T[] array)
     {
         System.Random rng = new System.Random();
-        int length = array.Length-1;
+        int length = array.Length - 1;
         for (int index = length; index > 0; index--)
         {
             int RandomIndex = rng.Next(index + 1);
@@ -46,6 +46,7 @@ public static class Extention
             array[RandomIndex] = temp;
         }
     }
+
     public static bool AddCard(this CardInfo[] array, CardInfo card)
     {
         if (!card.IsValid)
@@ -62,8 +63,9 @@ public static class Extention
         }
         return CardIsAdded;
     }
+
     /// <summary>
-    /// If Cards Are Same (returns True ) , (Returns False ) if either Cards are not valid 
+    /// If Cards Are Same (returns True ) , (Returns False ) if either Cards are not valid
     /// </summary>
     /// <param name="firstCard"></param>
     /// <param name="secondCard"></param>
@@ -77,16 +79,17 @@ public static class Extention
                 firstCard.Rank == secondCard.Rank &&
                 firstCard.Suit == secondCard.Suit);
     }
+
     public static bool RemoveCard(this CardInfo[] array, CardInfo cardToRemove)
     {
-        //blocking if card is not instentiated 
-        if(cardToRemove.IsValid) return false;
-        
+        //blocking if card is not instentiated
+        if (cardToRemove.IsValid) return false;
+
         bool IsCardRemoved = false;
 
         for (int index = 0; index < array.Length; index++)
         {
-            if (AreSameCard(array[index],cardToRemove))
+            if (AreSameCard(array[index], cardToRemove))
             {
                 array[index] = new CardInfo();
                 IsCardRemoved = true;
@@ -95,24 +98,97 @@ public static class Extention
         }
         return IsCardRemoved;
     }
+
     /// <summary>
-    /// the total Number of Cards that are Valid In this Array 
+    /// true if the array is null or size (arrray length is 0)
     /// </summary>
     /// <param name="array"></param>
     /// <returns></returns>
-    public static int CardsCount(this CardInfo[] array)
+    public static bool IsNotInitialized(this CardInfo[] array)
     {
+        return (array == null || array.Length == 0);
+    }
+    /// <summary>
+    /// the total Number of Cards that are Valid In this Array
+    /// </summary>
+    /// <param name="array"></param>
+    /// <returns></returns>
+    public static int ValidCardsCount(this CardInfo[] array)
+    {
+        if (array.IsNotInitialized()) return 0;
+
         int count = 0;
-        for(int index = 0;index < array.Length; index++)
+        for (int index = 0; index < array.Length; index++)
         {
             if ((array[index].IsValid))
                 count++;
         }
         return count;
     }
+  /// <summary>
+  /// true if Valid cards Count is 0 
+  /// </summary>
+  /// <param name="array"></param>
+  /// <returns></returns>
     public static bool IsCardsArrayEmpty(this CardInfo[] array)
     {
-        return array.CardsCount() == 0;
+        return array.ValidCardsCount() == 0;
+    }
+    public static bool ContainsCard(this CardInfo[] array, CardInfo card)
+    {
+        if (array.IsNotInitialized()) return false;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (AreSameCard(array[index], card))
+            { return true; }
+        }
+        return false;
+
+    }
+    public static bool ContainsRank(this CardInfo[] array, byte rank)
+    {
+        if (array.IsNotInitialized()) return false;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index].Rank==rank)
+            { return true; }
+        }
+        return false;
+    }
+    public static int DuplicateCounter(this CardInfo[] array, byte rank)
+    {
+        byte counter = 0;
+        for(int index = 0; index < array.Length; index++)
+        {
+            if (array[index].Rank == rank)
+                counter++;
+        }
+        return counter;
+    }
+
+    #endregion Cards Array extentions
+    #region UI 
+    /// <summary>
+    /// sets a giving child to a giving parent 
+    /// </summary>
+    /// <param name="_transform"></param>
+    /// <param name="Parent"></param>
+    public static void SetParent(Transform _transform, Transform Parent)
+    {
+        _transform.SetParent(Parent, false);
+    }
+    public static void FindCanvasAndSetLastSibling(Transform transform)
+    {
+        Canvas canvasgo = MonoBehaviour.FindObjectOfType<Canvas>();
+        if (canvasgo != null)
+        {
+            SetParent(transform, canvasgo.transform);
+            transform.SetAsLastSibling();
+        }
+#if Log
+        else
+            Debug.LogError("No GameObject with the Name Canvas Have Been Found !");
+#endif
     }
     #endregion
 }

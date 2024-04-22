@@ -107,7 +107,7 @@ public struct DeckInfo
 {
     public DeckType DeckType;
     public byte SuitsNumber;
-    public byte[] CustomSuit;
+    public byte[] CustomSuitRanks;
 }
 #endregion
 

@@ -8,4 +8,10 @@ public class PrefabContainer : ScriptableObject
     public NetworkPrefabRef PlayerPrefab;
     public NetworkPrefabRef CardPrefab;
     #endregion
+    #region Log Manager Prefabs
+    public GameObject LogPrefab;
+    public GameObject LogButton;
+    public GameObject LogManagerPanel;
+    public Sprite LogErrorSprite;
+    #endregion
 }
