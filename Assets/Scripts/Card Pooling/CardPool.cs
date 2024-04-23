@@ -1,4 +1,4 @@
-
+//#define USE_FIXED_ARRAY_SIZE
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,8 +19,7 @@ public class CardPool
     {
         this.cardPrefab = cardPrefab;
     }
-    
-    
+
     public IDisplayCard CreateACard(int Name,int Id)
     {
         if (TryGetUsedCard(out IDisplayCard displayCard))
@@ -45,7 +44,7 @@ public class CardPool
         IDisplayCard returnValue= currentCard;
         _arrayIndex++;
         returnValue.Enable(name:Name,Id);
-        
+
         return returnValue;
     }
 
@@ -69,7 +68,6 @@ public class CardPool
                 break;
             }
         }
-        
     }
 
     public void Reset()
@@ -113,19 +111,21 @@ public class CardPool
 
 #endif
     [SerializeField] private GameObject cardPrefab;
-    public const int DEFAULT_ARRAY_SIZE = 13;
+    private int _arraySize;
     private int _arrayIndex = 0;
-    private ICard[] _cards = new ICard[DEFAULT_ARRAY_SIZE];
+    private ICard[] _cards;
     private Queue<int> emptyIndex = new Queue<int>();
 
     private ICard currentCard => _cards[_arrayIndex];
     private bool arrayFull => _cards.Length == _arrayIndex;
 
-    public CardPool(GameObject cardPrefab)
+    public CardPool(GameObject cardPrefab, byte maxPlayerCards, byte playerNumber)
     {
         this.cardPrefab = cardPrefab;
+#if USE_FIXED_ARRAY_SIZE
+        InitArray(maxPlayerCards,playerNumber);
+#endif
     }
-
 
     public ICard CreateACard(CardInfo cardIdentity)
     {
@@ -142,13 +142,13 @@ public class CardPool
         if (arrayFull)
         {
 #if Log
-            Debug.Log($"Expanding Array to {_cards.Length * 2}");
+            LogManager.Log($"Expanding Array to {_cards.Length * 2},", Color.yellow, LogManager.CardPool);
 #endif
             //allocate more
             ExpandArray();
         }
 #if Log
-        Debug.Log($"Creating Card from array index {_arrayIndex}");
+        LogManager.Log($"Creating Card from array index {_arrayIndex}", Color.yellow, LogManager.CardPool);
 #endif
         _cards[_arrayIndex] = InstantiateCard();
         ICard cardToReturn = currentCard;
@@ -172,7 +172,7 @@ public class CardPool
                 if (emptyIndex.Contains(index))
                 {
 #if Log
-                    Debug.LogError($"trying to add element that already exist element: {index}");
+                    LogManager.LogError($"trying to add element that already exist element: {index}");
 #endif
                     break;
                 }
@@ -181,15 +181,41 @@ public class CardPool
                 break;
             }
         }
+    }
 
+    public void DestroyAll()
+    {
+        for (int index = 0; index < _cards.Length; index++)
+        {
+            _cards[index].Disable();
+            //no need for contain because if it does it should be an error
+            if (emptyIndex.Contains(index))
+            {
+#if Log
+                LogManager.LogError($"trying to add element that already exist element: {index}");
+#endif
+                break;
+            }
+            //notify we have gap
+            emptyIndex.Enqueue(index);
+        }
     }
 
     public void Reset()
     {
-        _cards = new ICard[DEFAULT_ARRAY_SIZE];
+        _cards = new ICard[_arraySize];
         emptyIndex.Clear();
         _arrayIndex = 0;
     }
+
+#if USE_FIXED_ARRAY_SIZE
+    private void InitArray(byte MaxPlayerCards,byte playerNumber)
+    {
+        //determined maximum cards that can be played in a game
+        _arraySize = MaxPlayerCards * playerNumber;
+        _cards = new ICard[_arraySize];
+    }
+#endif
 
     private bool TryGetUsedCard(out ICard card)
     {
@@ -198,7 +224,7 @@ public class CardPool
             return false;
         int usedIndex = emptyIndex.Dequeue();
 #if Log
-        Debug.Log($"Found unused index at {usedIndex}");
+        LogManager.Log($"Found unused index at {usedIndex}", Color.cyan, LogManager.CardPool);
 #endif
         card = _cards[usedIndex];
         return true;
@@ -217,6 +243,7 @@ public class CardPool
         ////unsure but should ask for clean up specifically previous array
         //GC.Collect();
     }
+
     private ICard InstantiateCard()
     {
         var gameobj = MonoBehaviour.Instantiate(cardPrefab);

@@ -11,7 +11,11 @@ public static class LogManager
 
     public static string DealerLog = "Dealer";
     public static string CardManagerLog = "CardManager";
+    /// <summary>
+    /// any loging of a value  
+    /// </summary>
     public static string ValueInformationLog = "Value";
+    public static string CardPool = "CardPool";
 
     #endregion Debug Keys
 
