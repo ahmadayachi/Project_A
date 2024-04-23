@@ -116,7 +116,7 @@ public static class CardManager
         if (ID <= 0)
         {
 #if Log
-            Debug.LogError($"the ID Provided is Not Valid {ID}");
+            LogManager.LogError($"the ID Provided is Not Valid {ID}");
 #endif
             //handle null cards outside 
             return default;
@@ -140,7 +140,7 @@ public static class CardManager
         if (deckInfo.SuitsNumber < 1)
         {
 #if Log
-            Debug.LogError($"{deckInfo.SuitsNumber} this Suit number is too low to create a deck!");
+            LogManager.LogError($"{deckInfo.SuitsNumber} this Suit number is too low to create a deck!");
 #endif
             return;
         }
@@ -153,7 +153,7 @@ public static class CardManager
         if (deckSize <= 0)
         {
 #if Log
-            Debug.LogError($"Invalid Deck Size ! deckSize={deckSize}");
+            LogManager.LogError($"Invalid Deck Size ! deckSize={deckSize}");
 #endif 
             return;
         }

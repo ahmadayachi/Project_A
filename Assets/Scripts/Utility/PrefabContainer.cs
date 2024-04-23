@@ -10,8 +10,5 @@ public class PrefabContainer : ScriptableObject
     #endregion
     #region Log Manager Prefabs
     public GameObject LogPrefab;
-    public GameObject LogButton;
-    public GameObject LogManagerPanel;
-    public Sprite LogErrorSprite;
     #endregion
 }

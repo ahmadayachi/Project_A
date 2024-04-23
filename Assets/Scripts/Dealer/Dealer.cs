@@ -20,7 +20,7 @@ public class Dealer : State
         else
         {
 #if Log
-            Debug.LogError("  wrong Dealer argument passed !");
+            LogManager.LogError("  wrong Dealer argument passed !");
 #endif
         }
     }
@@ -29,7 +29,7 @@ public class Dealer : State
         _stopDealing = true;
 
 #if Log
-        Debug.Log("Dealing is forced to Stop!");
+        LogManager.Log("Dealing is forced to Stop!",Color.yellow,LogManager.DealerLog);
 #endif
     }
     #endregion

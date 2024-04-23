@@ -187,7 +187,7 @@ public static class Extention
         }
 #if Log
         else
-            Debug.LogError("No GameObject with the Name Canvas Have Been Found !");
+            LogManager.LogError("No GameObject with the Name Canvas Have Been Found !");
 #endif
     }
     #endregion

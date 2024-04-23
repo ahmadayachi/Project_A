@@ -93,7 +93,7 @@ public class SinglePeerBase
     protected void LogDeck(CardInfo[] deck, string header)
     {
         for (int index = 0; index < deck.Length; index++)
-            Debug.Log(header + "  " + deck[index]);
+            LogManager.Log(header + "  " + deck[index],Color.green,LogManager.ValueInformationLog);
     }
 
     #region protected bool methods

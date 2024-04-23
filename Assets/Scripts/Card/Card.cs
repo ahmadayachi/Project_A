@@ -26,7 +26,7 @@ public class Card : MonoBehaviour, ICard
         if (cardUI == null)
         {
 #if Log
-            Debug.LogError("There Is No UICard Component attached to Card GameObject!");
+            LogManager.LogError("There Is No UICard Component attached to Card GameObject!");
 #endif
             return;
         }

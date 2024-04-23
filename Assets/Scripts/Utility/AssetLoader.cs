@@ -29,7 +29,7 @@ public static class AssetLoader
     #endregion
 
     #region PrefabContainer
-    private const string PrefabContaineraddr = "PrefabContainer.asset";
+    private const string PrefabContaineraddr = "Prefabs.asset";
     private static PrefabContainer _prefabcontainer;
     public static PrefabContainer PrefabContainer
     {

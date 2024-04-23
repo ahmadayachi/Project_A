@@ -34,7 +34,7 @@ public class GameManager :NetworkBehaviour
         {
             _playernumber = (byte) numberOfPlayers;
 #if Log
-            Debug.Log($"Player number is Set !, Player Number = {_playernumber}");
+            LogManager.Log($"Player number is Set !, Player Number = {_playernumber}",Color.green,LogManager.ValueInformationLog);
 #endif
         }
     }
@@ -43,7 +43,7 @@ public class GameManager :NetworkBehaviour
         if ( _playernumber == 0)
         {
 #if Log
-            Debug.LogError("player number need to be > 0 before setting the max player cards ");
+            LogManager.LogError("player number need to be > 0 before setting the max player cards ");
 #endif
             return;
         }
