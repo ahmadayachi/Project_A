@@ -5,63 +5,132 @@ using UnityEngine;
 
 public class Card : MonoBehaviour, ICard
 {
-    #region Card Properties
-    private byte _rank { get; set; }
+    #region Card Fields
+
+    private CardUI _cardUI;
+    private byte _rank;
+    private byte _id;
+    private byte _suit;
+    private ICardUIControler _cardUIControler;
+
+    #endregion Card Fields
+
+    #region ICard Properties
+
+    public CardUI CardUI { get => _cardUI; }
     public byte Rank { get => _rank; }
-    private byte _id { get; set; }
     public byte ID { get => _id; }
-    private byte _suit { get; set; }
     public byte Suit { get => _suit; }
-    private ICardUI _cardUI { get; set;}
-    public ICardUI CardUI { get => _cardUI; }
-    #endregion
+    public ICardUIControler CardUIControl { get => _cardUIControler; }
+
+    #endregion ICard Properties
+
     private void Awake()
     {
-        SetCardUI();
+        SetUpCardUIControler();
     }
-    private void SetCardUI()
+
+    public void SetUpCardUIControler()
     {
-        if (_cardUI != null) return;
-        ICardUI cardUI = GetComponent<ICardUI>();
-        if (cardUI == null)
+        if (_cardUIControler != null) return;
+        _cardUIControler = new CardUIControler(this, CardUI);
+    }
+
+    private bool SetRank(byte rank)
+    {
+        if (!IsAValidBeloteRank(rank))
         {
 #if Log
-            LogManager.LogError("There Is No UICard Component attached to Card GameObject!");
+            LogManager.LogError($"{rank} this rank is not a valid belote rank !");
+#endif
+            return false;
+        }
+        _rank = rank;
+        return true;
+    }
+
+    private bool IsAValidBeloteRank(byte rank)
+    {
+        if (rank == 1) return true;
+        if (rank >= 7 && rank <= 13) return true;
+        return false;
+    }
+
+    public bool SetID(byte id)
+    {
+        if (id == 0)
+        {
+#if Log
+            LogManager.LogError($"Card ID cant be 0!");
+#endif
+            return false;
+        }
+        _id = id;
+        return true;
+    }
+
+    public bool SetSuite(byte suite)
+    {
+        if (suite >= 4)
+        {
+#if Log
+            LogManager.LogError($"{suite} is Invalid!");
+#endif
+            return false;
+        }
+        _suit = (byte)suite;
+        return true;
+    }
+
+    public void Enable(CardInfo card)
+    {
+        if (!card.IsValid)
+        {
+#if Log
+            LogManager.LogError($"Cant Enable an Invalid Card !{card}");
 #endif
             return;
         }
-        _cardUI = CardUI;
-    }
-    public void SetRank(byte rank)
-    {
-        _rank = rank;
-    }
-    public void SetID(byte id)
-    {
-        _id = id;
-    }
-    public void SetSuite(byte suite)
-    {
-        _suit = (byte)suite;
-    }
-
-    public void Enable()
-    {
-        throw new System.NotImplementedException();
+        //enabling ui if all card fields are set
+        if (SetRank(card.Rank) && SetID(card.ID) && SetSuite(card.Suit))
+        {
+            _cardUIControler.SetCardRankSprite();
+#if Log
+            LogManager.Log($"{this} is enabled !", Color.green, LogManager.ValueInformationLog);
+#endif
+        }
+        // resetting if an invalid field dected
+        else
+        {
+#if Log
+            LogManager.LogError($"Cant Enable Card, some values and invalid!{card}");
+#endif
+            Disable();
+        }
     }
 
     public void Disable()
     {
-        throw new System.NotImplementedException();
+        _rank = 0;
+        _id = 0;
+        _suit = 0;
+        _cardUIControler.ResetCardRankSprite();
     }
 
     public CardInfo ToCardInfo()
     {
         CardInfo info = new CardInfo();
+        //if card is reseted the cardinfo should not be valid
+        if (_id == 0) return info;
         info.ID = _id;
         info.Rank = _rank;
         info.Suit = _suit;
         info.IsValid = true;
         return info;
+    }
+
+    public override string ToString()
+    {
+        return $"ID: {ID}, Rank: {Rank}, Suit: {Suit}";
     }
 }

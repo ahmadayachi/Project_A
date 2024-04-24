@@ -132,10 +132,7 @@ public class CardPool
         if (TryGetUsedCard(out ICard card))
         {
             //adjust it to needs and return it
-            card.SetRank(cardIdentity.Rank);
-            card.SetID(cardIdentity.ID);
-            card.SetSuite(cardIdentity.Suit);
-            card.Enable();
+            card.Enable(cardIdentity);
             return card;
         }
 
@@ -152,11 +149,8 @@ public class CardPool
 #endif
         _cards[_arrayIndex] = InstantiateCard();
         ICard cardToReturn = currentCard;
-        _arrayIndex++;
-        cardToReturn.SetRank(cardIdentity.Rank);
-        cardToReturn.SetID(cardIdentity.ID);
-        cardToReturn.SetSuite(cardIdentity.Suit);
-        cardToReturn.Enable();
+        _arrayIndex++;        
+        cardToReturn.Enable(cardIdentity);
 
         return cardToReturn;
     }

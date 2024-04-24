@@ -2,6 +2,9 @@
 using Fusion;
 using System;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 #region Interfaces
 #region Player stuff 
@@ -36,13 +39,15 @@ public interface ICardReceiver
 #region Card stuff  
 public interface ICard : ICardInfo
 {
-    ICardUI CardUI { get; }
-    void SetRank(byte rank);
-    void SetID(byte id);
-    void SetSuite(byte suite);
-    void Enable();
+    CardUI CardUI { get; }
+    ICardUIControler CardUIControl { get; }
+    //void SetRank(byte rank);
+    //void SetID(byte id);
+    //void SetSuite(byte suite);
+    void Enable(CardInfo card);
     void Disable();
     CardInfo ToCardInfo();
+    string ToString();
 }
 public interface ICardInfo
 {
@@ -50,9 +55,10 @@ public interface ICardInfo
     byte ID { get; }
     byte Suit { get; }
 }
-public interface ICardUI
+public interface ICardUIControler
 {
-
+    void SetCardRankSprite();
+    void ResetCardRankSprite();
 }
 public interface ICardBehaviour
 {
@@ -108,6 +114,20 @@ public struct DeckInfo
     public DeckType DeckType;
     public byte SuitsNumber;
     public byte[] CustomSuitRanks;
+}
+[Serializable]
+public struct CardUI
+{
+    [Header("Card Counter Fields")]
+    public RectTransform CardCounterRect;
+    public Image CardCounterImage;
+    public TextMeshProUGUI CardCounterText;
+    public GameObject CardCounterImageGO;
+    [Header("Core Card Fields")]
+    public Button CardButton;
+    public GameObject CardRankImageGO;
+    public Image CardRank;
+    public Image CardPlate;
 }
 #endregion
 
