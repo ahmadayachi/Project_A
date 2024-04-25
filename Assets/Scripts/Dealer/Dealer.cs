@@ -71,11 +71,15 @@ public class Dealer : State
                 continue;
             for (byte jindex = 0; jindex < player.CardsCounter; jindex++)
             {
-                player.AddCard(deck[arrayIndex]);
-                arrayIndex++;
+                //at this point a player should get his card
+                if (player.AddCard(deck[arrayIndex]))
+                    arrayIndex++;
+                //if for some reason adding card fails Stop Dealing 
+                else 
+                    return;  
             }
         }
-        
+
         if (_stopDealing) return;
 
         //invoking callback for (some UI shet)

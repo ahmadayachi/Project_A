@@ -127,30 +127,30 @@ public class CardPool
 #endif
     }
 
-    public ICard CreateACard(CardInfo cardIdentity)
+    public ICard CreateACard(CardInfo cardInfo)
     {
         if (TryGetUsedCard(out ICard card))
         {
             //adjust it to needs and return it
-            card.Enable(cardIdentity);
+            card.Enable(cardInfo);
             return card;
         }
 
         if (arrayFull)
         {
 #if Log
-            LogManager.Log($"Expanding Array to {_cards.Length * 2},", Color.yellow, LogManager.CardPool);
+            LogManager.Log($"Expanding Array to {_cards.Length * 2},", Color.yellow, LogManager.CardPoolLog);
 #endif
             //allocate more
             ExpandArray();
         }
 #if Log
-        LogManager.Log($"Creating Card from array index {_arrayIndex}", Color.yellow, LogManager.CardPool);
+        LogManager.Log($"Creating Card from array index {_arrayIndex}", Color.yellow, LogManager.CardPoolLog);
 #endif
         _cards[_arrayIndex] = InstantiateCard();
         ICard cardToReturn = currentCard;
         _arrayIndex++;        
-        cardToReturn.Enable(cardIdentity);
+        cardToReturn.Enable(cardInfo);
 
         return cardToReturn;
     }
@@ -218,7 +218,7 @@ public class CardPool
             return false;
         int usedIndex = emptyIndex.Dequeue();
 #if Log
-        LogManager.Log($"Found unused index at {usedIndex}", Color.cyan, LogManager.CardPool);
+        LogManager.Log($"Found unused index at {usedIndex}", Color.cyan, LogManager.CardPoolLog);
 #endif
         card = _cards[usedIndex];
         return true;

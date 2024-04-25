@@ -1,3 +1,5 @@
+using Fusion;
+using System.Linq;
 using UnityEngine;
 
 public static class Extention
@@ -27,6 +29,31 @@ public static class Extention
         }
     }
 
+    public static bool IsAValidBeloteRank(byte rank)
+    {
+        if (rank == 1) return true;
+        if (rank >= 7 && rank <= 13) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Cast any byte to Card Suit Enum
+    /// </summary>
+    /// <param name="suitNumber"></param>
+    /// <returns></returns>
+    public static CardSuit ByteToCardSuit(byte suitNumber)
+    {
+        if (suitNumber == 0)
+        {
+            return CardSuit.NoSuit;
+        }
+        else
+        {
+            var Suit = (((suitNumber - 1) % 4) + 1);
+            return (CardSuit)Suit;
+        }
+    }
+
     #region Cards Array extentions
 
     /// <summary>
@@ -49,7 +76,7 @@ public static class Extention
 
     public static bool AddCard(this CardInfo[] array, CardInfo card)
     {
-        if (!card.IsValid)
+        if (!card.IsValid || array.Contains(card))
             return false;
         bool CardIsAdded = false;
         for (int index = 0; index < array.Length; index++)
@@ -108,6 +135,7 @@ public static class Extention
     {
         return (array == null || array.Length == 0);
     }
+
     /// <summary>
     /// the total Number of Cards that are Valid In this Array
     /// </summary>
@@ -125,40 +153,49 @@ public static class Extention
         }
         return count;
     }
-  /// <summary>
-  /// true if Valid cards Count is 0 
-  /// </summary>
-  /// <param name="array"></param>
-  /// <returns></returns>
-    public static bool IsCardsArrayEmpty(this CardInfo[] array)
+
+    /// <summary>
+    /// true if Valid cards Count is 0
+    /// </summary>
+    /// <param name="array"></param>
+    /// <returns></returns>
+    public static bool IsEmpty(this CardInfo[] array)
     {
         return array.ValidCardsCount() == 0;
     }
+
     public static bool ContainsCard(this CardInfo[] array, CardInfo card)
     {
-        if (array.IsNotInitialized()) return false;
+        if (array.IsNotInitialized())
+        {
+#if Log
+            LogManager.LogError("Array is Not Intilialized !");
+#endif
+            return false;
+        }
         for (int index = 0; index < array.Length; index++)
         {
             if (AreSameCard(array[index], card))
             { return true; }
         }
         return false;
-
     }
+
     public static bool ContainsRank(this CardInfo[] array, byte rank)
     {
         if (array.IsNotInitialized()) return false;
         for (int index = 0; index < array.Length; index++)
         {
-            if (array[index].Rank==rank)
+            if (array[index].Rank == rank)
             { return true; }
         }
         return false;
     }
+
     public static int DuplicateCounter(this CardInfo[] array, byte rank)
     {
         byte counter = 0;
-        for(int index = 0; index < array.Length; index++)
+        for (int index = 0; index < array.Length; index++)
         {
             if (array[index].Rank == rank)
                 counter++;
@@ -167,9 +204,98 @@ public static class Extention
     }
 
     #endregion Cards Array extentions
-    #region UI 
+
+    #region Networked Card Array extentions
+
+    public static int ValidCardsCount(this NetworkArray<CardInfo> array)
+    {
+        int count = 0;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index].IsValid))
+                count++;
+        }
+        return count;
+    }
+
+    public static bool IsEmpty(this NetworkArray<CardInfo> array)
+    {
+        return array.ValidCardsCount() == 0;
+    }
+
+    public static CardInfo[] ToCardInfo(this NetworkArray<CardInfo> array)
+    {
+        CardInfo[] cards = null;
+        if (array.IsEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            cards = new CardInfo[array.ValidCardsCount()];
+            for (int index = 0; index < array.Length; index++)
+            {
+                if (array[index].IsValid)
+                {
+                    cards[index] = array[index];
+                }
+            }
+        }
+        return cards;
+    }
+
+    public static void Clear(this NetworkArray<CardInfo> array)
+    {
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index].IsValid)
+                array[index] = new CardInfo();
+        }
+    }
+
+    public static bool AddCard(this NetworkArray<CardInfo> array, CardInfo card)
+    {
+        if (!card.IsValid)
+        {
+#if Log
+            LogManager.LogError("Attemp to add invalid Card to Array!");
+#endif
+            return false;
+        }
+        if (array.Contains(card))
+        {
+#if Log
+            LogManager.LogError("array Already Contains Card!");
+#endif
+            return false;
+        }
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (!array[index].IsValid)
+            {
+                array[index] = card;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool ContainsCard(this NetworkArray<CardInfo> array, CardInfo card)
+    {
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (AreSameCard(array[index], card))
+                return true;
+        }
+        return false;
+    }
+
+    #endregion Networked Card Array extentions
+
+    #region UI
+
     /// <summary>
-    /// sets a giving child to a giving parent 
+    /// sets a giving child to a giving parent
     /// </summary>
     /// <param name="_transform"></param>
     /// <param name="Parent"></param>
@@ -177,6 +303,7 @@ public static class Extention
     {
         _transform.SetParent(Parent, false);
     }
+
     public static void FindCanvasAndSetLastSibling(Transform transform)
     {
         Canvas canvasgo = MonoBehaviour.FindObjectOfType<Canvas>();
@@ -190,5 +317,6 @@ public static class Extention
             LogManager.LogError("No GameObject with the Name Canvas Have Been Found !");
 #endif
     }
-    #endregion
+
+    #endregion UI
 }

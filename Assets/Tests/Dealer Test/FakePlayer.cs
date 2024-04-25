@@ -40,28 +40,26 @@ public class FakePlayer : ICardReceiver
         if (CardsCounter > 0)
             _playerHand = new CardInfo[CardsCounter];
     }
-    public void AddCard(CardInfo card)
+    public bool AddCard(CardInfo card)
     {
         if (!card.IsValid)
         {
 #if Log
             Debug.LogError($"Card is not Valid ! cant Add to Player id = {this.ID}");
 #endif
-            return;
+            return false;
         }
 
-        if (_playerHand.AddCard(card))
-        {
-#if Log
-            Debug.Log($"card Is Added !. player:{this} Card to Add{card}");
-#endif
-        }
-        else
+        if (!_playerHand.AddCard(card))
         {
 #if Log
             Debug.LogError($"No available spot in the array. player:{this} Card to Add{card}");
 #endif
         }
+#if Log
+            Debug.Log($"card Is Added !. player:{this} Card to Add{card}");
+#endif
+        return true;
     }
     public void RemoveCard(CardInfo card)
     {

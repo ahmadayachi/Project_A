@@ -6,15 +6,20 @@ public class DeckContainer : ScriptableObject
 {
     [Header("All Ranks on this Deck")]
    public List<CardSprite> SpriteContainer = new List<CardSprite>();
-    public Sprite GetSuitSprite(byte Rank,byte Suit)
+    public Sprite GetSuitSprite(byte Rank,CardSuit Suit)
     {
-        if(SpriteContainer.Count == 0)
+        if(SpriteContainer.Count == 0 || Suit == CardSuit.NoSuit || !Extention.IsAValidBeloteRank(Rank))
+        {
             return null;
+        }
         Sprite suite;
         for (int index = 0; index < SpriteContainer.Count; index++)
         {
             if (SpriteContainer[index].Rank == Rank)
-                return SpriteContainer[index].Suits[Suit];
+            {
+                byte suitIndex = (byte)Suit;
+                return SpriteContainer[index].Suits[suitIndex-1];
+            }
         }
         return null;
     }

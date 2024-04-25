@@ -10,7 +10,7 @@ public class Card : MonoBehaviour, ICard
     private CardUI _cardUI;
     private byte _rank;
     private byte _id;
-    private byte _suit;
+    private CardSuit _suit;
     private ICardUIControler _cardUIControler;
 
     #endregion Card Fields
@@ -20,7 +20,7 @@ public class Card : MonoBehaviour, ICard
     public CardUI CardUI { get => _cardUI; }
     public byte Rank { get => _rank; }
     public byte ID { get => _id; }
-    public byte Suit { get => _suit; }
+    public CardSuit Suit { get => _suit; }
     public ICardUIControler CardUIControl { get => _cardUIControler; }
 
     #endregion ICard Properties
@@ -38,7 +38,7 @@ public class Card : MonoBehaviour, ICard
 
     private bool SetRank(byte rank)
     {
-        if (!IsAValidBeloteRank(rank))
+        if (!Extention.IsAValidBeloteRank(rank))
         {
 #if Log
             LogManager.LogError($"{rank} this rank is not a valid belote rank !");
@@ -49,12 +49,7 @@ public class Card : MonoBehaviour, ICard
         return true;
     }
 
-    private bool IsAValidBeloteRank(byte rank)
-    {
-        if (rank == 1) return true;
-        if (rank >= 7 && rank <= 13) return true;
-        return false;
-    }
+   
 
     public bool SetID(byte id)
     {
@@ -69,16 +64,16 @@ public class Card : MonoBehaviour, ICard
         return true;
     }
 
-    public bool SetSuite(byte suite)
+    public bool SetSuite(CardSuit suite)
     {
-        if (suite >= 4)
+        if (Suit==CardSuit.NoSuit)
         {
 #if Log
             LogManager.LogError($"{suite} is Invalid!");
 #endif
             return false;
         }
-        _suit = (byte)suite;
+        _suit = suite;
         return true;
     }
 

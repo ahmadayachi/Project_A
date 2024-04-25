@@ -32,7 +32,7 @@ public interface ICardReceiver
     /// how much Cards to deal 
     /// </summary>
     byte CardsCounter { get;}
-    void AddCard(CardInfo card);
+    bool AddCard(CardInfo card);
 }
 #endregion
 
@@ -53,7 +53,7 @@ public interface ICardInfo
 {
     byte Rank { get; }
     byte ID { get; }
-    byte Suit { get; }
+    CardSuit Suit { get; }
 }
 public interface ICardUIControler
 {
@@ -64,24 +64,25 @@ public interface ICardBehaviour
 {
 
 }
-public struct CardInfo
+public struct CardInfo : INetworkStruct
 {
     public byte Rank;
     public byte ID;
-    public byte Suit;
-    public bool IsValid;
+    public CardSuit Suit;
+    public NetworkBool IsValid;
     public override string ToString()
     {
         return $"Ivalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
     }
 
 }
-public enum CardSuit
+public enum CardSuit : byte
 {
-    S=0,
-    D=1,
-    H=2,
-    C=3
+    NoSuit = 0,
+    Spades = 1,
+    Diamond = 2,
+    Hearts = 3,
+    Clover = 4
 }
 #endregion
 public interface IDealerBehaviour

@@ -181,7 +181,7 @@ public static class CardManager
         byte ace = 1;
         byte cardRank = 0;
 
-        for (byte suitIndex = 0; suitIndex < deckInfo.SuitsNumber; suitIndex++)
+        for (byte suitIndex = 1; suitIndex < (deckInfo.SuitsNumber+1); suitIndex++)
         {
             //adding the suit Ranks
             for (byte rankIndex = startingRankIndex; rankIndex < maxIterations; rankIndex++)
@@ -191,7 +191,7 @@ public static class CardManager
                 {
                     Rank = cardRank,
                     ID = cardID++,
-                    Suit = suitIndex,
+                    Suit = Extention.ByteToCardSuit(suitIndex),
                     IsValid = true
                 };
 
@@ -204,7 +204,7 @@ public static class CardManager
                 {
                     Rank = ace,
                     ID = cardID++,
-                    Suit = suitIndex,
+                    Suit = Extention.ByteToCardSuit(suitIndex),
                     IsValid = true
                 };
                 _cards[cardsDeckIndex++] = card;

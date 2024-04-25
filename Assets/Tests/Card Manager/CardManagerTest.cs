@@ -89,7 +89,7 @@ public class CardManagerTest : SinglePeerBase
             //ressetting the Deck
             CardManager.Reset();
             yield return null;
-            Assert.IsTrue(CardManager.Deck.IsCardsArrayEmpty());
+            Assert.IsTrue(CardManager.Deck.IsEmpty());
 
             //taking a break
             yield return new WaitForSeconds(1);

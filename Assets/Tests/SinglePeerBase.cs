@@ -63,7 +63,7 @@ public class SinglePeerBase
         CardInfo card;
         byte CardID = 1;
         int arrayIndex = 0;
-        for (byte suitIndex = 0; suitIndex < StandardSuitsNumber; suitIndex++)
+        for (byte suitIndex = 1; suitIndex < (StandardSuitsNumber+1); suitIndex++)
         {
             for (byte rankIndex = 0; rankIndex < _beloteCardRanks.Length; rankIndex++)
             {
@@ -71,7 +71,7 @@ public class SinglePeerBase
                 {
                     Rank = _beloteCardRanks[rankIndex],
                     ID = CardID++,
-                    Suit = suitIndex,
+                    Suit = (CardSuit)suitIndex,
                     IsValid = true
                 };
 
@@ -215,7 +215,7 @@ public class SinglePeerBase
     /// <returns></returns>
     protected bool IsaStandartDeck(CardInfo[] Deck)
     {
-        if (Deck.IsNotInitialized() || Deck.ValidCardsCount() != StandartDeckSize || Deck.IsCardsArrayEmpty()) return false;
+        if (Deck.IsNotInitialized() || Deck.ValidCardsCount() != StandartDeckSize || Deck.IsEmpty()) return false;
 
         byte maxIndex = CardManager.STANDARD_DECK_SUIT_SIZE + 1;
         //checking ranks existense in deck
@@ -234,7 +234,7 @@ public class SinglePeerBase
 
     protected bool IsaStandartBeloteDeck(CardInfo[] Deck)
     {
-        if (Deck.IsNotInitialized() || Deck.ValidCardsCount() != BeloteDeckSize || Deck.IsCardsArrayEmpty()) return false;
+        if (Deck.IsNotInitialized() || Deck.ValidCardsCount() != BeloteDeckSize || Deck.IsEmpty()) return false;
 
         //checking ranks existense in deck
         for (byte index = 0; index < _beloteCardRanks.Length; index++)
@@ -261,12 +261,12 @@ public class SinglePeerBase
             case DeckType.Belote: SuitRanksNumber = CardManager.BELOTE_DECK_SUIT_SIZE; break;
         }
         int SuitCounter;
-        for (byte suitIndex = 0; suitIndex < StandardSuitsNumber; suitIndex++)
+        for (byte suitIndex = 1; suitIndex < (StandardSuitsNumber+1); suitIndex++)
         {
             SuitCounter = 0;
             for (byte index = 0; index < Deck.Length; index++)
             {
-                if (Deck[index].Suit == suitIndex)
+                if (Deck[index].Suit == (CardSuit)suitIndex)
                     ++SuitCounter;
             }
             if (SuitCounter != SuitRanksNumber)
