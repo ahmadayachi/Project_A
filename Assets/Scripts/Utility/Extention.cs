@@ -207,24 +207,31 @@ public static class Extention
 
     #region Networked Card Array extentions
 
-    public static int ValidCardsCount(this NetworkArray<CardInfo> array)
+    public static int ValidCardsCount(this NetworkArray<byte> array)
     {
         int count = 0;
         for (int index = 0; index < array.Length; index++)
         {
-            if ((array[index].IsValid))
+            if ((array[index]!=0))
                 count++;
         }
         return count;
     }
 
-    public static bool IsEmpty(this NetworkArray<CardInfo> array)
+    public static bool IsEmpty(this NetworkArray<byte> array)
     {
         return array.ValidCardsCount() == 0;
     }
 
-    public static CardInfo[] ToCardInfo(this NetworkArray<CardInfo> array)
+    public static CardInfo[] ToCardInfo(this NetworkArray<byte> array)
     {
+        if (CardManager.Deck == null)
+        {
+#if Log
+            Debug.LogError($"Failed Converting Neworked  Cards Array! Cardmanager Deck is Null!");
+#endif
+            return null;
+        }
         CardInfo[] cards = null;
         if (array.IsEmpty())
         {
@@ -235,9 +242,11 @@ public static class Extention
             cards = new CardInfo[array.ValidCardsCount()];
             for (int index = 0; index < array.Length; index++)
             {
-                if (array[index].IsValid)
+                var cardID = array[index];
+                if (cardID != 0)
                 {
-                    cards[index] = array[index];
+                    var card = CardManager.GetCard(cardID);
+                    cards[index] = card;
                 }
             }
         }
@@ -253,16 +262,16 @@ public static class Extention
         }
     }
 
-    public static bool AddCard(this NetworkArray<CardInfo> array, CardInfo card)
+    public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
     {
-        if (!card.IsValid)
+        if (!card.IsValid || card.ID==0)
         {
 #if Log
             LogManager.LogError("Attemp to add invalid Card to Array!");
 #endif
             return false;
         }
-        if (array.Contains(card))
+        if (array.ContainsCardID(card.ID))
         {
 #if Log
             LogManager.LogError("array Already Contains Card!");
@@ -271,9 +280,9 @@ public static class Extention
         }
         for (int index = 0; index < array.Length; index++)
         {
-            if (!array[index].IsValid)
+            if (array[index]==0)
             {
-                array[index] = card;
+                array[index] = card.ID;
                 return true;
             }
         }
@@ -285,6 +294,15 @@ public static class Extention
         for (int index = 0; index < array.Length; index++)
         {
             if (AreSameCard(array[index], card))
+                return true;
+        }
+        return false;
+    }
+    public static bool ContainsCardID(this NetworkArray<byte> array, byte cardID)
+    {
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index]==cardID)
                 return true;
         }
         return false;

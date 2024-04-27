@@ -47,4 +47,29 @@ public static class AssetLoader
         _prefabcontainer = opUirefs.Result;
     }
     #endregion
+    #region Icons
+
+    private static List<Sprite> _allIcons = null;
+    private const string Icon = "Icons";
+    public static List<Sprite> AllIcons
+    {
+        get
+        {
+            if (_allIcons == null)
+                LoadIcons();
+            return _allIcons;
+        }
+    }
+    public static void LoadIcons()
+    {
+        _allIcons = new List<Sprite>();
+        var op = Addressables.LoadAssetsAsync<Sprite>(Icon,null);
+        op.WaitForCompletion();
+        foreach (var icon in op.Result)
+        {
+            _allIcons.Add(icon);
+        }
+
+    }
+    #endregion
 }

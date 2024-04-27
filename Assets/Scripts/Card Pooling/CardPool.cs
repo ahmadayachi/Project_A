@@ -1,4 +1,5 @@
-//#define USE_FIXED_ARRAY_SIZE
+#define USE_FIXED_ARRAY_SIZE
+using Fusion;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -110,20 +111,21 @@ public class CardPool
     }
 
 #endif
-    [SerializeField] private GameObject cardPrefab;
+    private NetworkPrefabRef _cardPrefab;
     private int _arraySize;
     private int _arrayIndex = 0;
     private ICard[] _cards;
     private Queue<int> emptyIndex = new Queue<int>();
-
+    private Func<NetworkPrefabRef, NetworkObject> SpawnCard;
     private ICard currentCard => _cards[_arrayIndex];
     private bool arrayFull => _cards.Length == _arrayIndex;
 
-    public CardPool(GameObject cardPrefab, byte maxPlayerCards, byte playerNumber)
+    public CardPool(CardPoolArguments poolArgs)
     {
-        this.cardPrefab = cardPrefab;
+       _cardPrefab = poolArgs.CardPrefab;
+        SpawnCard = poolArgs.SpawnCard;
 #if USE_FIXED_ARRAY_SIZE
-        InitArray(maxPlayerCards,playerNumber);
+        InitArray(poolArgs.MaxPlayerCards,poolArgs.ActivePlayerCount);
 #endif
     }
 
@@ -147,7 +149,14 @@ public class CardPool
 #if Log
         LogManager.Log($"Creating Card from array index {_arrayIndex}", Color.yellow, LogManager.CardPoolLog);
 #endif
-        _cards[_arrayIndex] = InstantiateCard();
+        var spawnedCard = InstantiateCard();
+        if(spawnedCard == null)
+        {
+#if Log
+            LogManager.LogError("Card Creation Failed ! Spawned Card is Null");
+#endif
+        }
+        _cards[_arrayIndex] = spawnedCard;
         ICard cardToReturn = currentCard;
         _arrayIndex++;        
         cardToReturn.Enable(cardInfo);
@@ -240,7 +249,7 @@ public class CardPool
 
     private ICard InstantiateCard()
     {
-        var gameobj = MonoBehaviour.Instantiate(cardPrefab);
+        var gameobj = SpawnCard?.Invoke(_cardPrefab);
         return gameobj.GetComponent<ICard>();
     }
 }

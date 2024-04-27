@@ -34,6 +34,11 @@ public interface ICardReceiver
     byte CardsCounter { get;}
     bool AddCard(CardInfo card);
 }
+public interface IPlayerUIControler
+{
+    void SetPlayerIcon();
+    void LoadPlayerCards();
+}
 #endregion
 
 #region Card stuff  
@@ -64,6 +69,9 @@ public interface ICardBehaviour
 {
 
 }
+/// <summary>
+/// network ID only 
+/// </summary>
 public struct CardInfo : INetworkStruct
 {
     public byte Rank;
@@ -102,7 +110,9 @@ public interface IState<T> where T : struct
 #endregion
 
 
-#region Structs
+
+
+#region Struct Arguments
 public struct DealerArguments
 {
     public CardInfo[] DeckToDeal;
@@ -110,6 +120,24 @@ public struct DealerArguments
     public Action OnDealerStateEnds;
 
 }
+public struct CardPoolArguments
+{
+    public NetworkPrefabRef CardPrefab;
+    public byte MaxPlayerCards;
+    public byte ActivePlayerCount;
+    public Func<NetworkPrefabRef,NetworkObject> SpawnCard;
+}
+public struct PlayerArguments
+{
+    public string Name;
+    public string ID;
+    public byte IconID;
+    public byte CardCounter;
+    public GameManager GameManager;
+    public NetworkBool isplayerOut;
+}
+#endregion
+#region Structs
 public struct DeckInfo
 {
     public DeckType DeckType;
@@ -130,33 +158,33 @@ public struct CardUI
     public Image CardRank;
     public Image CardPlate;
 }
+[Serializable]
+public struct PlayerUI
+{
+    public CardPositioner CardPositioner;
+    public SpriteRenderer PlayerIcon;
+}
 #endregion
 
 
 #region enums
-public enum GameState
+public enum GameState:byte
 {
+    /// <summary>
+    /// just chilling, maybe waiting for clients, a host migration happening 
+    /// </summary>
+    Idle,
     GameStarted,
-    GameOver
-}
-public enum RoundState
-{
+    Dealing,
     /// <summary>
-/// the player that plays when a round just started, this player will have fewer choices to play 
-/// </summary>
-    FirstPlayerTurn,
-    /// <summary>
-    /// when a player passes the turn 
+    /// a player that is forced to doubt or to bet 
     /// </summary>
-    PassTurn, 
-    /// <summary>
-    /// a normal player turn, were all choices are available
-    /// </summary>
+    HandicappedPlayerTurn,
     PlayerTurn,
-    /// <summary>
-    /// Round ended , after check if game is over else just start a new round 
-    /// </summary>
-    RoundOver
+    Doubting,
+    RoudOver,
+    GameOver,
+    HostMigration
 }
 public enum DeckType
 {

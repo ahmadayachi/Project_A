@@ -7,7 +7,7 @@ public class Card : MonoBehaviour, ICard
 {
     #region Card Fields
 
-    private CardUI _cardUI;
+    [SerializeField] private CardUI _cardUI;
     private byte _rank;
     private byte _id;
     private CardSuit _suit;
