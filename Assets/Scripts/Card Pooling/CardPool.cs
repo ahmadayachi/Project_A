@@ -111,19 +111,17 @@ public class CardPool
     }
 
 #endif
-    private NetworkPrefabRef _cardPrefab;
+    private GameObject _cardPrefab;
     private int _arraySize;
     private int _arrayIndex = 0;
     private ICard[] _cards;
     private Queue<int> emptyIndex = new Queue<int>();
-    private Func<NetworkPrefabRef, NetworkObject> SpawnCard;
     private ICard currentCard => _cards[_arrayIndex];
     private bool arrayFull => _cards.Length == _arrayIndex;
 
     public CardPool(CardPoolArguments poolArgs)
     {
        _cardPrefab = poolArgs.CardPrefab;
-        SpawnCard = poolArgs.SpawnCard;
 #if USE_FIXED_ARRAY_SIZE
         InitArray(poolArgs.MaxPlayerCards,poolArgs.ActivePlayerCount);
 #endif
@@ -249,7 +247,7 @@ public class CardPool
 
     private ICard InstantiateCard()
     {
-        var gameobj = SpawnCard?.Invoke(_cardPrefab);
+        var gameobj = MonoBehaviour.Instantiate(_cardPrefab);
         return gameobj.GetComponent<ICard>();
     }
 }

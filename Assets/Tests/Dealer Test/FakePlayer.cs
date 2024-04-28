@@ -6,12 +6,12 @@ public class FakePlayer : ICardReceiver
     private string _id;
     public string ID { get => _id; }
     private NetworkBool _isPlayerOut;
-    public NetworkBool IsPlayerOut { get => _isPlayerOut; }
+    public NetworkBool IsOut { get => _isPlayerOut; }
 
     private byte _maxCards;
     public byte MaxCards { get => _maxCards; }
     private byte _cardsCounter;
-    public byte CardsCounter { get => _cardsCounter; }
+    public byte CardsToDealCounter { get => _cardsCounter; }
     private CardInfo[] _playerHand;
     public CardInfo[] PlayerHand { get => _playerHand; }
     public void SetID(string id)
@@ -37,8 +37,8 @@ public class FakePlayer : ICardReceiver
     }
     public void SetUpPlayerHand()
     {
-        if (CardsCounter > 0)
-            _playerHand = new CardInfo[CardsCounter];
+        if (CardsToDealCounter > 0)
+            _playerHand = new CardInfo[CardsToDealCounter];
     }
     public bool AddCard(CardInfo card)
     {

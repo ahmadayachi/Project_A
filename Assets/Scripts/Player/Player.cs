@@ -1,6 +1,8 @@
 using UnityEngine;
 using Fusion;
 using System;
+using System.Collections;
+using UnityEditorInternal;
 
 public class Player : NetworkBehaviour, IPlayer
 {
@@ -19,14 +21,14 @@ public class Player : NetworkBehaviour, IPlayer
 
     [Networked] private string _name { get; set; }
     [Networked] private string _id { get; set; }
-    [Networked] private byte _cardCounter { get; set; }
-    [Networked] private NetworkBool _isPlayerOut { get; set; }
+    [Networked] private byte _cardToDealCounter { get; set; }
+    [Networked] private NetworkBool _isOut { get; set; }
     [Networked] private byte _iconID { get; set; }
     /// <summary>
     /// an array of player Card ID's 
     /// </summary>
     [Networked, Capacity(15)]
-    private NetworkArray<byte> _playerHand { get; }
+    private NetworkArray<byte> _hand { get; }
 
     #endregion Player Networked Properties
 
@@ -35,15 +37,14 @@ public class Player : NetworkBehaviour, IPlayer
     public IPlayerBehaviour PlayerState { get => _playerState; }
     public IPlayerUIControler PlayerUIControler { get => _playerUIControler; }
     public string Name { get => _name; }
-
     public string ID { get => _id; }
     public byte IconID { get => _iconID; }
 
-    public CardInfo[] PlayerHand
+    public CardInfo[] Hand
     {
         get
         {
-            CardInfo[] result = _playerHand.ToCardInfo();
+            CardInfo[] result = _hand.ToCardInfo();
             if (result == null)
             {
 #if Log
@@ -54,10 +55,10 @@ public class Player : NetworkBehaviour, IPlayer
         }
     }
 
-    public NetworkBool IsPlayerOut { get => _isPlayerOut; }
-
-    public byte CardsCounter { get => _cardCounter; }
-
+    public NetworkBool IsOut { get => _isOut; }
+    public byte CardsToDealCounter { get => _cardToDealCounter; }
+    public int HandCount { get => _hand.ValidCardsCount();}
+    public bool IsHandFull { get =>(HandCount==CardsToDealCounter); }
     #endregion Player Properties
 
     public override void Spawned()
@@ -77,7 +78,7 @@ public class Player : NetworkBehaviour, IPlayer
             switch (change)
             {
                 case nameof(_iconID): _playerUIControler.SetPlayerIcon(); break;
-                case nameof(_playerHand): _playerUIControler.LoadPlayerCards(); break;
+                case nameof(_hand): _playerUIControler.LoadPlayerCards(); break;
             }
         }
     }
@@ -122,7 +123,7 @@ public class Player : NetworkBehaviour, IPlayer
 #endif
             return;
         }
-        _cardCounter = cardCounter;
+        _cardToDealCounter = cardCounter;
     }
     public void SetPlayerIcon(byte IconID)
     {
@@ -147,34 +148,34 @@ public class Player : NetworkBehaviour, IPlayer
             LogManager.Log($"{this} is Out !",Color.yellow,LogManager.ValueInformationLog);
 #endif
         }
-        _isPlayerOut = isPlayerOut;
+        _isOut = isPlayerOut;
     }
     private void SetUpPlayerBehaviour()
     {
-        if (_runner.GameMode == GameMode.Single)
-        {
-            _playerState = new OfflinePlayerBehaviour();
-        }
-        else
-        {
-            _playerState = new OnlinePlayerBehaviour();
-        }
+        //if (_runner.GameMode == GameMode.Single)
+        //{
+        //    _playerState = new OfflinePlayerBehaviour();
+        //}
+        //else
+        //{
+        //    _playerState = new OnlinePlayerBehaviour();
+        //}
     }
     private void SetUpPlayerUIControler()
     {
         if (_playerUIControler != null)
-            _playerUIControler = new PlayerUIController(_playerUI, this);
+            _playerUIControler = new PlayerUIController(_playerUI, this,_gameManager.CardPool);
     }
     #endregion
 
     public void ClearHand()
     {
-        _playerHand.Clear();
+        _hand.Clear();
     }
 
     public bool AddCard(CardInfo card)
     {
-        if (IsPlayerOut)
+        if (IsOut)
         {
 #if Log
             LogManager.Log($"{this} is out cant add card!", Color.blue, LogManager.PlayerLog);
@@ -182,7 +183,7 @@ public class Player : NetworkBehaviour, IPlayer
             return false;
         }
 
-        if (CardsCounter == _playerHand.ValidCardsCount())
+        if (CardsToDealCounter == HandCount)
         {
 #if Log
             LogManager.LogError("Add Card Failed!, Player should be Out!");
@@ -190,7 +191,7 @@ public class Player : NetworkBehaviour, IPlayer
             return false;
         }
 
-        if (!_playerHand.AddCardID(card))
+        if (!_hand.AddCardID(card))
         {
 #if Log
             LogManager.LogError($"Adding {card} to player={this} Failed!");
@@ -203,4 +204,14 @@ public class Player : NetworkBehaviour, IPlayer
     {
         return $"Name:{_name}/ ID:{_id}";
     }
+    #region method wrappers
+    public Coroutine Startroutine(IEnumerator coroutin)
+    {
+        return StartCoroutine(coroutin);
+    }
+    public void StopRoutine(Coroutine coroutin)
+    {
+        StopCoroutine(coroutin);
+    }
+    #endregion
 }

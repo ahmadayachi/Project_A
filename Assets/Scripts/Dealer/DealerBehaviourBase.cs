@@ -7,7 +7,7 @@ public abstract class DealerBehaviourBase : IDealerBehaviour
 {
     public List<ICard> DeckOfCards { get; set; }
     private  readonly byte[] _beloteCardRanks = { 7, 8, 9, 11, 12, 13, 10, 1 };
-    private NetworkPrefabRef _cardPrefab = AssetLoader.PrefabContainer.CardPrefab;
+    //private NetworkPrefabRef _cardPrefab = AssetLoader.PrefabContainer.CardPrefab;
     protected NetworkRunner _runner;  
     //public void CreateDeck()
     //{

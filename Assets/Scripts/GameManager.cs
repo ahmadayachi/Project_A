@@ -81,8 +81,6 @@ public class GameManager :NetworkBehaviour
         poolArgs.CardPrefab = cardPrefab;
         poolArgs.MaxPlayerCards = _maxPlayerCards;
         poolArgs.ActivePlayerCount = _maxPlayerCards;
-        poolArgs.SpawnCard += SpawnObject;
-
         _cardsPool = new CardPool(poolArgs);
     }
     #endregion

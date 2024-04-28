@@ -4,6 +4,6 @@ using UnityEngine;
 
 public abstract class State 
 {
-    public abstract void Start<T>(T arg) where T : struct;
+    public abstract  void Start<T>(T arg) where T : struct;
     public abstract void ForceEnd();
 }

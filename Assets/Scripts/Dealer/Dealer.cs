@@ -67,9 +67,9 @@ public class Dealer : State
 
             player = arguments.Players[index];
             //jumping players that cant reciese cards 
-            if (player.IsPlayerOut)
+            if (player.IsOut)
                 continue;
-            for (byte jindex = 0; jindex < player.CardsCounter; jindex++)
+            for (byte jindex = 0; jindex < player.CardsToDealCounter; jindex++)
             {
                 //at this point a player should get his card
                 if (player.AddCard(deck[arrayIndex]))

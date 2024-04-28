@@ -153,7 +153,7 @@ public class SinglePeerBase
         if (player == null) return false;
         if (string.IsNullOrEmpty(player.ID)) return false;
         if (player.MaxCards == 0) return false;
-        if (player.CardsCounter > player.MaxCards) return false;
+        if (player.CardsToDealCounter > player.MaxCards) return false;
         if (player.PlayerHand == null) return false;
         return true;
     }
@@ -172,7 +172,7 @@ public class SinglePeerBase
         for (int index = 0; index < players.Length; index++)
         {
             player = players[index];
-            if (player.CardsCounter != player.PlayerHand.Length) return false;
+            if (player.CardsToDealCounter != player.PlayerHand.Length) return false;
             if (!IsPlayerHandValid(player.PlayerHand)) return false;
         }
         return IsdealingValid;

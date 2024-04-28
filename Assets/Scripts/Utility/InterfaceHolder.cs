@@ -19,7 +19,7 @@ public interface IPlayer:ICardReceiver
     string ID {get;}
     void SetPlayerID(string playerID);
     void SetCardCounter(byte cardCounter);
-    CardInfo[] PlayerHand { get;}
+    CardInfo[] Hand { get;}
     void ClearHand();
 }
 public interface ICardReceiver
@@ -27,11 +27,11 @@ public interface ICardReceiver
     /// <summary>
     /// if true player cant/wont have cards or play 
     /// </summary>
-    NetworkBool IsPlayerOut {get;}
+    NetworkBool IsOut {get;}
     /// <summary>
     /// how much Cards to deal 
     /// </summary>
-    byte CardsCounter { get;}
+    byte CardsToDealCounter { get;}
     bool AddCard(CardInfo card);
 }
 public interface IPlayerUIControler
@@ -122,10 +122,9 @@ public struct DealerArguments
 }
 public struct CardPoolArguments
 {
-    public NetworkPrefabRef CardPrefab;
+    public GameObject CardPrefab;
     public byte MaxPlayerCards;
     public byte ActivePlayerCount;
-    public Func<NetworkPrefabRef,NetworkObject> SpawnCard;
 }
 public struct PlayerArguments
 {

@@ -5,10 +5,10 @@ using UnityEngine;
 public class DeckContainer : ScriptableObject
 {
     [Header("All Ranks on this Deck")]
-   public List<CardSprite> SpriteContainer = new List<CardSprite>();
-    public Sprite GetSuitSprite(byte Rank,CardSuit Suit)
+    public List<CardSprite> SpriteContainer = new List<CardSprite>();
+    public Sprite GetSuitSprite(byte Rank, CardSuit Suit)
     {
-        if(SpriteContainer.Count == 0 || Suit == CardSuit.NoSuit || !Extention.IsAValidBeloteRank(Rank))
+        if (SpriteContainer.Count == 0 || Suit == CardSuit.NoSuit || !Extention.IsAValidBeloteRank(Rank))
         {
             return null;
         }
@@ -18,7 +18,7 @@ public class DeckContainer : ScriptableObject
             if (SpriteContainer[index].Rank == Rank)
             {
                 byte suitIndex = (byte)Suit;
-                return SpriteContainer[index].Suits[suitIndex-1];
+                return SpriteContainer[index].Suits[suitIndex - 1];
             }
         }
         return null;
