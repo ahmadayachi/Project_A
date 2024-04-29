@@ -112,14 +112,21 @@ public interface IState<T> where T : struct
 
 
 
-#region Struct Arguments
-public struct DealerArguments
+#region State Struct Arguments
+public struct DealerStateArguments
 {
     public CardInfo[] DeckToDeal;
     public ICardReceiver[] Players;
     public Action OnDealerStateEnds;
 
 }
+public struct PlayerStateArguments
+{
+    public GameState GameState;
+}
+
+#endregion
+#region Struct Arguments
 public struct CardPoolArguments
 {
     public GameObject CardPrefab;
@@ -175,11 +182,9 @@ public enum GameState:byte
     Idle,
     GameStarted,
     Dealing,
-    /// <summary>
-    /// a player that is forced to doubt or to bet 
-    /// </summary>
-    HandicappedPlayerTurn,
+    FirstPlayerTurn,
     PlayerTurn,
+    LastPlayerTrun,
     Doubting,
     RoudOver,
     GameOver,

@@ -1,4 +1,4 @@
-//#define UsingUnityTest
+#define UsingUnityTest
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ public class SinglePeerBase
     protected CardInfo[] FakeDeck = new CardInfo[BeloteDeckSize];
     protected byte MaxPlayerCards;
     protected FakePlayer[] FakePlayers;
+    private TestCoroutineRunner _coroutineRunner;
 #if UsingUnityTest
     [UnitySetUp]
     [Timeout(600000)]
@@ -278,4 +279,38 @@ public class SinglePeerBase
     }
 
     #endregion protected bool methods
+    #region protected wrappers
+    /// <summary>
+    /// wrapper for a start coroutine
+    /// </summary>
+    /// <param name="routine"></param>
+    /// <returns></returns>
+    protected Coroutine StartRoutine(IEnumerator routine)
+    {
+        if (_coroutineRunner == null)
+        {
+            var runerGo = new GameObject("TestCoroutineRunner");
+            _coroutineRunner = runerGo.AddComponent<TestCoroutineRunner>();
+        }
+        return _coroutineRunner.StartCoroutine(routine);
+    }
+    /// <summary>
+    /// wrapper for StopCoroutine
+    /// </summary>
+    /// <param name="routineCash"></param>
+    protected void StopRoutine(Coroutine routineCash)
+    {
+        if (_coroutineRunner == null)
+        {
+            var runerGo = new GameObject();
+            runerGo.AddComponent<TestCoroutineRunner>();
+            _coroutineRunner = _coroutineRunner.GetComponent<TestCoroutineRunner>();
+        }
+        _coroutineRunner.StopCoroutine(routineCash);
+    }
+    #endregion
+}
+public class TestCoroutineRunner : MonoBehaviour
+{
+
 }

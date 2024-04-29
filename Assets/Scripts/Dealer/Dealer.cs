@@ -1,21 +1,31 @@
 
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class Dealer : State
 {
     private const int _minHalfDeckSize = 10;
-    private bool _stopDealing;
+    public Coroutine DealingRoutine;
+    private Func<IEnumerator, Coroutine> _startRoutine;
+    private Action<Coroutine> _stopRoutine;
+    
+    public Dealer (Func<IEnumerator, Coroutine> startRoutine,Action<Coroutine> stoproutine)
+    {
+        _startRoutine = startRoutine;
+        _stopRoutine = stoproutine;
+    }
 
-      
     #region State    
     public override void Start<T>(T arg)
     {
-        if (Extention.TryCastToStruct(arg, out DealerArguments DealerStructarg))
+        if (Extention.TryCastToStruct(arg, out DealerStateArguments DealerStructarg))
         {
-            _stopDealing = false;
-            //do the do here ? 
-            DealCards(DealerStructarg);
+            //do the do here ?
+            if (DealingRoutine != null)
+                _stopRoutine?.Invoke(DealingRoutine);
+
+            DealingRoutine =  _startRoutine?.Invoke(DealCards(DealerStructarg));
         }
         else
         {
@@ -26,18 +36,21 @@ public class Dealer : State
     }
     public override void ForceEnd()
     {
-        _stopDealing = true;
+        if (DealingRoutine != null)
+        {
+            _stopRoutine?.Invoke(DealingRoutine);
+            DealingRoutine = null;
+        }
 
 #if Log
-        LogManager.Log("Dealing is forced to Stop!",Color.yellow,LogManager.DealerLog);
+        LogManager.Log("Dealing is forced to Stop!", Color.yellow, LogManager.DealerLog);
 #endif
     }
     #endregion
 
 
-    private void DealCards(DealerArguments arguments)
+    private IEnumerator DealCards(DealerStateArguments arguments)
     {
-        if (_stopDealing) return;
         //creating a new instance to freely manage our deck  
         int deckLength = arguments.DeckToDeal.Length;
         CardInfo[] deck = new CardInfo[deckLength];
@@ -45,17 +58,13 @@ public class Dealer : State
         // filling our new instanse 
         Array.Copy(arguments.DeckToDeal, deck, deckLength);
 
-        if (_stopDealing) return;
-
         //starting by shuffling the deck as a whole 
         deck.Shuffle();
-
-        if (_stopDealing) return;
-
+        yield return null;
         //proceeding to RiffleShuffle the deck 
-        RiffleShuffle(deck);
+         RiffleShuffle(deck);
 
-        if (_stopDealing) return;
+        yield return null;
 
         //dealing cards 
         int playerCount = arguments.Players.Length;
@@ -63,8 +72,6 @@ public class Dealer : State
         int arrayIndex = 0;
         for (int index = 0; index < playerCount; index++)
         {
-            if (_stopDealing) return;
-
             player = arguments.Players[index];
             //jumping players that cant reciese cards 
             if (player.IsOut)
@@ -75,15 +82,18 @@ public class Dealer : State
                 if (player.AddCard(deck[arrayIndex]))
                     arrayIndex++;
                 //if for some reason adding card fails Stop Dealing 
-                else 
-                    return;  
+                else
+                {
+                    ForceEnd();
+                    yield break;
+                } 
             }
         }
 
-        if (_stopDealing) return;
-
         //invoking callback for (some UI shet)
         arguments.OnDealerStateEnds?.Invoke();
+        //reseting coroutine 
+        DealingRoutine = null;
     }
     //revert to private 
     public void RiffleShuffle(CardInfo[] deck)
@@ -102,7 +112,6 @@ public class Dealer : State
         int bottomHalfIndex = 0;
         for (int index = 0; index < deckLength; index++)
         {
-            if (_stopDealing) return;
 
             if (index < cut)
                 topHalf[index] = deck[index];
@@ -122,7 +131,6 @@ public class Dealer : State
         bottomHalfIndex = 0;
         for (int deckIndex = 0; deckIndex < deckLength; deckIndex++)
         {
-            if (_stopDealing) return;
             // if can add from top half 
             if (topHalfIndex < cut && deckIndex < deckLength)
             {

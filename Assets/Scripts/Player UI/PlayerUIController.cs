@@ -44,11 +44,58 @@ public class PlayerUIController : IPlayerUIControler
         _loadingHandCoroutine = _player.Startroutine(WaitHandThenUpdate());
     }
 
+    /// <summary>
+    /// starts the player turn timer 
+    /// </summary>
     public void StartTimer()
     {
 
     }
+    /// <summary>
+    /// stops the player turn timer 
+    /// </summary>
     public void StopTimer()
+    {
+
+    }
+    public void ShowBetButton()
+    {
+
+    }
+    public void ShowDoubtButton()
+    {
+
+    }
+    /// <summary>
+    /// force to just betting 
+    /// </summary>
+    public void ShowFirstPlayerUI()
+    {
+
+    }
+    /// <summary>
+    /// maybe a flame on the betting button, to show that it is the last bet!
+    /// </summary>
+    public void ShowLastPlayerUI()
+    {
+
+    }
+    public void ShowNormalPlayerUICommands()
+    {
+
+    }
+    public void HideBetButton()
+    {
+
+    }
+    public void HideDoubtButton()
+    {
+
+    }
+    /// <summary>
+    /// hides every possible UI command with its effects 
+    /// </summary>
+    public void HidePlayerUICommands()
     {
 
     }

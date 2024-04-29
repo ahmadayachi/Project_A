@@ -18,21 +18,23 @@ public class DealerTest : SinglePeerBase
         Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck), "Deck is not a valid Belote Deck !");
     }
 
-    [Test]
-    public void DealingTest()
+    [UnityTest]
+    public IEnumerator DealingTest()
     {
         FillFakeDeck();
         Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck), "Deck is not a valid Belote Deck !");
         CreateFakePlayers(PlayersNumber);
         Assert.IsTrue(ArePlayersValid(FakePlayers), "Players Ares Not Valid!");
-        _dealer = new Dealer();
+        _dealer = new Dealer(StartRoutine,StopRoutine);
+        yield return null;
         CardInfo[] FakeDeckClone = new CardInfo[FakeDeck.Length];
         Array.Copy(FakeDeck, FakeDeckClone, FakeDeck.Length);
-        DealerArguments args = new DealerArguments();
+        DealerStateArguments args = new DealerStateArguments();
         args.DeckToDeal = FakeDeckClone;
         args.Players = FakePlayers;
         Assert.IsFalse(IsDeckShuffled(FakeDeck, FakeDeckClone), "Deck should not be Shuffled");
         _dealer.Start(args);
+        yield return new WaitUntil(()=>_dealer.DealingRoutine == null);
         Assert.IsTrue(IsDealingValid(FakePlayers), "Dealing Is Not Valid!");
         Assert.False(IsDeckShuffled(FakeDeck, FakeDeckClone), "Deck should not be Shuffled");
     }
@@ -51,7 +53,7 @@ public class DealerTest : SinglePeerBase
         LogDeck(FakeDeckClone, "FakeDeck Card after Fisher-Yites Shuffle =>>");
         CardInfo[] SecondFakeDeckClone = new CardInfo[FakeDeck.Length];
         Array.Copy(FakeDeckClone, SecondFakeDeckClone, FakeDeckClone.Length);
-        _dealer = new Dealer();
+        _dealer = new Dealer(StartRoutine, StopRoutine);
         _dealer.RiffleShuffle(SecondFakeDeckClone);
         Assert.IsTrue(IsDeckShuffled(FakeDeckClone, SecondFakeDeckClone), "Deck Have Been Shuffled !");
         LogDeck(SecondFakeDeckClone, "FakeDeck Card after Riffle Shuffle =>>");

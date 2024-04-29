@@ -57,7 +57,7 @@ public class GameManager :NetworkBehaviour
 
 
     #region Dealer Setup
-    private void CreateDealer() => _dealer = new Dealer();
+    private void CreateDealer() => _dealer = new Dealer(StartRoutine,StopRoutine);
     #endregion
     #region Cards Pool Setup
     private void CreateCardPool()
@@ -138,6 +138,23 @@ public class GameManager :NetworkBehaviour
         }
 
         return _runner.Spawn(objectRef);
+    }
+    /// <summary>
+    /// wrapper for a start coroutine
+    /// </summary>
+    /// <param name="routine"></param>
+    /// <returns></returns>
+    private Coroutine StartRoutine(IEnumerator routine)
+    {
+        return StartCoroutine(routine);
+    }
+    /// <summary>
+    /// wrapper for StopCoroutine
+    /// </summary>
+    /// <param name="routineCash"></param>
+    private void StopRoutine(Coroutine routineCash)
+    {
+        StopCoroutine(routineCash);
     }
     #endregion
 }
