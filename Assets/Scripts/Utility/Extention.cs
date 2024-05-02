@@ -309,6 +309,40 @@ public static class Extention
     }
 
     #endregion Networked Card Array extentions
+    #region byte Array
+    public static int ValidCardsCount(this byte[] array)
+    {
+        int count = 0;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                count++;
+        }
+        return count;
+    }
+    public static bool IsEmpty(this byte[] array)
+    {
+        return array.ValidCardsCount() == 0;
+    }
+    public static bool IsNullOrEmpty(this byte[] array)
+    {
+        return (array.IsEmpty() || array == null);
+    }
+    public static bool TryGetRankValue(this byte[] array, byte rank,out int Value)
+    {
+        Value = 0;
+        for(int index = 0; index < array.Length; ++index)
+        {
+            if (array[index]==rank)
+            {
+                Value = index;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    #endregion
 
     #region UI
 

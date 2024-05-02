@@ -106,11 +106,12 @@ public static class CardManager
     public const byte BELOTE_DECK_SUIT_SIZE = 8;
     public const byte STANDARD_DECK_SUIT_SIZE = 13;
     private static CardInfo[] _cards;
+    private static byte[] _sortedRanks;
     /// <summary>
     /// Standart Belote Deck
     /// </summary>
     public static CardInfo[] Deck { get => _cards; }
-
+    public static byte[] SortedRanks { get => _sortedRanks; }
     public static CardInfo GetCard(byte ID)
     {
         if (ID <= 0)
@@ -210,6 +211,8 @@ public static class CardManager
                 _cards[cardsDeckIndex++] = card;
             }
         }
+        //filling sorted ranks array 
+        SetUpSortedRanks(deckInfo);
     }
     private static int SetCardsArraySize(DeckType deckType, byte SuitsNumber, int CustomArrayLengh)
     {
@@ -221,5 +224,26 @@ public static class CardManager
             case DeckType.Custom: deckSize = (SuitsNumber * CustomArrayLengh); break;
         }
         return deckSize;
+    }
+    private static void SetUpSortedRanks(DeckInfo DeckInfo)
+    {
+        //for now some are hard coded 
+        switch (DeckInfo.DeckType)
+        {
+            case DeckType.Standard: _sortedRanks = new byte[] {1,2,3,4,5,6,7,8,9,10,11,12,13}; break;
+            case DeckType.Belote: _sortedRanks = new byte[] {7,8,9,11,12,13,10,1}; break;
+            case DeckType.Custom:
+                {
+                    if (DeckInfo.CustomSuitRanks == null)
+                    {
+#if Log
+                        LogManager.LogError("failed Creating a Sorted Ranks Array for a Custom Deck!");
+#endif
+                        return;
+                    }
+                    _sortedRanks = new byte[DeckInfo.CustomSuitRanks.Length];
+                    Array.Copy(DeckInfo.CustomSuitRanks, _sortedRanks, DeckInfo.CustomSuitRanks.Length);
+                }; break;
+        }
     }
 }

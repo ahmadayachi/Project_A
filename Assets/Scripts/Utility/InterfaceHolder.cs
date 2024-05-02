@@ -107,6 +107,14 @@ public interface IState<T> where T : struct
     void Start(T arg);
     void ForceEnd();
 }
+public interface IValidator
+{
+    // Property for the next validator in the chain of responsibility
+    public IValidator Next { get; set; }
+
+    // Method to validate Bet
+    public bool Validate(ValidatorArguments args);
+}
 #endregion
 
 
@@ -141,6 +149,12 @@ public struct PlayerArguments
     public byte CardCounter;
     public GameManager GameManager;
     public NetworkBool isplayerOut;
+}
+public struct ValidatorArguments
+{
+    public bool Chain;
+    public byte[] CurrentBet;
+    public byte[] PreviousBet;
 }
 #endregion
 #region Structs
