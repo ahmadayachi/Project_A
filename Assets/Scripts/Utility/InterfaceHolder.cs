@@ -152,9 +152,10 @@ public struct PlayerArguments
 }
 public struct ValidatorArguments
 {
-    public bool Chain;
+    //public bool Chain;
     public byte[] CurrentBet;
     public byte[] PreviousBet;
+    public byte dealtCardsNumber;
 }
 #endregion
 #region Structs

@@ -20,6 +20,7 @@ public static class LogManager
     /// </summary>
     public static string ValueInformationLog = "Value";
     public static string PlayerLog = "Player";
+    public static string Validators = "Validators";
     #endregion Debug Keys
 
     #region Log to Ui Methods and fields

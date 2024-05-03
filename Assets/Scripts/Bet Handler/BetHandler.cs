@@ -52,64 +52,9 @@ public class BetHandler
     }
 }
 
-public abstract class ValidatorBase
-{
-    protected bool ValidArguments(ValidatorArguments arguments)
-    {
-        return ((!arguments.CurrentBet.IsNullOrEmpty())||(!arguments.PreviousBet.IsNullOrEmpty()));
-    }
-    /// <summary>
-    /// true if Rank to compare is higher in value 
-    /// </summary>
-    /// <param name="Rank"></param>
-    /// <param name="RankToCompare"></param>
-    /// <returns></returns>
-    protected bool RankIsHigherInValue(byte Rank, byte RankToCompare)
-    {
-        int rankValue = 0;
-        int rankToCompareValue = 0;
-        if (!CardManager.SortedRanks.TryGetRankValue(Rank, out rankValue) || !CardManager.SortedRanks.TryGetRankValue(RankToCompare, out rankToCompareValue))
-        {
-#if Log
-            LogManager.LogError($" Failed to fetch Rank value ! Rank = {Rank} Rank to compare {rankToCompareValue}");
-#endif
-            return false;
-        }
-        return rankValue < rankToCompareValue;
-    }
-}
-public class OneCardValidator : IValidator
-{
-    public IValidator Next { get ; set ; }
 
-    public bool Validate(ValidatorArguments args)
-    {
-        // returning if null args
-        if(args.CurrentBet==null || args.PreviousBet==null)
-        {
-            return false;
-        }
-        // returning if previous bet count > 1 
-        if (args.PreviousBet.ValidCardsCount() > 1)
-        {
-            return false;
-        }
-        if (!args.PreviousBet.IsEmpty())
-        {
 
-        }
-        return true;
-    }
-}
-public class TotalbettingCountValidator : IValidator
-{
-    public IValidator Next { get ; set ; }
 
-    public bool Validate(ValidatorArguments args)
-    {
-        throw new System.NotImplementedException();
-    }
-}
 public class BetValidator : IValidator
 {
     public IValidator Next { get ; set ;}

@@ -3,7 +3,6 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-
 #if OldCardManager
 
 public struct CardStaticStructure
@@ -17,6 +16,7 @@ public struct CardStaticStructure
     }
 }
 #endif
+
 public static class CardManager
 {
 #if OldCardManager
@@ -34,7 +34,6 @@ public static class CardManager
     //         return cards[ID];
     //     }
     // }
-
 
     public static CardStaticStructure GetCard(int ID)
     {
@@ -80,9 +79,6 @@ public static class CardManager
             }
             lastChoosenType++;
         }
-     
-
- 
 
         //unsure but should ask for clean up specifically previous array
         GC.Collect();
@@ -107,11 +103,21 @@ public static class CardManager
     public const byte STANDARD_DECK_SUIT_SIZE = 13;
     private static CardInfo[] _cards;
     private static byte[] _sortedRanks;
+
     /// <summary>
     /// Standart Belote Deck
     /// </summary>
     public static CardInfo[] Deck { get => _cards; }
+
     public static byte[] SortedRanks { get => _sortedRanks; }
+
+    private static byte _rankCounter;
+
+    /// <summary>
+    /// represents the total number each rank from all suits in Deck
+    /// </summary>
+    public static byte RankCounter { get => _rankCounter; }
+
     public static CardInfo GetCard(byte ID)
     {
         if (ID <= 0)
@@ -119,7 +125,7 @@ public static class CardManager
 #if Log
             LogManager.LogError($"the ID Provided is Not Valid {ID}");
 #endif
-            //handle null cards outside 
+            //handle null cards outside
             return default;
         }
         return _cards[ID - 1];
@@ -129,6 +135,7 @@ public static class CardManager
     {
         CreateDeck(deckInfo);
     }
+
     public static void Reset()
     {
         Array.Clear(_cards, 0, _cards.Length);
@@ -145,9 +152,10 @@ public static class CardManager
 #endif
             return;
         }
+        //setting up rank counter
+        _rankCounter = deckInfo.SuitsNumber;
 
-
-        //setting up deck size 
+        //setting up deck size
         int deckSize = SetCardsArraySize(deckInfo.DeckType,
                                          deckInfo.SuitsNumber,
                                          deckInfo.CustomSuitRanks == null ? 0 : deckInfo.CustomSuitRanks.Length);
@@ -155,7 +163,7 @@ public static class CardManager
         {
 #if Log
             LogManager.LogError($"Invalid Deck Size ! deckSize={deckSize}");
-#endif 
+#endif
             return;
         }
         _cards = new CardInfo[deckSize];
@@ -182,7 +190,7 @@ public static class CardManager
         byte ace = 1;
         byte cardRank = 0;
 
-        for (byte suitIndex = 1; suitIndex < (deckInfo.SuitsNumber+1); suitIndex++)
+        for (byte suitIndex = 1; suitIndex < (deckInfo.SuitsNumber + 1); suitIndex++)
         {
             //adding the suit Ranks
             for (byte rankIndex = startingRankIndex; rankIndex < maxIterations; rankIndex++)
@@ -198,7 +206,7 @@ public static class CardManager
 
                 _cards[cardsDeckIndex++] = card;
             }
-            // adding Ace at the end of a suit (only needed when it is not a custom deck) 
+            // adding Ace at the end of a suit (only needed when it is not a custom deck)
             if (deckInfo.CustomSuitRanks == null)
             {
                 card = new CardInfo()
@@ -211,9 +219,10 @@ public static class CardManager
                 _cards[cardsDeckIndex++] = card;
             }
         }
-        //filling sorted ranks array 
+        //filling sorted ranks array
         SetUpSortedRanks(deckInfo);
     }
+
     private static int SetCardsArraySize(DeckType deckType, byte SuitsNumber, int CustomArrayLengh)
     {
         int deckSize = 0;
@@ -225,13 +234,14 @@ public static class CardManager
         }
         return deckSize;
     }
+
     private static void SetUpSortedRanks(DeckInfo DeckInfo)
     {
-        //for now some are hard coded 
+        //for now some are hard coded
         switch (DeckInfo.DeckType)
         {
-            case DeckType.Standard: _sortedRanks = new byte[] {1,2,3,4,5,6,7,8,9,10,11,12,13}; break;
-            case DeckType.Belote: _sortedRanks = new byte[] {7,8,9,11,12,13,10,1}; break;
+            case DeckType.Standard: _sortedRanks = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }; break;
+            case DeckType.Belote: _sortedRanks = new byte[] { 7, 8, 9, 11, 12, 13, 10, 1 }; break;
             case DeckType.Custom:
                 {
                     if (DeckInfo.CustomSuitRanks == null)

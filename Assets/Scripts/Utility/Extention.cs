@@ -341,7 +341,25 @@ public static class Extention
         }
         return false;
     }
-
+    /// <summary>
+    /// Epic Method to get Rank Value , if rank value found it returns true
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="Rank"></param>
+    /// <param name="Index"></param>
+    /// <param name="Value"></param>
+    /// <returns></returns>
+    public static bool GetRankValue(this byte[] array,byte Rank, int Index,out int Value)
+    {
+        Value = 0;
+        if(Index>=array.Length) return false;
+        if (array[Index] == Rank)
+        {
+            Value = Index;
+            return true;
+        }
+       return GetRankValue(array, Rank, ++Index, out Value);
+    }
     #endregion
 
     #region UI
