@@ -14,7 +14,7 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
         if (!ValidBetArgs(args))
         {
 #if Log
-            LogManager.Log("TotalbettingCountValidator ARGS are not valid ", Color.yellow, LogManager.ValueInformationLog);
+            LogManager.Log(LevelTwo + ArgsNotValid, Color.yellow, LogManager.ValueInformationLog);
 #endif
             return false;
         }
@@ -22,7 +22,7 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
         if (args.dealtCardsNumber == 0)
         {
 #if Log
-            LogManager.LogError("TotalbettingCountValidator ARGS dealt Cards are not valid ");
+            LogManager.LogError(LevelTwo + "ARGS dealt Cards are not valid ");
 #endif
             return false;
         }
@@ -31,10 +31,18 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
         var PreviousBetCount = args.PreviousBet.ValidCardsCount();
 
         // cant bet on less Cards then previous Bet
-        if (CurrentBetCount < PreviousBetCount) return false;
+        if (CurrentBetCount < PreviousBetCount)
+        {
+            ValidationLogger(LevelTwo, false);
+            return false;
+        }
 
         // can bet on more Cards then that are dealt to players
-        if (CurrentBetCount > args.dealtCardsNumber) return false;
+        if (CurrentBetCount > args.dealtCardsNumber)
+        {
+            ValidationLogger(LevelTwo, false);
+            return false;
+        }
 
         // all betted Ranks counter should be Valid
         _allUsedRanksList.Clear();
@@ -42,7 +50,7 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
         if (!AllUsedRanksValid(_allUsedRanksList, args.CurrentBet))
         {
 #if Log
-            LogManager.Log("Used ranks in Current Bet are not Valid !", Color.red, LogManager.Validators);
+            LogManager.Log(LevelTwo + "Used ranks in Current Bet are not Valid !", Color.yellow, LogManager.Validators);
 #endif
             return false;
         }

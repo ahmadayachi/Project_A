@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -328,19 +329,19 @@ public static class Extention
     {
         return (array.IsEmpty() || array == null);
     }
-    public static bool TryGetRankValue(this byte[] array, byte rank,out int Value)
-    {
-        Value = 0;
-        for(int index = 0; index < array.Length; ++index)
-        {
-            if (array[index]==rank)
-            {
-                Value = index;
-                return true;
-            }
-        }
-        return false;
-    }
+    //public static bool TryGetRankValue(this byte[] array, byte rank,out int Value)
+    //{
+    //    Value = 0;
+    //    for(int index = 0; index < array.Length; ++index)
+    //    {
+    //        if (array[index]==rank)
+    //        {
+    //            Value = index;
+    //            return true;
+    //        }
+    //    }
+    //    return false;
+    //}
     /// <summary>
     /// Epic Method to get Rank Value , if rank value found it returns true
     /// </summary>
@@ -349,7 +350,7 @@ public static class Extention
     /// <param name="Index"></param>
     /// <param name="Value"></param>
     /// <returns></returns>
-    public static bool GetRankValue(this byte[] array,byte Rank, int Index,out int Value)
+    public static bool GetRankValueAlpha(this byte[] array,byte Rank, int Index,out int Value)
     {
         Value = 0;
         if(Index>=array.Length) return false;
@@ -358,7 +359,17 @@ public static class Extention
             Value = Index;
             return true;
         }
-       return GetRankValue(array, Rank, ++Index, out Value);
+       return GetRankValueAlpha(array, Rank, ++Index, out Value);
+    }
+    public static bool IsRankDiffused(this Dictionary<byte, byte> bet, byte rank)
+    {
+        if (bet.Count == 0) return false;
+        foreach (byte betRank in bet.Keys)
+        {
+            if (betRank == rank)
+                return true;
+        }
+        return false;
     }
     #endregion
 

@@ -7,9 +7,6 @@ using UnityEngine.TestTools;
 public class CardManagerTest : SinglePeerBase
 {
     private const int MaxSuitsNumber = 8;
-    private const string Belote = "Belote";
-    private const string Standard = "Standart";
-    private const string Custom = "Custom";
 
     [Test]
     public void StandardDeckCreationSizeTest()
@@ -100,33 +97,7 @@ public class CardManagerTest : SinglePeerBase
 
     #region private methods
 
-    private void StandardSizeDeckCheck(DeckType deck, int suitSize, string LogHeader, byte SuitSize)
-    {
-        Assert.IsNull(CardManager.Deck);
-        //standart deck variables
-        DeckInfo standartDeckInfo = new DeckInfo();
-        standartDeckInfo.DeckType = deck;
-        standartDeckInfo.SuitsNumber = (byte)suitSize;
-
-        CardManager.Init(standartDeckInfo);
-
-        Assert.NotNull(CardManager.Deck);
-        //cheking if the Deck size is what it is xD expected to be
-        int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
-        int actualDeckSize = CardManager.Deck.ValidCardsCount();
-        Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
-#if Log
-        Debug.Log($"{LogHeader} Deck Size{actualDeckSize}");
-#endif
-        bool isaStandartDeck = false;
-        if (deck == DeckType.Standard)
-            isaStandartDeck = IsaStandartDeck(CardManager.Deck);
-        else if (deck == DeckType.Belote)
-            isaStandartDeck = IsaStandartBeloteDeck(CardManager.Deck);
-        Assert.IsTrue(isaStandartDeck);
-
-        LogDeck(CardManager.Deck, $"{LogHeader} Deck");
-    }
+   
 
     #endregion private methods
 }

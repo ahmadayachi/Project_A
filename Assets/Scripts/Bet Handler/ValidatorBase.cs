@@ -4,6 +4,14 @@ using UnityEngine;
 
 public abstract class ValidatorBase
 {
+    #region Log stuff
+    protected const string LevelOne = "Level One ";
+    protected const string LevelTwo = "Level Two ";
+    protected const string LevelThree = "Level Three ";
+    protected const string ArgsNotValid = "ARGS are not valid!";
+    protected const string BetPassValidation = "Bet Pass Validation";
+    protected const string BetFailedValidation = "Bet Failed Validation";
+    #endregion
     protected bool ValidBetArgs(ValidatorArguments arguments)
     {
         return ((!arguments.CurrentBet.IsNullOrEmpty()) && (arguments.PreviousBet != null));
@@ -19,8 +27,8 @@ public abstract class ValidatorBase
     {
         int rankValue = 0;
         int rankToCompareValue = 0;
-        bool rankValueExists = CardManager.SortedRanks.GetRankValue(Rank, 0, out rankValue);
-        bool rankToCompareValueExists = CardManager.SortedRanks.GetRankValue(RankToCompare, 0, out rankToCompareValue);
+        bool rankValueExists = CardManager.SortedRanks.GetRankValueAlpha(Rank, 0, out rankValue);
+        bool rankToCompareValueExists = CardManager.SortedRanks.GetRankValueAlpha(RankToCompare, 0, out rankToCompareValue);
 
         if (!rankValueExists || !rankToCompareValueExists)
         {
@@ -92,4 +100,99 @@ public abstract class ValidatorBase
         }
         return true;
     }
+    protected Dictionary<byte, byte> BetDiffuser(byte[] Bet)
+    {
+        Dictionary<byte, byte> diffusedBet = new Dictionary<byte, byte>();
+        foreach (byte rank in Bet)
+        {
+            if (diffusedBet.IsRankDiffused(rank))
+                continue;
+            else
+                diffusedBet.Add(rank, (byte)RankCounterAlpha(Bet, rank, 0, 0));
+        }
+
+        return diffusedBet;
+    }
+    /// <summary>
+    /// for now checks if diffused bet have rank with a counter of one 
+    /// </summary>
+    /// <param name="diffusedBet"></param>
+    /// <returns></returns>
+    protected bool IsDiffusedBetNotValid(Dictionary<byte, byte> diffusedBet)
+    {
+        // counter the ranks cards counter that is less the max ranks counter
+        int lessthenFullSetCounter = 0;
+        // counter for a ranks cards that equall to the max ranks counter 
+        int fullSetCounter = 0;
+        foreach (byte rankCounter in diffusedBet.Values)
+        {
+            if (rankCounter <= 1)
+                return true;
+            if (rankCounter == CardManager.RankCounter)
+                fullSetCounter++;
+            if (rankCounter < CardManager.RankCounter)
+                lessthenFullSetCounter++;
+        }
+
+        if (fullSetCounter >= 1)
+        {
+            if (lessthenFullSetCounter > 1)
+                return true;
+        }
+        else
+        {
+            if (lessthenFullSetCounter > 2)
+                return true;
+        }
+
+        return false;
+    }
+
+    protected int DiffusedDeckToBruteValue(Dictionary<byte, byte> diffusedDeck)
+    {
+        int bruteValue = 0;
+        int rankValue = 0;
+        bool rankValueExists;
+        foreach (var rankPair in diffusedDeck)
+        {
+            rankValueExists = CardManager.SortedRanks.GetRankValueAlpha(rankPair.Key, 0, out rankValue);
+            if (rankValueExists)
+            {
+                bruteValue += (rankValue + 1) * rankPair.Value;
+            }
+            else
+            {
+#if Log
+                LogManager.LogError($"Failed to fetch Rank value! Rank = {rankPair.Key}");
+#endif
+                break;
+            }
+        }
+        if (bruteValue == 0)
+        {
+#if Log
+            LogManager.LogError($"Diffused Deck Brute Value Cant Be 0!");
+#endif
+        }
+        return bruteValue;
+    }
+    protected void ValidationLogger(string ValidationLevel, bool Pass)
+    {
+#if Log
+        Color logColor;
+        string log;
+        if (Pass)
+        {
+            logColor = Color.magenta;
+            log = BetPassValidation;
+        }
+        else
+        {
+            logColor = Color.yellow;
+            log = BetFailedValidation;
+        }
+        LogManager.Log(ValidationLevel + log, logColor, LogManager.Validators);
+#endif
+    }
+
 }

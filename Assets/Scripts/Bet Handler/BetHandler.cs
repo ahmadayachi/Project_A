@@ -13,16 +13,16 @@ public class BetHandler
         // setting up validators
         var oneCardValidator = new OneCardValidator();
         var totalBettingCountValidator = new TotalbettingCountValidator();
-        var betValidator = new BetValidator();
+        var bruteValueBetValidator = new BruteValueBetValidator();
 
         // Chaining validators
         oneCardValidator.Next = totalBettingCountValidator;
-        totalBettingCountValidator.Next = betValidator;
+        totalBettingCountValidator.Next = bruteValueBetValidator;
 
         //setting fields 
         _oneCardValidator = oneCardValidator;
         _bettingCountValidator = totalBettingCountValidator;
-        _betValidator = betValidator;
+        _betValidator = bruteValueBetValidator;
      
         // Seting the start of the chain
         _validatorChain = oneCardValidator;      
@@ -55,12 +55,3 @@ public class BetHandler
 
 
 
-public class BetValidator : IValidator
-{
-    public IValidator Next { get ; set ;}
-
-    public bool Validate(ValidatorArguments args)
-    {
-        throw new System.NotImplementedException();
-    }
-}

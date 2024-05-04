@@ -1,4 +1,4 @@
-#define UsingUnityTest
+//#define UsingUnityTest
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +17,9 @@ public class SinglePeerBase
     protected byte MaxPlayerCards;
     protected FakePlayer[] FakePlayers;
     private TestCoroutineRunner _coroutineRunner;
+    protected const string Belote = "Belote";
+    protected const string Standard = "Standart";
+    protected const string Custom = "Custom";
 #if UsingUnityTest
     [UnitySetUp]
     [Timeout(600000)]
@@ -95,6 +98,45 @@ public class SinglePeerBase
     {
         for (int index = 0; index < deck.Length; index++)
             LogManager.Log(header + "  " + deck[index],Color.green,LogManager.ValueInformationLog);
+    }
+    protected void StandardSizeDeckCheck(DeckType deck, int suitNumber, string LogHeader, byte SuitSize)
+    {
+        Assert.IsNull(CardManager.Deck);
+        //standart deck variables
+        DeckInfo standartDeckInfo = new DeckInfo();
+        standartDeckInfo.DeckType = deck;
+
+        standartDeckInfo.SuitsNumber = (byte)suitNumber;
+
+        CardManager.Init(standartDeckInfo);
+
+        Assert.NotNull(CardManager.Deck);
+        //cheking if the Deck size is what it is xD expected to be
+        int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
+        int actualDeckSize = CardManager.Deck.ValidCardsCount();
+        Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
+#if Log
+        Debug.Log($"{LogHeader} Deck Size{actualDeckSize}");
+#endif
+        bool isaStandartDeck = false;
+        if (deck == DeckType.Standard)
+            isaStandartDeck = IsaStandartDeck(CardManager.Deck);
+        else if (deck == DeckType.Belote)
+            isaStandartDeck = IsaStandartBeloteDeck(CardManager.Deck);
+        Assert.IsTrue(isaStandartDeck);
+
+        //LogDeck(CardManager.Deck, $"{LogHeader} Deck");
+
+        Assert.AreEqual((byte)suitNumber, CardManager.RankCounter);
+        
+        //if sorted deck is sorted correctly
+        if(deck== DeckType.Belote)
+        {
+            for(int index = 0; index < CardManager.SortedRanks.Length; index++)
+            {
+                Assert.AreEqual(_beloteCardRanks[index], CardManager.SortedRanks[index]);
+            }
+        }
     }
 
     #region protected bool methods
