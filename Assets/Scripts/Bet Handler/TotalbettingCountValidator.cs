@@ -1,12 +1,13 @@
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TotalbettingCountValidator : ValidatorBase, IValidator
+public class TotalBettingCountValidator : ValidatorBase, IValidator
 {
     public IValidator Next { get; set; }
-
-    private List<byte> _allUsedRanksList = new List<byte>();
+    private Dictionary<byte, byte> _currentBetPair = new Dictionary<byte, byte>();
+    private Dictionary<byte, byte> _previousBetPair = new Dictionary<byte, byte>();
 
     public bool Validate(ValidatorArguments args)
     {
@@ -27,15 +28,8 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
             return false;
         }
 
-        var CurrentBetCount = args.CurrentBet.ValidCardsCount();
-        var PreviousBetCount = args.PreviousBet.ValidCardsCount();
-
-        // cant bet on less Cards then previous Bet
-        if (CurrentBetCount < PreviousBetCount)
-        {
-            ValidationLogger(LevelTwo, false);
-            return false;
-        }
+        int CurrentBetCount = args.CurrentBet.ValidCardsCount();
+        int PreviousBetCount = args.PreviousBet.ValidCardsCount();
 
         // can bet on more Cards then that are dealt to players
         if (CurrentBetCount > args.dealtCardsNumber)
@@ -45,14 +39,37 @@ public class TotalbettingCountValidator : ValidatorBase, IValidator
         }
 
         // all betted Ranks counter should be Valid
-        _allUsedRanksList.Clear();
-        SetUpAllUsedRanksAlpha(args.CurrentBet, _allUsedRanksList, 0);
-        if (!AllUsedRanksValid(_allUsedRanksList, args.CurrentBet))
+        _currentBetPair.Clear();
+        BetDiffuserAlpha(args.CurrentBet, _currentBetPair, 0);
+
+        if (DiffusedBetRanksCounterNotValid(_currentBetPair))
         {
 #if Log
             LogManager.Log(LevelTwo + "Used ranks in Current Bet are not Valid !", Color.yellow, LogManager.Validators);
 #endif
             return false;
+        }
+
+        if (CurrentBetCount < PreviousBetCount)
+        {
+            // diffusing previous bet here
+            _previousBetPair.Clear();
+            BetDiffuserAlpha(args.PreviousBet, _previousBetPair, 0);
+            // cant bet on less Cards then previous Bet
+            if (IsSmallerBetNotValid(_currentBetPair, _previousBetPair))
+            {
+#if Log
+                LogManager.Log(LevelTwo + CurrentBetIsSmaller, Color.yellow, LogManager.Validators);
+#endif
+                return false;
+            }
+            else
+            {
+#if Log
+                LogManager.Log(LevelTwo + BetPassValidation, Color.magenta, LogManager.Validators);
+#endif
+                return true;
+            }
         }
 
         // if see no prob  pass responceability to next validator

@@ -23,7 +23,9 @@ public class OneCardValidator : ValidatorBase, IValidator
         //bet not Valid if previous have more cards count
         if (CurrentBetCount == 1 && PreviousBetCount > 1)
         {
-            ValidationLogger(LevelOne, false);
+#if Log
+            LogManager.Log(LevelOne + CurrentBetIsSmaller, Color.yellow, LogManager.Validators);
+#endif
             return false;
         }
 
@@ -32,8 +34,9 @@ public class OneCardValidator : ValidatorBase, IValidator
             //if no previous bet , current bet should be valid
             if (PreviousBetCount == 0)
             {
-                ValidationLogger(LevelOne, true);
-
+#if Log
+                LogManager.Log(LevelOne + BetPassValidation, Color.magenta, LogManager.Validators);
+#endif
                 return true;
             }
 
@@ -41,9 +44,13 @@ public class OneCardValidator : ValidatorBase, IValidator
             byte currentBet = args.CurrentBet[0];
             bool currentRankIsHigherInValue = IsRankHigherInValue(previousBet, currentBet);
 
-            
-            ValidationLogger(LevelOne, currentRankIsHigherInValue);
-            
+#if Log
+            if (currentRankIsHigherInValue)
+                LogManager.Log(LevelOne + BetPassValidation, Color.magenta, LogManager.Validators);
+            else
+                LogManager.Log(LevelOne + "Current Bet Must Be higher In value", Color.magenta, LogManager.Validators);
+
+#endif             
             // if Current Rank is Higher then Bet is Valid
             return currentRankIsHigherInValue;
         }

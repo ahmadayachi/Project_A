@@ -27,12 +27,12 @@ public class BetValidationTest : SinglePeerBase
 
         //creating a bet args 
         _validatorArgs = new ValidatorArguments();
-        _currentBet = new byte[] {7,7,7,8,8,8};
-        _previousBet = new byte[] {1,1,1,8,8 };
+        _currentBet = new byte[] {8,8,8 };
+        _previousBet = new byte[] {1,1};
 
         _validatorArgs.CurrentBet = _currentBet;
         _validatorArgs.PreviousBet = _previousBet;
-        _validatorArgs.dealtCardsNumber = 6;
+        _validatorArgs.dealtCardsNumber = 30;
 
         bool isBetValid = _betHandler.ChainValidateBet(_validatorArgs);
         Assert.IsTrue(isBetValid);

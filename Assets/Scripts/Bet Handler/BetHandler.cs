@@ -12,7 +12,7 @@ public class BetHandler
     {
         // setting up validators
         var oneCardValidator = new OneCardValidator();
-        var totalBettingCountValidator = new TotalbettingCountValidator();
+        var totalBettingCountValidator = new TotalBettingCountValidator();
         var bruteValueBetValidator = new BruteValueBetValidator();
 
         // Chaining validators
@@ -38,15 +38,15 @@ public class BetHandler
         return _validatorChain.Validate(Args);
     }
 
-    public bool ValidateOneCardBet(ValidatorArguments Args)
+    public bool LevelOne(ValidatorArguments Args)
     {
         return _oneCardValidator.Validate(Args);
     }
-    public bool ValidateTotalBettingCount(ValidatorArguments Args)
+    public bool LevelTwo(ValidatorArguments Args)
     {
         return _bettingCountValidator.Validate(Args);
     }
-    public bool ValidateBet(ValidatorArguments Args)
+    public bool LevelThree(ValidatorArguments Args)
     {
         return _betValidator.Validate(Args);
     }

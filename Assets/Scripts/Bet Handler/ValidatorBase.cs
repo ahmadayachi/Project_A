@@ -1,17 +1,27 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class ValidatorBase
 {
+#if Log
+
     #region Log stuff
+
     protected const string LevelOne = "Level One ";
     protected const string LevelTwo = "Level Two ";
     protected const string LevelThree = "Level Three ";
     protected const string ArgsNotValid = "ARGS are not valid!";
     protected const string BetPassValidation = "Bet Pass Validation";
     protected const string BetFailedValidation = "Bet Failed Validation";
-    #endregion
+    protected const string CurrentBetIsSmaller = "Current Bet  cant be smaller the previous Bet!";
+
+    #endregion Log stuff
+
+#endif
+    private const int LockedRankBruteValueBuffer = 69;
     protected bool ValidBetArgs(ValidatorArguments arguments)
     {
         return ((!arguments.CurrentBet.IsNullOrEmpty()) && (arguments.PreviousBet != null));
@@ -74,60 +84,52 @@ public abstract class ValidatorBase
     //}
     protected int RankCounterAlpha(byte[] Bet, byte rank, int Index, int Counter)
     {
-        if (Index >= Bet.Length)
-            return Counter;
-        if (Bet[Index] == rank)
-            return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
-
+        if (Index >= Bet.Length) return Counter;
+        if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
         return RankCounterAlpha(Bet, rank, ++Index, Counter);
     }
 
-    protected bool AllUsedRanksValid(List<byte> allUsedRank, byte[] bet)
+    protected bool DiffusedBetRanksCounterNotValid(Dictionary<byte, byte> bet)
     {
-        int rankCounter;
-        foreach (byte rank in allUsedRank)
+        bool notvalid = false;
+        foreach (var item in bet)
         {
-            rankCounter = RankCounterAlpha(bet, rank, 0, 0);
-            if (rankCounter == 0)
-            {
-#if Log
-                LogManager.LogError("Invalid Rank Counter! Rank counter cant be 0!");
-#endif
-                return false;
-            }
-            if (rankCounter > CardManager.RankCounter)
-                return false;
+            if (item.Value <= 1 || item.Value > CardManager.RankCounter)
+                return true;
         }
-        return true;
+        return notvalid;
     }
-    protected Dictionary<byte, byte> BetDiffuser(byte[] Bet)
-    {
-        Dictionary<byte, byte> diffusedBet = new Dictionary<byte, byte>();
-        foreach (byte rank in Bet)
-        {
-            if (diffusedBet.IsRankDiffused(rank))
-                continue;
-            else
-                diffusedBet.Add(rank, (byte)RankCounterAlpha(Bet, rank, 0, 0));
-        }
 
-        return diffusedBet;
+    //protected void BetDiffuser(byte[] Bet, Dictionary<byte, byte> diffusedBet)
+    //{
+    //    foreach (byte rank in Bet)
+    //    {
+    //        if (diffusedBet.IsRankDiffused(rank))
+    //            continue;
+    //        else
+    //            diffusedBet.Add(rank, (byte)RankCounterAlpha(Bet, rank, 0, 0));
+    //    }
+    //}
+
+    protected void BetDiffuserAlpha(byte[] Bet, Dictionary<byte, byte> diffusedBet, int index)
+    {
+        if (index >= Bet.Length) return;
+        if (!diffusedBet.IsRankDiffused(Bet[index]))
+        {
+            diffusedBet.Add(Bet[index], (byte)RankCounterAlpha(Bet, Bet[index], 0, 0));
+            BetDiffuserAlpha(Bet, diffusedBet, ++index);
+        }
+        BetDiffuserAlpha(Bet, diffusedBet, ++index);
     }
-    /// <summary>
-    /// for now checks if diffused bet have rank with a counter of one 
-    /// </summary>
-    /// <param name="diffusedBet"></param>
-    /// <returns></returns>
+
     protected bool IsDiffusedBetNotValid(Dictionary<byte, byte> diffusedBet)
     {
         // counter the ranks cards counter that is less the max ranks counter
         int lessthenFullSetCounter = 0;
-        // counter for a ranks cards that equall to the max ranks counter 
+        // counter for a ranks cards that equall to the max ranks counter
         int fullSetCounter = 0;
         foreach (byte rankCounter in diffusedBet.Values)
         {
-            if (rankCounter <= 1)
-                return true;
             if (rankCounter == CardManager.RankCounter)
                 fullSetCounter++;
             if (rankCounter < CardManager.RankCounter)
@@ -158,7 +160,7 @@ public abstract class ValidatorBase
             rankValueExists = CardManager.SortedRanks.GetRankValueAlpha(rankPair.Key, 0, out rankValue);
             if (rankValueExists)
             {
-                bruteValue += (rankValue + 1) * rankPair.Value;
+                bruteValue += (rankValue + 1) * (rankPair.Value==CardManager.RankCounter?(rankPair.Value*LockedRankBruteValueBuffer): rankPair.Value);
             }
             else
             {
@@ -176,6 +178,7 @@ public abstract class ValidatorBase
         }
         return bruteValue;
     }
+
     protected void ValidationLogger(string ValidationLevel, bool Pass)
     {
 #if Log
@@ -195,4 +198,20 @@ public abstract class ValidatorBase
 #endif
     }
 
+    protected bool IsSmallerBetNotValid(Dictionary<byte, byte> bet, Dictionary<byte, byte> previousBet)
+    {
+        int cardsCountCounter = 0;
+        foreach (var previousbetPair in previousBet)
+        {
+            foreach (var betPair in bet)
+            {
+                if (previousbetPair.Value < betPair.Value)
+                    cardsCountCounter++;
+                else
+                    return true;
+            }
+        }
+
+        return cardsCountCounter < 1;
+    }
 }
