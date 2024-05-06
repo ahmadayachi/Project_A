@@ -34,7 +34,9 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
         // can bet on more Cards then that are dealt to players
         if (CurrentBetCount > args.dealtCardsNumber)
         {
-            ValidationLogger(LevelTwo, false);
+#if Log
+            LogManager.Log(LevelTwo + "Current Bet  Cards Count Cant be more than dealt Cards !" + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.Validators);
+#endif
             return false;
         }
 
@@ -45,7 +47,7 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
         if (DiffusedBetRanksCounterNotValid(_currentBetPair))
         {
 #if Log
-            LogManager.Log(LevelTwo + "Used ranks in Current Bet are not Valid !", Color.yellow, LogManager.Validators);
+            LogManager.Log(LevelTwo + "Used ranks in Current Bet are not Valid !" + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.Validators);
 #endif
             return false;
         }
@@ -59,14 +61,14 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
             if (IsSmallerBetNotValid(_currentBetPair, _previousBetPair))
             {
 #if Log
-                LogManager.Log(LevelTwo + CurrentBetIsSmaller, Color.yellow, LogManager.Validators);
+                LogManager.Log(LevelTwo + CurrentBetIsSmaller + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.Validators);
 #endif
                 return false;
             }
             else
             {
 #if Log
-                LogManager.Log(LevelTwo + BetPassValidation, Color.magenta, LogManager.Validators);
+                LogManager.Log(LevelTwo + BetPassValidation + Bet + string.Join(",", args.CurrentBet), Color.magenta, LogManager.Validators);
 #endif
                 return true;
             }

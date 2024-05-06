@@ -35,7 +35,7 @@ public class OneCardValidator : ValidatorBase, IValidator
             if (PreviousBetCount == 0)
             {
 #if Log
-                LogManager.Log(LevelOne + BetPassValidation, Color.magenta, LogManager.Validators);
+                LogManager.Log(LevelOne + BetPassValidation+Bet+string.Join(",",args.CurrentBet), Color.magenta, LogManager.Validators);
 #endif
                 return true;
             }
@@ -46,7 +46,7 @@ public class OneCardValidator : ValidatorBase, IValidator
 
 #if Log
             if (currentRankIsHigherInValue)
-                LogManager.Log(LevelOne + BetPassValidation, Color.magenta, LogManager.Validators);
+                LogManager.Log(LevelOne + BetPassValidation + Bet + string.Join(",", args.CurrentBet), Color.magenta, LogManager.Validators);
             else
                 LogManager.Log(LevelOne + "Current Bet Must Be higher In value", Color.magenta, LogManager.Validators);
 

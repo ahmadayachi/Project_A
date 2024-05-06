@@ -17,7 +17,7 @@ public abstract class ValidatorBase
     protected const string BetPassValidation = "Bet Pass Validation";
     protected const string BetFailedValidation = "Bet Failed Validation";
     protected const string CurrentBetIsSmaller = "Current Bet  cant be smaller the previous Bet!";
-
+    protected const string Bet = "Bet = : ";
     #endregion Log stuff
 
 #endif
@@ -177,25 +177,6 @@ public abstract class ValidatorBase
 #endif
         }
         return bruteValue;
-    }
-
-    protected void ValidationLogger(string ValidationLevel, bool Pass)
-    {
-#if Log
-        Color logColor;
-        string log;
-        if (Pass)
-        {
-            logColor = Color.magenta;
-            log = BetPassValidation;
-        }
-        else
-        {
-            logColor = Color.yellow;
-            log = BetFailedValidation;
-        }
-        LogManager.Log(ValidationLevel + log, logColor, LogManager.Validators);
-#endif
     }
 
     protected bool IsSmallerBetNotValid(Dictionary<byte, byte> bet, Dictionary<byte, byte> previousBet)

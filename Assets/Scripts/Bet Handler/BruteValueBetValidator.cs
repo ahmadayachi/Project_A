@@ -27,7 +27,7 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
         if (IsDiffusedBetNotValid(_currentBetPair))
         {
 #if Log
-            LogManager.Log(LevelThree + "Diffused bet not valid! ", Color.yellow, LogManager.ValueInformationLog);
+            LogManager.Log(LevelThree + "Diffused bet not valid! " + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.ValueInformationLog);
 #endif
             return false;
         }
@@ -46,10 +46,10 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
             int currentBetBruteValue = DiffusedDeckToBruteValue(_currentBetPair);
             int previousBetBruteValue = DiffusedDeckToBruteValue(_previousBetPair);
             //current Bet Brute Value should be Higher then Previous Bet
-            if (currentBetBruteValue < previousBetBruteValue)
+            if (currentBetBruteValue <= previousBetBruteValue)
             {
 #if Log
-                LogManager.Log(LevelThree + $"Current bet Brute Value Is less then previous! Currenbet brute Value {currentBetBruteValue} previou bet Brute Value {previousBetBruteValue} ", Color.yellow, LogManager.ValueInformationLog);
+                LogManager.Log(LevelThree + $"Current bet Brute Value Is <= then previous! Currenbet brute Value {currentBetBruteValue} previou bet Brute Value {previousBetBruteValue} " + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.ValueInformationLog);
 #endif
                 return false;
             }
@@ -57,7 +57,7 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
 
         // at this point current bet should be Valid and have a higher number of cards
 #if Log
-        LogManager.Log(LevelThree + BetPassValidation, Color.magenta, LogManager.Validators);
+        LogManager.Log(LevelThree + BetPassValidation + Bet + string.Join(",", args.CurrentBet), Color.magenta, LogManager.Validators);
 #endif
         return true;
     }

@@ -213,7 +213,7 @@ public static class Extention
         int count = 0;
         for (int index = 0; index < array.Length; index++)
         {
-            if ((array[index]!=0))
+            if ((array[index] != 0))
                 count++;
         }
         return count;
@@ -265,7 +265,7 @@ public static class Extention
 
     public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
     {
-        if (!card.IsValid || card.ID==0)
+        if (!card.IsValid || card.ID == 0)
         {
 #if Log
             LogManager.LogError("Attemp to add invalid Card to Array!");
@@ -281,7 +281,7 @@ public static class Extention
         }
         for (int index = 0; index < array.Length; index++)
         {
-            if (array[index]==0)
+            if (array[index] == 0)
             {
                 array[index] = card.ID;
                 return true;
@@ -299,18 +299,21 @@ public static class Extention
         }
         return false;
     }
+
     public static bool ContainsCardID(this NetworkArray<byte> array, byte cardID)
     {
         for (int index = 0; index < array.Length; index++)
         {
-            if (array[index]==cardID)
+            if (array[index] == cardID)
                 return true;
         }
         return false;
     }
 
     #endregion Networked Card Array extentions
+
     #region byte Array
+
     public static int ValidCardsCount(this byte[] array)
     {
         int count = 0;
@@ -321,14 +324,17 @@ public static class Extention
         }
         return count;
     }
+
     public static bool IsEmpty(this byte[] array)
     {
         return array.ValidCardsCount() == 0;
     }
+
     public static bool IsNullOrEmpty(this byte[] array)
     {
         return (array.IsEmpty() || array == null);
     }
+
     //public static bool TryGetRankValue(this byte[] array, byte rank,out int Value)
     //{
     //    Value = 0;
@@ -350,17 +356,18 @@ public static class Extention
     /// <param name="Index"></param>
     /// <param name="Value"></param>
     /// <returns></returns>
-    public static bool GetRankValueAlpha(this byte[] array,byte Rank, int Index,out int Value)
+    public static bool GetRankValueAlpha(this byte[] array, byte Rank, int Index, out int Value)
     {
         Value = 0;
-        if(Index>=array.Length) return false;
+        if (Index >= array.Length) return false;
         if (array[Index] == Rank)
         {
             Value = Index;
             return true;
         }
-       return GetRankValueAlpha(array, Rank, ++Index, out Value);
+        return GetRankValueAlpha(array, Rank, ++Index, out Value);
     }
+
     public static bool IsRankDiffused(this Dictionary<byte, byte> bet, byte rank)
     {
         if (bet.Count == 0) return false;
@@ -371,7 +378,8 @@ public static class Extention
         }
         return false;
     }
-    #endregion
+
+    #endregion byte Array
 
     #region UI
 
@@ -400,4 +408,67 @@ public static class Extention
     }
 
     #endregion UI
+
+    #region BetGeneration
+
+    public static byte[] GenerateMaxBet(int dealtCardsNumber)
+    {
+        byte[] MaxBet;
+        List<byte> maxBetBytes = new List<byte>();
+        int MaxValueRankIndex = CardManager.SortedRanks.Length - 1;
+        //getting the max value rank
+        byte MaxValueRank = CardManager.SortedRanks[MaxValueRankIndex];
+        // if the dealt cards are less or equal to Rank counter (dealt cards should never be one )
+        if (dealtCardsNumber <= CardManager.RankCounter)
+        {
+            //filling max bet with max valued rank
+            for (int index = 0; index < dealtCardsNumber; index++)
+            {
+                maxBetBytes.Add(MaxValueRank);
+            }
+            //converting list
+            MaxBet = maxBetBytes.ToByteArray();
+            return MaxBet;
+        }
+
+        int LockedRanksCounter = dealtCardsNumber / CardManager.RankCounter;
+        // making sure all possible ranks are Locked
+        do
+        {
+            //filling max bet with a Locked max Value Rank
+            for (int index = 0; index < CardManager.RankCounter; index++)
+            {
+                maxBetBytes.Add(MaxValueRank);
+            }
+            --LockedRanksCounter;
+            --MaxValueRankIndex;
+            MaxValueRank = CardManager.SortedRanks[MaxValueRankIndex];
+        }
+        while (LockedRanksCounter > 0);
+        // if lef over spots are more then one then we filling em
+        int leftOverSpots = dealtCardsNumber % CardManager.RankCounter;
+        if (leftOverSpots > 1)
+        {
+            for (int index = 0; index < leftOverSpots; index++)
+            {
+                maxBetBytes.Add(MaxValueRank);
+            }
+        }
+        //converting list
+        MaxBet = maxBetBytes.ToByteArray();
+        return MaxBet;
+    }
+
+    public static byte[] ToByteArray(this List<byte> list)
+    {
+        byte[] bytes = new byte[list.Count];
+        int index = 0;
+        foreach (byte b in list)
+        {
+            bytes[index++] = b;
+        }
+        return bytes;
+    }
+
+    #endregion BetGeneration
 }
