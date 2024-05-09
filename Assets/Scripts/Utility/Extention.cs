@@ -1,10 +1,15 @@
+using Codice.Client.BaseCommands.BranchExplorer;
 using Fusion;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 public static class Extention
 {
+    #region Generic shit
+
     /// <summary>
     /// returns true if the two types are the same
     /// </summary>
@@ -54,6 +59,8 @@ public static class Extention
             return (CardSuit)Suit;
         }
     }
+
+    #endregion Generic shit
 
     #region Cards Array extentions
 
@@ -312,75 +319,6 @@ public static class Extention
 
     #endregion Networked Card Array extentions
 
-    #region byte Array
-
-    public static int ValidCardsCount(this byte[] array)
-    {
-        int count = 0;
-        for (int index = 0; index < array.Length; index++)
-        {
-            if ((array[index] != 0))
-                count++;
-        }
-        return count;
-    }
-
-    public static bool IsEmpty(this byte[] array)
-    {
-        return array.ValidCardsCount() == 0;
-    }
-
-    public static bool IsNullOrEmpty(this byte[] array)
-    {
-        return (array.IsEmpty() || array == null);
-    }
-
-    //public static bool TryGetRankValue(this byte[] array, byte rank,out int Value)
-    //{
-    //    Value = 0;
-    //    for(int index = 0; index < array.Length; ++index)
-    //    {
-    //        if (array[index]==rank)
-    //        {
-    //            Value = index;
-    //            return true;
-    //        }
-    //    }
-    //    return false;
-    //}
-    /// <summary>
-    /// Epic Method to get Rank Value , if rank value found it returns true
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="Rank"></param>
-    /// <param name="Index"></param>
-    /// <param name="Value"></param>
-    /// <returns></returns>
-    public static bool GetRankValueAlpha(this byte[] array, byte Rank, int Index, out int Value)
-    {
-        Value = 0;
-        if (Index >= array.Length) return false;
-        if (array[Index] == Rank)
-        {
-            Value = Index;
-            return true;
-        }
-        return GetRankValueAlpha(array, Rank, ++Index, out Value);
-    }
-
-    public static bool IsRankDiffused(this Dictionary<byte, byte> bet, byte rank)
-    {
-        if (bet.Count == 0) return false;
-        foreach (byte betRank in bet.Keys)
-        {
-            if (betRank == rank)
-                return true;
-        }
-        return false;
-    }
-
-    #endregion byte Array
-
     #region UI
 
     /// <summary>
@@ -409,6 +347,330 @@ public static class Extention
 
     #endregion UI
 
+    #region byte Array
+
+    public static int ValidCardsCount(this byte[] array)
+    {
+        int count = 0;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                count++;
+        }
+        return count;
+    }
+
+    public static bool IsEmpty(this byte[] array)
+    {
+        return array.ValidCardsCount() == 0;
+    }
+
+    public static bool IsNullOrEmpty(this byte[] array)
+    {
+        return (array.IsEmpty() || array == null);
+    }
+
+    public static bool TryGetRankValue(this byte[] array, byte rank, out int Value)
+    {
+        Value = 0;
+        for (int index = 0; index < array.Length; ++index)
+        {
+            if (array[index] == rank)
+            {
+                Value = index;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Epic Method to get Rank Value , if rank value found it returns true
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="Rank"></param>
+    /// <param name="Index"></param>
+    /// <param name="Value"></param>
+    /// <returns></returns>
+    public static bool TryGetRankBruteValueAlpha(this byte[] array, byte Rank, int Index, out int Value)
+    {
+        Value = 0;
+        if (Index >= array.Length) return false;
+        if (array[Index] == Rank)
+        {
+            Value = Index;
+            return true;
+        }
+        return TryGetRankBruteValueAlpha(array, Rank, ++Index, out Value);
+    }
+
+    public static bool IsRankDiffused(this Dictionary<byte, byte> bet, byte rank)
+    {
+        if (bet.Count == 0) return false;
+        foreach (byte betRank in bet.Keys)
+        {
+            if (betRank == rank)
+                return true;
+        }
+        return false;
+    }
+
+    public static int RankCounter(byte[] bet, byte rank)
+    {
+        int counter = 0;
+        foreach (var item in bet)
+        {
+            if (item == rank)
+                counter++;
+        }
+        return counter;
+    }
+
+    public static int RankCounterAlpha(byte[] Bet, byte rank, int Index, int Counter)
+    {
+        if (Index >= Bet.Length) return Counter;
+        if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
+        return RankCounterAlpha(Bet, rank, ++Index, Counter);
+    }
+
+    public static void BetDiffuser(byte[] bet, Dictionary<byte, byte> diffusedBet)
+    {
+        foreach (byte rank in bet)
+        {
+            if (diffusedBet.IsRankDiffused(rank))
+                continue;
+            else
+                diffusedBet.Add(rank, (byte)RankCounterAlpha(bet, rank, 0, 0));
+        }
+
+        //TODO move to sorting method ,
+        // returning if there is only one set of ranks
+        if (diffusedBet.Count == 1) return;
+
+        //first sorting with Card Count
+        Dictionary<byte, byte> cardsCounterSortedVessel = diffusedBet.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+        //copying shit back
+        diffusedBet.Clear();
+        foreach (var rankPair in cardsCounterSortedVessel)
+            diffusedBet.Add(rankPair.Key, rankPair.Value);
+
+        //finding ou if there is ranks with same card counts
+        bool duplicatesExist = false;
+
+        int valueCounter = 0;
+        foreach (var iValue in cardsCounterSortedVessel.Values)
+        {
+            foreach (byte jValue in cardsCounterSortedVessel.Values)
+            {
+                if (iValue == jValue)
+                    valueCounter++;
+            }
+            if (valueCounter > 1)
+            {
+                duplicatesExist = true;
+                break;
+            }
+            else
+                valueCounter = 0;
+        }
+        if (duplicatesExist)
+        {
+            if (cardsCounterSortedVessel.Count == 2)
+            {
+                //converting duplicates to brute value
+                cardsCounterSortedVessel.ByteToBruteValue();
+                // sorting
+                Dictionary<byte, byte> rankSortedVessel = cardsCounterSortedVessel.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                // converting the sorted dic to byte
+                rankSortedVessel.BruteValueToByte();
+            }
+            else
+            {
+                //extracting duplicates
+                Dictionary<byte, byte> SelectedDuplicates = cardsCounterSortedVessel.Where(x => x.Value == CardManager.MaxRankCounter).ToDictionary(x => x.Key, x => x.Value);
+                //at this step only locked ranks duplicates should exist
+                if (SelectedDuplicates.Count < 2)
+                {
+#if Log
+                    LogManager.LogError("Sorting Bet Failed  ! SelectedDuplicates Count is Invalid!");
+#endif
+                    return;
+                }
+                //removing the selected ranks
+                foreach (var item in SelectedDuplicates)
+                {
+                    cardsCounterSortedVessel.Remove(item.Key);
+                }
+                // casualy converting then sorting procedure
+                SelectedDuplicates.ByteToBruteValue();
+                Dictionary<byte, byte> sortedSelectedDuplicates = SelectedDuplicates.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                sortedSelectedDuplicates.BruteValueToByte();
+                //adding left over elements PS there should only one
+
+                if (cardsCounterSortedVessel.Count == 1)
+                {
+                    var leftoverelement = cardsCounterSortedVessel.First();
+                    sortedSelectedDuplicates.Add(leftoverelement.Key, leftoverelement.Value);
+                }
+                else
+                {
+#if Log
+                    LogManager.LogError($"Sorting Bet Failed  ! there should one element left incardsCounterSortedVessel but count is =:{cardsCounterSortedVessel.Count} !");
+#endif
+                    return;
+                }
+            }
+        }
+    }
+
+    public static void BetDiffuserAlpha(byte[] Bet, Dictionary<byte, byte> diffusedBet, int index)
+    {
+        if (index >= Bet.Length) return;
+        if (!diffusedBet.IsRankDiffused(Bet[index]))
+        {
+            diffusedBet.Add(Bet[index], (byte)RankCounterAlpha(Bet, Bet[index], 0, 0));
+            BetDiffuserAlpha(Bet, diffusedBet, ++index);
+        }
+        BetDiffuserAlpha(Bet, diffusedBet, ++index);
+    }
+
+    public static byte[] SortBet(this byte[] bet)
+    {
+        byte[] sortedBet = new byte[bet.Length];
+        Array.Copy(bet, sortedBet, bet.Length);
+        //converting bet array to brute value
+        sortedBet.ByteToBruteValue();
+        //sorting decendent
+        sortedBet.OrderBy(b => b);
+        //converting array back to ranks
+        sortedBet.BruteValueToByteAlpha(0);
+        return sortedBet;
+    }
+
+    public static void ByteToBruteValue(this byte[] bet)
+    {
+        int bruteValue;
+        byte rank;
+        for (int index = 0; index < bet.Length; index++)
+        {
+            rank = bet[index];
+            if (CardManager.SortedRanks.TryGetRankBruteValueAlpha(rank, 0, out bruteValue))
+            {
+                bet[index] = (byte)(bruteValue + 1);
+            }
+            else
+            {
+#if Log
+                LogManager.LogError($"Failed converting Rank={rank} to brute Value!");
+#endif
+                return;
+            }
+        }
+    }
+
+    public static void ByteToBruteValue(this Dictionary<byte, byte> bet)
+    {
+        Dictionary<byte, byte> bruteValueBet = new Dictionary<byte, byte>();
+        int bruteValue;
+        byte rank;
+        foreach (var item in bet)
+        {
+            rank = item.Key;
+            if (CardManager.SortedRanks.TryGetRankBruteValueAlpha(rank, 0, out bruteValue))
+            {
+                bruteValueBet.Add((byte)(bruteValue + 1), item.Value);
+            }
+            else
+            {
+#if Log
+                LogManager.LogError($"Failed converting Rank={rank} to brute Value!");
+#endif
+                return;
+            }
+        }
+
+        bet.Clear();
+        foreach (var item in bruteValueBet)
+        {
+            bet.Add(item.Key, item.Value);
+        }
+    }
+
+    public static void BruteValueToByte(this byte[] bet)
+    {
+        byte rank;
+        for (int index = 0; index < bet.Length; index++)
+        {
+            rank = CardManager.SortedRanks[bet[index] - 1];
+            bet[index] = rank;
+        }
+    }
+
+    public static void BruteValueToByte(this Dictionary<byte, byte> bruteValueBet)
+    {
+        Dictionary<byte, byte> bet = new Dictionary<byte, byte>();
+        byte rank;
+        foreach (var item in bruteValueBet)
+        {
+            rank = CardManager.SortedRanks[item.Key - 1];
+            bet.Add(rank, item.Value);
+        }
+        bruteValueBet.Clear();
+        foreach (var item in bet)
+        {
+            bruteValueBet.Add(item.Key, item.Value);
+        }
+    }
+
+    public static void BruteValueToByteAlpha(this byte[] bet, int index)
+    {
+        if (index >= bet.Length) return;
+        byte rank = CardManager.SortedRanks[bet[index]];
+        bet[index] = rank;
+        BruteValueToByteAlpha(bet, ++index);
+    }
+
+    public static byte[] ToByteArray(this List<byte> list)
+    {
+        byte[] bytes = new byte[list.Count];
+        int index = 0;
+        foreach (byte b in list)
+        {
+            bytes[index++] = b;
+        }
+        return bytes;
+    }
+
+    /// <summary>
+    /// both arrays should be sorted before hand
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static bool AreEqual(this byte[] a, byte[] b)
+    {
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (a[i] != b[i]) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// both arrays should be sorted before hand
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static bool AreEqualAlpha(this byte[] a, byte[] b, int index)
+    {
+        if (index >= a.Length) return true;
+        if (a[index] != b[index]) return false;
+        return AreEqualAlpha(a, b, ++index);
+    }
+
+    #endregion byte Array
+
     #region BetGeneration
 
     public static byte[] GenerateMaxBet(int dealtCardsNumber)
@@ -419,7 +681,7 @@ public static class Extention
         //getting the max value rank
         byte MaxValueRank = CardManager.SortedRanks[MaxValueRankIndex];
         // if the dealt cards are less or equal to Rank counter (dealt cards should never be one )
-        if (dealtCardsNumber <= CardManager.RankCounter)
+        if (dealtCardsNumber <= CardManager.MaxRankCounter)
         {
             //filling max bet with max valued rank
             for (int index = 0; index < dealtCardsNumber; index++)
@@ -431,12 +693,12 @@ public static class Extention
             return MaxBet;
         }
 
-        int LockedRanksCounter = dealtCardsNumber / CardManager.RankCounter;
+        int LockedRanksCounter = dealtCardsNumber / CardManager.MaxRankCounter;
         // making sure all possible ranks are Locked
         do
         {
             //filling max bet with a Locked max Value Rank
-            for (int index = 0; index < CardManager.RankCounter; index++)
+            for (int index = 0; index < CardManager.MaxRankCounter; index++)
             {
                 maxBetBytes.Add(MaxValueRank);
             }
@@ -446,7 +708,7 @@ public static class Extention
         }
         while (LockedRanksCounter > 0);
         // if lef over spots are more then one then we filling em
-        int leftOverSpots = dealtCardsNumber % CardManager.RankCounter;
+        int leftOverSpots = dealtCardsNumber % CardManager.MaxRankCounter;
         if (leftOverSpots > 1)
         {
             for (int index = 0; index < leftOverSpots; index++)
@@ -459,15 +721,52 @@ public static class Extention
         return MaxBet;
     }
 
-    public static byte[] ToByteArray(this List<byte> list)
+    public static bool TryRoundUpBet(byte[] bet, out byte[] roundedUpBet, int dealtCardsCount)
     {
-        byte[] bytes = new byte[list.Count];
-        int index = 0;
-        foreach (byte b in list)
+        int BetTotalCardsCount = bet.Length;
+        roundedUpBet = new byte[BetTotalCardsCount];
+        // cant round up an invalid Bet
+        if (dealtCardsCount < BetTotalCardsCount)
         {
-            bytes[index++] = b;
+#if Log
+            LogManager.LogError("Failed to Round Up Bet" + string.Join(",", bet) + " Bet Total Cards are more then the dealt Cards Counter !");
+#endif
+            return false;
         }
-        return bytes;
+
+        bool betIsRoundedUp = false;
+
+        //sorting bet A>=B form to manage easeally
+        byte[] sotedBet = bet.SortBet();
+
+        byte[] maxBet = GenerateMaxBet(BetTotalCardsCount);
+        // cant round up bet if it is already maxed
+        if (maxBet.AreEqualAlpha(sotedBet, 0))
+        {
+            if (dealtCardsCount == BetTotalCardsCount)
+            {
+#if Log
+                LogManager.Log("Failed to Round Up Bet" + string.Join(",", bet) + " is already Maxed Out !", Color.yellow, LogManager.Validators);
+#endif
+                return false;
+            }
+            else
+            {
+                //proceed to second type of rounding up a bet
+            }
+        }
+        bool changesAreMade = false;
+        Dictionary<byte, byte> diffusedBet = new Dictionary<byte, byte>();
+        List<byte> RanksToRoundUp = new List<byte>();
+        // diffusing bet to ease management
+        BetDiffuserAlpha(bet, diffusedBet, 0);
+        // trying to update non Locked ranks first
+        foreach (byte rank in diffusedBet.Keys.Reverse())
+        {
+            //ignoring if it is a Locked Rank
+            if (diffusedBet[rank] == CardManager.MaxRankCounter) continue;
+        }
+        return betIsRoundedUp;
     }
 
     #endregion BetGeneration

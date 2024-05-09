@@ -37,8 +37,8 @@ public abstract class ValidatorBase
     {
         int rankValue = 0;
         int rankToCompareValue = 0;
-        bool rankValueExists = CardManager.SortedRanks.GetRankValueAlpha(Rank, 0, out rankValue);
-        bool rankToCompareValueExists = CardManager.SortedRanks.GetRankValueAlpha(RankToCompare, 0, out rankToCompareValue);
+        bool rankValueExists = CardManager.SortedRanks.TryGetRankBruteValueAlpha(Rank, 0, out rankValue);
+        bool rankToCompareValueExists = CardManager.SortedRanks.TryGetRankBruteValueAlpha(RankToCompare, 0, out rankToCompareValue);
 
         if (!rankValueExists || !rankToCompareValueExists)
         {
@@ -50,29 +50,7 @@ public abstract class ValidatorBase
         return rankValue < rankToCompareValue;
     }
 
-    //protected List<byte> ConvertToAllUsedRanks(byte[] Bet)
-    //{
-    //    var allUsedRanks = new List<byte>();
-    //    foreach (byte bet in Bet)
-    //    {
-    //        if (!allUsedRanks.Contains(bet))
-    //            allUsedRanks.Add(bet);
-    //    }
-    //    return allUsedRanks;
-    //}
-    protected void SetUpAllUsedRanksAlpha(byte[] bet, List<byte> allUsedRanks, int index)
-    {
-        if (index >= bet.Length)
-            return;
-        if (!allUsedRanks.Contains(bet[index]))
-        {
-            allUsedRanks.Add(bet[index]);
-            SetUpAllUsedRanksAlpha(bet, allUsedRanks, ++index);
-        }
-        SetUpAllUsedRanksAlpha(bet, allUsedRanks, ++index);
-    }
-
-    //protected int RankCounterBeta(byte[] bet, byte rank)
+    //protected int RankCounter(byte[] bet, byte rank)
     //{
     //    int counter = 0;
     //    foreach (var item in bet)
@@ -82,19 +60,19 @@ public abstract class ValidatorBase
     //    }
     //    return counter;
     //}
-    protected int RankCounterAlpha(byte[] Bet, byte rank, int Index, int Counter)
-    {
-        if (Index >= Bet.Length) return Counter;
-        if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
-        return RankCounterAlpha(Bet, rank, ++Index, Counter);
-    }
+    //protected int RankCounterAlpha(byte[] Bet, byte rank, int Index, int Counter)
+    //{
+    //    if (Index >= Bet.Length) return Counter;
+    //    if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
+    //    return RankCounterAlpha(Bet, rank, ++Index, Counter);
+    //}
 
     protected bool DiffusedBetRanksCounterNotValid(Dictionary<byte, byte> bet)
     {
         bool notvalid = false;
         foreach (var item in bet)
         {
-            if (item.Value <= 1 || item.Value > CardManager.RankCounter)
+            if (item.Value <= 1 || item.Value > CardManager.MaxRankCounter)
                 return true;
         }
         return notvalid;
@@ -111,16 +89,16 @@ public abstract class ValidatorBase
     //    }
     //}
 
-    protected void BetDiffuserAlpha(byte[] Bet, Dictionary<byte, byte> diffusedBet, int index)
-    {
-        if (index >= Bet.Length) return;
-        if (!diffusedBet.IsRankDiffused(Bet[index]))
-        {
-            diffusedBet.Add(Bet[index], (byte)RankCounterAlpha(Bet, Bet[index], 0, 0));
-            BetDiffuserAlpha(Bet, diffusedBet, ++index);
-        }
-        BetDiffuserAlpha(Bet, diffusedBet, ++index);
-    }
+    //protected void BetDiffuserAlpha(byte[] Bet, Dictionary<byte, byte> diffusedBet, int index)
+    //{
+    //    if (index >= Bet.Length) return;
+    //    if (!diffusedBet.IsRankDiffused(Bet[index]))
+    //    {
+    //        diffusedBet.Add(Bet[index], (byte)RankCounterAlpha(Bet, Bet[index], 0, 0));
+    //        BetDiffuserAlpha(Bet, diffusedBet, ++index);
+    //    }
+    //    BetDiffuserAlpha(Bet, diffusedBet, ++index);
+    //}
 
     protected bool IsDiffusedBetNotValid(Dictionary<byte, byte> diffusedBet)
     {
@@ -130,9 +108,9 @@ public abstract class ValidatorBase
         int fullSetCounter = 0;
         foreach (byte rankCounter in diffusedBet.Values)
         {
-            if (rankCounter == CardManager.RankCounter)
+            if (rankCounter == CardManager.MaxRankCounter)
                 fullSetCounter++;
-            if (rankCounter < CardManager.RankCounter)
+            if (rankCounter < CardManager.MaxRankCounter)
                 lessthenFullSetCounter++;
         }
 
@@ -157,10 +135,10 @@ public abstract class ValidatorBase
         bool rankValueExists;
         foreach (var rankPair in diffusedDeck)
         {
-            rankValueExists = CardManager.SortedRanks.GetRankValueAlpha(rankPair.Key, 0, out rankValue);
+            rankValueExists = CardManager.SortedRanks.TryGetRankBruteValueAlpha(rankPair.Key, 0, out rankValue);
             if (rankValueExists)
             {
-                bruteValue += (rankValue + 1) * (rankPair.Value==CardManager.RankCounter?(rankPair.Value*LockedRankBruteValueBuffer): rankPair.Value);
+                bruteValue += (rankValue + 1) * (rankPair.Value==CardManager.MaxRankCounter?(rankPair.Value*LockedRankBruteValueBuffer): rankPair.Value);
             }
             else
             {

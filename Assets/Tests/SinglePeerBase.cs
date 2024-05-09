@@ -127,7 +127,7 @@ public class SinglePeerBase
 
         //LogDeck(CardManager.Deck, $"{LogHeader} Deck");
 
-        Assert.AreEqual((byte)suitNumber, CardManager.RankCounter);
+        Assert.AreEqual((byte)suitNumber, CardManager.MaxRankCounter);
         
         //if sorted deck is sorted correctly
         if(deck== DeckType.Belote)

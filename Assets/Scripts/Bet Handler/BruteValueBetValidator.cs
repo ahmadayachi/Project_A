@@ -8,7 +8,6 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
     private Dictionary<byte, byte> _currentBetPair = new Dictionary<byte, byte>();
     private Dictionary<byte, byte> _previousBetPair = new Dictionary<byte, byte>();
 
-
     public bool Validate(ValidatorArguments args)
     {
         if (!ValidBetArgs(args))
@@ -21,7 +20,7 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
 
         //diffusing bet array to a manageable dictionary
         _currentBetPair.Clear();
-        BetDiffuserAlpha(args.CurrentBet, _currentBetPair, 0);
+        Extention.BetDiffuserAlpha(args.CurrentBet, _currentBetPair, 0);
 
         //chekking if bet ranks have an invalid rank counter
         if (IsDiffusedBetNotValid(_currentBetPair))
@@ -40,7 +39,7 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
         {
             //at this point need to diffuse the previous rank and compare it
             _previousBetPair.Clear();
-            BetDiffuserAlpha(args.PreviousBet,_previousBetPair,0);
+            Extention.BetDiffuserAlpha(args.PreviousBet, _previousBetPair, 0);
 
             //converting bets to brute value which consists of the true (value of rank +1) * (rank counter)
             int currentBetBruteValue = DiffusedDeckToBruteValue(_currentBetPair);

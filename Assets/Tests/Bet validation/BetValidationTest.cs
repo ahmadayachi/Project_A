@@ -27,9 +27,9 @@ public class BetValidationTest : SinglePeerBase
 
         //creating a bet args 
         _validatorArgs = new ValidatorArguments();
-        _currentBet = Extention.GenerateMaxBet(6);
-        //_currentBet = new byte[] { 1, 1 };
-        _previousBet = new byte[] {1,1};
+        //_currentBet = Extention.GenerateMaxBet(6);
+        _currentBet = new byte[] { 7,7,7 };
+        _previousBet = new byte[] {1,1,10,10};
 
         _validatorArgs.CurrentBet = _currentBet;
         _validatorArgs.PreviousBet = _previousBet;

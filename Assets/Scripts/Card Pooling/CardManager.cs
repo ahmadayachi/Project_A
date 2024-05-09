@@ -111,12 +111,12 @@ public static class CardManager
 
     public static byte[] SortedRanks { get => _sortedRanks; }
 
-    private static byte _rankCounter;
+    private static byte _maxRankCounter;
 
     /// <summary>
     /// represents the total number each rank from all suits in Deck
     /// </summary>
-    public static byte RankCounter { get => _rankCounter; }
+    public static byte MaxRankCounter { get => _maxRankCounter; }
 
     public static CardInfo GetCard(byte ID)
     {
@@ -153,7 +153,7 @@ public static class CardManager
             return;
         }
         //setting up rank counter
-        _rankCounter = deckInfo.SuitsNumber;
+        _maxRankCounter = deckInfo.SuitsNumber;
 
         //setting up deck size
         int deckSize = SetCardsArraySize(deckInfo.DeckType,

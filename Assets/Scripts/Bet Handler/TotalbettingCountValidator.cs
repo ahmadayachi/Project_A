@@ -42,7 +42,7 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
 
         // all betted Ranks counter should be Valid
         _currentBetPair.Clear();
-        BetDiffuserAlpha(args.CurrentBet, _currentBetPair, 0);
+        Extention.BetDiffuserAlpha(args.CurrentBet, _currentBetPair, 0);
 
         if (DiffusedBetRanksCounterNotValid(_currentBetPair))
         {
@@ -56,7 +56,7 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
         {
             // diffusing previous bet here
             _previousBetPair.Clear();
-            BetDiffuserAlpha(args.PreviousBet, _previousBetPair, 0);
+            Extention.BetDiffuserAlpha(args.PreviousBet, _previousBetPair, 0);
             // cant bet on less Cards then previous Bet
             if (IsSmallerBetNotValid(_currentBetPair, _previousBetPair))
             {
