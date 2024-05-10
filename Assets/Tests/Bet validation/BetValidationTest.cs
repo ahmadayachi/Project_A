@@ -38,6 +38,23 @@ public class BetValidationTest : SinglePeerBase
         bool isBetValid = _betHandler.ChainValidateBet(_validatorArgs);
         Assert.IsTrue(isBetValid);
     }
+    [Test]
+    public void BetSortingTest()
+    {
+        // setting up CardManager Deck
+        StandardSizeDeckCheck(DeckType.Belote,
+                              StandardSuitsNumber,
+                              Belote,
+                              CardManager.BELOTE_DECK_SUIT_SIZE);
+        _currentBet = new byte[] {7,7, 7,1, 1, 1, 1 };
+        Dictionary<byte,byte> diffusedBet = new Dictionary<byte,byte>();
+        Extention.BetDiffuserAlpha(_currentBet, diffusedBet,0);
+        diffusedBet.SortBet();
+        Debug.Log(string.Join(",", diffusedBet));
+        _currentBet = diffusedBet.ToByteArray();
+        Debug.Log(string.Join(",", _currentBet));
+
+    }
 
     #region private methods
 
