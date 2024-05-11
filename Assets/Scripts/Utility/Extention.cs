@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static UnityEngine.ParticleSystem;
 
 public static class Extention
 {
@@ -383,6 +384,7 @@ public static class Extention
         }
         return false;
     }
+
     /// <summary>
     /// Epic Method to get Rank Value , if rank value found it returns true
     /// </summary>
@@ -402,6 +404,7 @@ public static class Extention
         }
         return TryGetRankBruteValueAlpha(array, Rank, ++Index, out Value);
     }
+
     public static bool TryRoundUpRank(this byte[] sortedRanks, byte rank, out byte roundedUpRank)
     {
         roundedUpRank = 0;
@@ -419,7 +422,7 @@ public static class Extention
             }
             else
             {
-                //geting the rank right after it 
+                //geting the rank right after it
                 roundedUpRank = CardManager.SortedRanks[rankValue + 1];
                 isRounded = true;
             }
@@ -433,6 +436,7 @@ public static class Extention
         }
         return isRounded;
     }
+
     public static bool IsRankDiffused(this Dictionary<byte, byte> bet, byte rank)
     {
         if (bet.Count == 0) return false;
@@ -472,6 +476,7 @@ public static class Extention
                 diffusedBet.Add(rank, (byte)RankCounterAlpha(bet, rank, 0, 0));
         }
     }
+
     public static void BetDiffuserAlpha(byte[] Bet, Dictionary<byte, byte> diffusedBet, int index)
     {
         if (index >= Bet.Length) return;
@@ -496,7 +501,7 @@ public static class Extention
 
         //first sorting with Card Count a >= b format
         Dictionary<byte, byte> cardsCounterSortedVessel = bet.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-      
+
         bool duplicatesExist = false;
         int valueCounter = 0;
 
@@ -664,19 +669,21 @@ public static class Extention
         }
         return bytes;
     }
+
     public static byte[] ToByteArray(this Dictionary<byte, byte> bet)
     {
         if (bet.Count == 0) return null;
-        
+
         byte[] betArray = new byte[bet.BetTotalCardsCount()];
         int betIndex = 0;
         foreach (var item in bet)
         {
-            for(int index = 0;index<item.Value;index++)
-                betArray[betIndex++]= item.Key;
+            for (int index = 0; index < item.Value; index++)
+                betArray[betIndex++] = item.Key;
         }
         return betArray;
     }
+
     public static int BetTotalCardsCount(this Dictionary<byte, byte> bet)
     {
         int betTotalCardsCount = 0;
@@ -686,6 +693,7 @@ public static class Extention
         }
         return betTotalCardsCount;
     }
+
     /// <summary>
     /// both arrays should be sorted before hand
     /// </summary>
@@ -702,7 +710,7 @@ public static class Extention
     }
 
     /// <summary>
-    /// both arrays should be sorted before hand
+    /// true if both arrays simalir card by card PS they should be sorted before hand
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -785,13 +793,13 @@ public static class Extention
         BetDiffuserAlpha(bet, diffusedBet, 0);
         //sorting bet A>=B form to manage easeally
         diffusedBet.SortBet();
-        //converting back sorted deck to compare it 
+        //converting back sorted deck to compare it
         byte[] sotedBet = diffusedBet.ToByteArray();
         byte[] maxBet = GenerateMaxBet(BetTotalCardsCount);
         // cant round up bet if it is already maxed
         if (maxBet.AreEqualAlpha(sotedBet, 0))
         {
-            if (dealtCardsCount == BetTotalCardsCount)
+            if (dealtCardsCount == BetTotalCardsCount /*|| (dealtCardsCount - 1) == BetTotalCardsCount*/)
             {
 #if Log
                 LogManager.Log("Failed to Round Up Bet" + string.Join(",", bet) + " is already Maxed Out !", Color.yellow, LogManager.Validators);
@@ -800,23 +808,24 @@ public static class Extention
             }
             else
             {
-                //proceed to second type of rounding up a bet
+                //<================= Second type of Rounding Up =====================>
             }
         }
         else
         {
-            //if its only a one Rank bet then it is easier to round it up 
+            //Rounding Up a bet with Size 1 Rank N>=1/8 Total Cards
             if (diffusedBet.Count == 1)
             {
                 var betRankPair = diffusedBet.First();
                 byte roudededRank = 0;
                 if (CardManager.SortedRanks.TryRoundUpRank(betRankPair.Key, out roudededRank))
                 {
-                    //in this case(type one rounding up) the bet size doesnt change 
+                    //replacing cards with a rounded up rank cards
                     for (int index = 0; index < roundedUpBet.Length; index++)
                     {
                         roundedUpBet[index] = roudededRank;
                     }
+                    return true;
                 }
                 else
                 {
@@ -826,28 +835,78 @@ public static class Extention
                     return false;
                 }
             }
-
-            bool changesAreMade = false;
-
-            List<byte> RanksToRoundUp = new List<byte>();
-            // trying to update non Locked ranks first
-            foreach (byte rank in diffusedBet.Keys.Reverse())
+            else
+            //Rounding Up a bet with Size 2 Rank N>1/8 Total Cards
+            if (diffusedBet.Count == 2)
             {
-                //ignoring if it is a Locked Rank
-                if (diffusedBet[rank] == CardManager.MaxRankCounter) continue;
+                //converting to list to easily manage
+                var diffusedBetList = diffusedBet.ToList();
+                var firstRank = diffusedBetList[0];
+                var secondRank = diffusedBetList[1];
+                //getting bets brute value
+                int firstRankBruteValue;
+                int secondRankBruteValue;
+                bool gotFirstRank = CardManager.SortedRanks.TryGetRankBruteValueAlpha(firstRank.Key, 0, out firstRankBruteValue);
+                bool gotSecondRank = CardManager.SortedRanks.TryGetRankBruteValueAlpha(secondRank.Key, 0, out secondRankBruteValue);
+                if (!gotFirstRank || !gotSecondRank)
+                {
+#if Log
+                    LogManager.LogError($"Failed Rounding Up Bet! Failed geting rank brute value! FirstRanks=>{firstRank.Key} SecondRank=>{secondRank.Key}");
+#endif
+                    return false;
+                }
+                //checking if the two ranks that are played are two highest ranks
+                if (firstRankBruteValue == CardManager.SortedRanks.Length - 1 && secondRankBruteValue == CardManager.SortedRanks.Length - 2)
+                {
+                    //<================= Second type of Rounding Up =====================>
+                }
+                else
+                {
+                    byte roudededRank = 0;
+                    int rankToRoundUpIndex = 0;
+                    //checking if the two rank are not successive to round up the lowest rank in value
+                    if ((firstRankBruteValue - secondRankBruteValue) != 1)
+                    {
+                        rankToRoundUpIndex = 1;
+                    }
+
+                    if (CardManager.SortedRanks.TryRoundUpRank(diffusedBetList[rankToRoundUpIndex].Key, out roudededRank))
+                    {
+                        //replacing Pair in list leaving the sorting untouched
+                        var newRankPair = new KeyValuePair<byte, byte>(roudededRank, diffusedBetList[rankToRoundUpIndex].Value);
+                        diffusedBetList[rankToRoundUpIndex] = newRankPair;
+                        int roundedArrayIndex = 0;
+                        foreach (var item in diffusedBetList)
+                        {
+                            for (int jindex = 0; jindex < item.Value; jindex++)
+                            {
+                                roundedUpBet[roundedArrayIndex++] = item.Key;
+                            }
+                        }
+                        return true;
+                    }
+                    else
+                    {
+#if Log
+                        LogManager.Log($"Failed to Round Up Rank{firstRank.Key}", Color.yellow, LogManager.Validators);
+#endif
+                        return false;
+                    }
+                }
             }
         }
         return betIsRoundedUp;
     }
 
-    public static bool LockedRankIsFound(this Dictionary<byte,byte> bet)
+    public static bool LockedRankIsFound(this Dictionary<byte, byte> bet)
     {
         bool isfound = false;
         foreach (var rankPair in bet)
         {
-            if(rankPair.Value == CardManager.MaxRankCounter) return true;
+            if (rankPair.Value == CardManager.MaxRankCounter) return true;
         }
         return isfound;
     }
+
     #endregion BetGeneration
 }
