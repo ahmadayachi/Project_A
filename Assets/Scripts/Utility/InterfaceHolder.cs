@@ -185,6 +185,13 @@ public struct PlayerUI
     public CardPositioner CardPositioner;
     public SpriteRenderer PlayerIcon;
 }
+
+public struct DiffusedRankInfo
+{
+    public byte Rank;
+    public int RankBruteValue;
+    public byte CardsCount;
+}
 #endregion
 
 

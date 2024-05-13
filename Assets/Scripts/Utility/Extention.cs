@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Plastic.Newtonsoft.Json.Linq;
 using UnityEngine;
 using static UnityEngine.ParticleSystem;
 
@@ -348,6 +349,10 @@ public static class Extention
 
     #endregion UI
 
+
+
+
+
     #region byte Array
 
     public static int ValidCardsCount(this byte[] array)
@@ -448,6 +453,7 @@ public static class Extention
         return false;
     }
 
+    
     public static int RankCounter(byte[] bet, byte rank)
     {
         int counter = 0;
@@ -465,6 +471,7 @@ public static class Extention
         if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
         return RankCounterAlpha(Bet, rank, ++Index, Counter);
     }
+
 
     public static void BetDiffuser(byte[] bet, Dictionary<byte, byte> diffusedBet)
     {
@@ -576,6 +583,7 @@ public static class Extention
             bet.Add(rankPair.Key, rankPair.Value);
     }
 
+
     public static void ByteToBruteValue(this byte[] bet)
     {
         int bruteValue;
@@ -624,7 +632,7 @@ public static class Extention
             bet.Add(item.Key, item.Value);
         }
     }
-
+    
     public static void BruteValueToByte(this byte[] bet)
     {
         byte rank;
@@ -894,19 +902,289 @@ public static class Extention
                     }
                 }
             }
+            else
+            // Rounding Up a bet with Size 	N>2 Rank N>1/8 Total Cards
+            if (diffusedBet.Count > 2)
+            {
+                List<DiffusedRankInfo> diffusedBetList = new List<DiffusedRankInfo>();
+                BetDiffuser(bet,diffusedBetList);
+                //checking if the last rank in this bet is not Locked 
+                DiffusedRankInfo lastBetInfo = diffusedBetList[diffusedBetList.Count - 1];
+                if ( lastBetInfo.CardsCount!= CardManager.MaxRankCounter)
+                {
+                    byte roundededRank = 0;
+                    if (CardManager.SortedRanks.TryRoundUpRank(lastBetInfo.Rank, out roundededRank))
+                    {
+                        if(!diffusedBetList.IsRankDiffused(roundededRank))
+                        {
+                            var newLastBetInfo = new DiffusedRankInfo();
+                            newLastBetInfo.Rank = roundededRank;
+                            newLastBetInfo.RankBruteValue = lastBetInfo.RankBruteValue;
+                            newLastBetInfo.CardsCount = lastBetInfo.CardsCount;
+                            diffusedBetList[diffusedBetList.Count - 1] = newLastBetInfo;
+                            int roundedArrayIndex = 0;
+                            foreach (var item in diffusedBetList)
+                            {
+                                for (int jindex = 0; jindex < item.CardsCount; jindex++)
+                                {
+                                    roundedUpBet[roundedArrayIndex++] = item.Rank;
+                                }
+                            }
+                            return true;
+                        }                      
+                    }
+                }
+
+                // cheking if bet contains non successive ranks 
+                DiffusedRankInfo NonSuccessiveRank;
+                if(diffusedBetList.IsBetRankNonSuccessive(out NonSuccessiveRank))
+                {
+                    byte roundededRank = 0;
+                    if (CardManager.SortedRanks.TryRoundUpRank(NonSuccessiveRank.Rank, out roundededRank))
+                    {
+                        //if rounded rank doesnt exist in bet then rounding up complete 
+                        if (!diffusedBetList.IsRankDiffused(roundededRank))
+                        {
+                            var newRoundedBetInfo = new DiffusedRankInfo();
+                            newRoundedBetInfo.Rank = roundededRank;
+                            newRoundedBetInfo.RankBruteValue = NonSuccessiveRank.RankBruteValue;
+                            newRoundedBetInfo.CardsCount = NonSuccessiveRank.CardsCount;
+
+                            for(int index = 0; index < diffusedBetList.Count; index++)
+                            {
+                                if (diffusedBetList[index].Rank == NonSuccessiveRank.Rank)
+                                {
+                                    diffusedBetList[index] = newRoundedBetInfo;
+                                }
+                            }
+
+                            int roundedArrayIndex = 0;
+                            foreach (var item in diffusedBetList)
+                            {
+                                for (int jindex = 0; jindex < item.CardsCount; jindex++)
+                                {
+                                    roundedUpBet[roundedArrayIndex++] = item.Rank;
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                        //if rounded up rank exists then switch them 
+                        {
+                            //if rounded up rank exists then it mus a non Locked rank 
+                            DiffusedRankInfo existingRoundedUpRank = diffusedBetList.Last();
+                            if(existingRoundedUpRank.Rank != roundededRank)
+                            {
+#if Log
+                                LogManager.LogError($"Failed Rounding Up Bet! Invalid Bet =>{string.Join(",",diffusedBetList)} Rank to roundup{NonSuccessiveRank.Rank} rounded rank {roundededRank}");
+#endif
+                                return false;
+                            }
+                            for(int index = 0;index < diffusedBetList.Count; index++)
+                            {
+                                if (diffusedBetList[index].Rank == NonSuccessiveRank.Rank)
+                                {                                    
+                                    var newRounduprankInfo = new DiffusedRankInfo();
+                                    newRounduprankInfo.Rank = existingRoundedUpRank.Rank;
+                                    newRounduprankInfo.RankBruteValue = existingRoundedUpRank.RankBruteValue;
+                                    newRounduprankInfo.CardsCount = NonSuccessiveRank.CardsCount;
+
+                                    var newLastRankInfo = new DiffusedRankInfo();
+                                    newLastRankInfo.Rank = NonSuccessiveRank.Rank;
+                                    newLastRankInfo.RankBruteValue = NonSuccessiveRank.RankBruteValue;
+                                    newLastRankInfo.CardsCount = existingRoundedUpRank.CardsCount;
+                                    //switching places 
+                                    diffusedBetList[index]= newRounduprankInfo;
+                                    diffusedBetList[diffusedBetList.Count-1] = newLastRankInfo;
+                                    break;
+                                }
+                            }
+
+                            int roundedArrayIndex = 0;
+                            foreach (var item in diffusedBetList)
+                            {
+                                for (int jindex = 0; jindex < item.CardsCount; jindex++)
+                                {
+                                    roundedUpBet[roundedArrayIndex++] = item.Rank;
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                }
+                else
+                //if no successive ranks then I simply round up the first bet 
+                {
+                    DiffusedRankInfo betToRoundUp = diffusedBetList[0];
+                    byte roundededRank = 0;
+                    if (CardManager.SortedRanks.TryRoundUpRank(betToRoundUp.Rank, out roundededRank))
+                    {
+                        var newRoundedBetInfo = new DiffusedRankInfo();
+                        newRoundedBetInfo.Rank = roundededRank;
+                        newRoundedBetInfo.RankBruteValue = betToRoundUp.RankBruteValue;
+                        newRoundedBetInfo.CardsCount = betToRoundUp.CardsCount;
+
+                        diffusedBetList[0] = newRoundedBetInfo;
+
+                        int roundedArrayIndex = 0;
+                        foreach (var item in diffusedBetList)
+                        {
+                            for (int jindex = 0; jindex < item.CardsCount; jindex++)
+                            {
+                                roundedUpBet[roundedArrayIndex++] = item.Rank;
+                            }
+                        }
+                        return true;
+                    }
+                    else
+                    {
+#if Log
+                        LogManager.LogError($"Failed to Round Up Rank{betToRoundUp.Rank} bet is Successive and is not a maxed Bet!");
+#endif
+                        return false;
+                    }
+                }
+
+            }
         }
         return betIsRoundedUp;
     }
 
-    public static bool LockedRankIsFound(this Dictionary<byte, byte> bet)
-    {
-        bool isfound = false;
-        foreach (var rankPair in bet)
-        {
-            if (rankPair.Value == CardManager.MaxRankCounter) return true;
-        }
-        return isfound;
-    }
 
     #endregion BetGeneration
+
+    #region List of Diffused rank Struct shit
+    public static bool IsBetRankNonSuccessive(this List<DiffusedRankInfo> betList,out DiffusedRankInfo BetRank )
+    {
+        BetRank = new DiffusedRankInfo();
+        for (int index = 0; index < betList.Count - 1; index++)
+        {
+            if (betList[index].Rank - betList[index + 1].Rank > 1)
+            {
+               BetRank= betList[index+1];
+                return true;
+            }
+        }
+        return false;
+    }
+    public static bool IsRankDiffused(this List<DiffusedRankInfo> diffusedBet, byte rank)
+    {
+        if (diffusedBet.Count == 0) return false;
+        foreach (var rankInfo in diffusedBet)
+        {
+            if (rankInfo.Rank == rank)
+                return true;
+        }
+        return false;
+    }
+
+    public static void BetDiffuser(byte[] bet, List<DiffusedRankInfo> diffusedBet)
+    {
+        diffusedBet.Clear();
+        int rankBruteValue = 0;
+        foreach (byte rank in bet)
+        {
+            if (diffusedBet.IsRankDiffused(rank))
+                continue;
+            else
+            {
+                if (CardManager.SortedRanks.TryGetRankValue(rank, out rankBruteValue))
+                {
+                    DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo();
+                    diffusedRankInfo.Rank = rank;
+                    diffusedRankInfo.RankBruteValue = (rankBruteValue + 1);
+                    diffusedRankInfo.CardsCount = (byte)RankCounter(bet, rank);
+                    diffusedBet.Add(diffusedRankInfo);
+                }
+                else
+                {
+#if Log
+                    LogManager.LogError($"Failed converting Rank={rank} to brute Value!");
+#endif
+                    return;
+                }
+            }
+
+        }
+    }
+    /// <summary>
+    /// Bet Should be Valid before Sorted !
+    /// </summary>
+    /// <param name="bet"></param>
+    public static void SortDiffusedBet(this List<DiffusedRankInfo> diffusedBet)
+    {
+        // returning if there is only one set of ranks
+        if (diffusedBet.Count == 1) return;
+
+        List<DiffusedRankInfo> rankSortedVessel;
+
+        //first sorting with Card Count a >= b format
+        var cardsCounterSortedVessel = diffusedBet.OrderByDescending(x => x.CardsCount).ToList();
+
+        bool duplicatesExist = false;
+        int valueCounter = 0;
+        //finding ou if there is ranks with same card counts
+        foreach (var iValue in diffusedBet)
+        {
+            foreach (var jValue in diffusedBet)
+            {
+                if (iValue.CardsCount == jValue.CardsCount)
+                    valueCounter++;
+            }
+            if (valueCounter > 1)
+            {
+                duplicatesExist = true;
+                break;
+            }
+            else
+                valueCounter = 0;
+        }
+
+        if (duplicatesExist)
+        {
+            if (cardsCounterSortedVessel.Count == 2)
+            {
+                // sorting
+                rankSortedVessel = cardsCounterSortedVessel.OrderByDescending(x => x.RankBruteValue).ToList();
+            }
+            else
+            {
+                //extracting duplicates
+                var SelectedDuplicates = cardsCounterSortedVessel.Where(x => x.CardsCount == CardManager.MaxRankCounter).ToList();
+                //at this step only locked ranks duplicates should exist
+                if (SelectedDuplicates.Count < 2)
+                {
+#if Log
+                    LogManager.LogError("Sorting Bet Failed  ! SelectedDuplicates Count is Invalid!");
+#endif
+                    return;
+                }
+                //removing the selected ranks
+                foreach (var item in SelectedDuplicates)
+                    cardsCounterSortedVessel.Remove(item);
+                // casual sorting procedure
+                rankSortedVessel = SelectedDuplicates.OrderByDescending(x => x.RankBruteValue).ToList();
+                //adding left over element PS there should only one
+                if (cardsCounterSortedVessel.Count == 1)
+                {
+                    var leftoverelement = cardsCounterSortedVessel.First();
+                    rankSortedVessel.Add(leftoverelement);
+                }
+                else
+                {
+#if Log
+                    LogManager.LogError($"Sorting Bet Failed  ! there should one element left but count is =:{cardsCounterSortedVessel.Count} !");
+#endif
+                    return;
+                }
+            }
+        }
+        else
+            rankSortedVessel = cardsCounterSortedVessel;
+
+        //copying shit back
+        diffusedBet.Clear();
+        diffusedBet.AddRange(rankSortedVessel);
+    }
+    #endregion
 }
