@@ -155,7 +155,14 @@ public struct ValidatorArguments
     //public bool Chain;
     public byte[] CurrentBet;
     public byte[] PreviousBet;
-    public byte dealtCardsNumber;
+    public byte DealtCardsNumber;
+
+    public ValidatorArguments(byte[] currentBet, byte[] previousBet, byte dealtCardsNumber)
+    {
+        CurrentBet = currentBet;
+        PreviousBet = previousBet;
+        DealtCardsNumber = dealtCardsNumber;
+    }
 }
 #endregion
 #region Structs
@@ -191,6 +198,10 @@ public struct DiffusedRankInfo
     public byte Rank;
     public int RankBruteValue;
     public byte CardsCount;
+    public override string ToString()
+    {
+        return $"Rank: {Rank}, RankBruteValue: {RankBruteValue}, CardsCount: {CardsCount}";
+    }
 }
 #endregion
 

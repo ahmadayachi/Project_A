@@ -55,7 +55,8 @@ public class BetGenerator
 
     public static bool TryRoundUpBet(byte[] bet, out byte[] roundedUpBet, int dealtCardsCount)
     {
-        int BetTotalCardsCount = bet.Length;
+        //making sure that cards count is a valid cards count not just empty cases in array
+        int BetTotalCardsCount = bet.ValidCardsCount();
         roundedUpBet = new byte[BetTotalCardsCount];
         // cant round up an invalid Bet
         if (dealtCardsCount < BetTotalCardsCount)
@@ -66,7 +67,7 @@ public class BetGenerator
             return false;
         }
 
-        //Launching a Bet when there is no Previous Bet
+        //<======Launching a Bet when there is no Previous Bet=======>
 
         //for Ill check for valid cards Count assuimg ill be getting the bet array directly from a networked array and it cant be null
         if (bet.ValidCardsCount() == 0)
@@ -93,6 +94,7 @@ public class BetGenerator
             }
             return true;
         }
+        //<=========================================================>
 
         List<DiffusedRankInfo> diffusedBet = new List<DiffusedRankInfo>();
         // diffusing bet to ease management
@@ -105,7 +107,7 @@ public class BetGenerator
         // cant round up bet if it is already maxed
         if (maxBet.AreEqualAlpha(sotedBet, 0))
         {
-            if (dealtCardsCount == BetTotalCardsCount /*|| (dealtCardsCount - 1) == BetTotalCardsCount*/)
+            if (dealtCardsCount == BetTotalCardsCount)
             {
 #if Log
                 LogManager.Log("Failed to Round Up Bet" + string.Join(",", bet) + " is already Maxed Out !", Color.yellow, LogManager.Validators);
@@ -114,12 +116,77 @@ public class BetGenerator
             }
             else
             {
-                //<================= Second type of Rounding Up =====================>
+                //<================= Second type of Rounding Up =====================> 
+                    int NonLockedRanksCounter = 0;
                 //first need to check if there are any Non Locked Ranks 
-
-
+                if (diffusedBet.IncludeNonLockedRank(out NonLockedRanksCounter))
+                {
+                    //at this point if Non Locked rank Exist there should only one and  position should be the Last
+                    if (NonLockedRanksCounter != 1 || diffusedBet[diffusedBet.Count - 1].CardsCount == CardManager.MaxRankCounter)
+                    {
+#if Log
+                        LogManager.Log("Failed to Round Up Bet" + string.Join(",", bet) + "In Valid BetFormat", Color.red, LogManager.Validators);
+#endif
+                        return false;
+                    }
+                    //adding a card of the NonLockedRank to bet 
+                    DiffusedRankInfo nonLockedRank = diffusedBet[diffusedBet.Count - 1];
+                    DiffusedRankInfo adjustedNonLockedRank = new DiffusedRankInfo();
+                    adjustedNonLockedRank.Rank = nonLockedRank.Rank;
+                    adjustedNonLockedRank.RankBruteValue = nonLockedRank.RankBruteValue;
+                    adjustedNonLockedRank.CardsCount = (byte)(nonLockedRank.CardsCount + 1);
+                    diffusedBet.Remove(nonLockedRank);
+                    diffusedBet.Add(adjustedNonLockedRank);
+                    //sorting is need nonLoked rank might become Locked after adding a card 
+                    diffusedBet.SortDiffusedBet();
+                    roundedUpBet = diffusedBet.ToByteArray();
+                    return true;
+                }
+                // if bet only Contains Locked ranks then the diffrence of last bet total count and Total Dealt need to Be>=2
+                else 
+                {
+                    if((dealtCardsCount - BetTotalCardsCount) < 2)
+                    {
+#if Log
+                        LogManager.Log("Failed to Round Up Bet" + string.Join(",", bet) + " is already Maxed Out !", Color.yellow, LogManager.Validators);
+#endif
+                        return false;
+                    }
+                    //grabbing and unused rank to add to the bet 
+                    byte rank = 0;
+                    int bruteValue = 0;
+                    bool rankisFound = false;
+                    for(int index=0; index < CardManager.SortedRanks.Length;index++)
+                    {
+                        rank = CardManager.SortedRanks[index];
+                        if (!diffusedBet.IsRankDiffused(rank))
+                        {
+                            rankisFound = true;
+                            bruteValue = index + 1;
+                            break;
+                        }
+                    }
+                    //if No ranks found then somthing is wrong 
+                    if (!rankisFound)
+                    {
+#if Log
+                        LogManager.LogError("Failed to Round Up Bet" + string.Join(", ", bet)+"All Ranks Are used! and bet is not Maxed!");
+#endif
+                        return false;
+                    }
+                    DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo();
+                    diffusedRankInfo.Rank = rank;
+                    diffusedRankInfo.RankBruteValue = bruteValue;
+                    diffusedRankInfo.CardsCount = 2;
+                    //adding rank to bet no need to sort here 
+                    diffusedBet.Add(diffusedRankInfo);
+                    roundedUpBet = diffusedBet.ToByteArray();
+                    return true;
+                }
+                //<=========================================================>
             }
         }
+        //<================= First type of Rounding Up =====================> 
         else
         {
             //Rounding Up a bet with Size 1 Rank N>=1/8 Total Cards
@@ -144,33 +211,72 @@ public class BetGenerator
                     return false;
                 }
             }
+            //<=========================================================>
             else
             //Rounding Up a bet with Size 2 Rank N>1/8 Total Cards
             if (diffusedBet.Count == 2)
             {
+                int rankToRoundUpIndex = 0;
+
                 DiffusedRankInfo firstRank = diffusedBet[0];
                 DiffusedRankInfo secondRank = diffusedBet[1];
+                bool twoHighestRanks = false;
+
+                byte highestRank = CardManager.SortedRanks[CardManager.SortedRanks.Length-1];
+                byte SecondHighestRank = CardManager.SortedRanks[CardManager.SortedRanks.Length-2];
                 //checking if the two ranks that are played are two highest ranks
-                if (firstRank.RankBruteValue == (CardManager.SortedRanks.Length - 1) && secondRank.RankBruteValue == (CardManager.SortedRanks.Length - 2))
+                twoHighestRanks = (diffusedBet.IsRankDiffused(highestRank) && diffusedBet.IsRankDiffused(SecondHighestRank));
+                if (twoHighestRanks)
                 {
                     //<================= Second type of Rounding Up =====================>
+
+                    if (diffusedBet[1].CardsCount == CardManager.MaxRankCounter)
+                    {
+#if Log
+                        LogManager.LogError("Failed to Round Up Bet" + string.Join(", ", bet) + "Invalid Bet Format!");
+#endif
+                        return false;
+                    }
+                    //rounding up the secondRank because it is the lower value 
+                    DiffusedRankInfo adjustedRank = new DiffusedRankInfo();
+                    adjustedRank.Rank = secondRank.Rank;
+                    adjustedRank.RankBruteValue = secondRank.RankBruteValue;
+                    adjustedRank.CardsCount = (byte)(secondRank.CardsCount + 1);
+
+                    if (adjustedRank.CardsCount > firstRank.CardsCount)
+                    {
+                        //it is safe here to put only the rounded up rank
+                        diffusedBet.Clear();
+                    }
+                    else
+                        diffusedBet.Remove(secondRank);
+                    diffusedBet.Add(adjustedRank);
+                    roundedUpBet = diffusedBet.ToByteArray();
+                    return true;
+                    //<=========================================================>
                 }
                 else
                 {
-                    byte roudededRank = 0;
-                    int rankToRoundUpIndex = 0;
+                    byte roudededRank = 0;                   
+                    //if ranks card count differ 
+                    if ( firstRank.CardsCount != secondRank.CardsCount )
+                    {                       
+                        rankToRoundUpIndex =   secondRank.Rank==highestRank ? 0 : 1;
+                    }
+                    else
                     //checking if the two rank are not successive to round up the lowest rank in value
                     if ((firstRank.RankBruteValue - secondRank.RankBruteValue) > 1)
                     {
                         rankToRoundUpIndex = 1;
                     }
+
                     DiffusedRankInfo RankToRoundUp = diffusedBet[rankToRoundUpIndex];
                     if (CardManager.SortedRanks.TryRoundUpRank(RankToRoundUp.Rank, out roudededRank))
                     {
                         //replacing Pair in list leaving the sorting untouched
 
                         int rankBruteValue;
-                        if (CardManager.SortedRanks.TryGetRankValue(roudededRank, out rankBruteValue))
+                        if (CardManager.SortedRanks.TryGetRankBruteValue(roudededRank, out rankBruteValue))
                         {
                             //setting rounded rank info
                             DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo();
@@ -199,6 +305,7 @@ public class BetGenerator
                     }
                 }
             }
+            //<=========================================================>
             else
             // Rounding Up a bet with Size 	N>2 Rank N>1/8 Total Cards
             if (diffusedBet.Count > 2)
@@ -213,7 +320,7 @@ public class BetGenerator
                         if (!diffusedBet.IsRankDiffused(roundededRank))
                         {
                             int rankBruteValue;
-                            if (CardManager.SortedRanks.TryGetRankValue(roundededRank, out rankBruteValue))
+                            if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                             {
                                 //setting rounded rank info
                                 DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo();
@@ -246,7 +353,7 @@ public class BetGenerator
                         if (!diffusedBet.IsRankDiffused(roundededRank))
                         {
                             int rankBruteValue;
-                            if (CardManager.SortedRanks.TryGetRankValue(roundededRank, out rankBruteValue))
+                            if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                             {
                                 //setting rounded rank info
                                 DiffusedRankInfo newRoundedBetInfo = new DiffusedRankInfo();
@@ -320,7 +427,7 @@ public class BetGenerator
                     if (CardManager.SortedRanks.TryRoundUpRank(betToRoundUp.Rank, out roundededRank))
                     {
                         int rankBruteValue;
-                        if (CardManager.SortedRanks.TryGetRankValue(roundededRank, out rankBruteValue))
+                        if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                         {
                             //setting rounded rank info
                             var newRoundedBetInfo = new DiffusedRankInfo();
@@ -350,7 +457,10 @@ public class BetGenerator
                     }
                 }
             }
+            //<=========================================================>
         }
+        //<=========================================================>
         return false;
     }
+
 }

@@ -376,7 +376,7 @@ public static class Extention
         return (array.IsEmpty() || array == null);
     }
 
-    public static bool TryGetRankValue(this byte[] array, byte rank, out int Value)
+    public static bool TryGetRankBruteValue(this byte[] array, byte rank, out int Value)
     {
         Value = 0;
         for (int index = 0; index < array.Length; ++index)
@@ -760,7 +760,7 @@ public static class Extention
         BetRank = new DiffusedRankInfo();
         for (int index = 0; index < betList.Count - 1; index++)
         {
-            if (betList[index].Rank - betList[index + 1].Rank > 1)
+            if (betList[index].RankBruteValue - betList[index + 1].RankBruteValue > 1)
             {
                BetRank= betList[index+1];
                 return true;
@@ -789,7 +789,7 @@ public static class Extention
                 continue;
             else
             {
-                if (CardManager.SortedRanks.TryGetRankValue(rank, out rankBruteValue))
+                if (CardManager.SortedRanks.TryGetRankBruteValue(rank, out rankBruteValue))
                 {
                     DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo();
                     diffusedRankInfo.Rank = rank;
@@ -865,18 +865,26 @@ public static class Extention
                     cardsCounterSortedVessel.Remove(item);
                 // casual sorting procedure
                 rankSortedVessel = SelectedDuplicates.OrderByDescending(x => x.RankBruteValue).ToList();
-                //adding left over element PS there should only one
-                if (cardsCounterSortedVessel.Count == 1)
+
+
+                int NonLockedRanksCounter = 0;
+                //first need to check if there are any Non Locked Ranks 
+                if (diffusedBet.IncludeNonLockedRank(out NonLockedRanksCounter))
                 {
-                    var leftoverelement = cardsCounterSortedVessel.First();
-                    rankSortedVessel.Add(leftoverelement);
-                }
-                else
-                {
+
+                    //adding left over element PS there should only one
+                    if (cardsCounterSortedVessel.Count == 1)
+                    {
+                        var leftoverelement = cardsCounterSortedVessel.First();
+                        rankSortedVessel.Add(leftoverelement);
+                    }
+                    else
+                    {
 #if Log
-                    LogManager.LogError($"Sorting Bet Failed  ! there should one element left but count is =:{cardsCounterSortedVessel.Count} !");
+                        LogManager.LogError($"Sorting Bet Failed  ! there should one element left but count is =:{cardsCounterSortedVessel.Count} !");
 #endif
-                    return;
+                        return;
+                    }
                 }
             }
         }
@@ -886,6 +894,20 @@ public static class Extention
         //copying shit back
         diffusedBet.Clear();
         diffusedBet.AddRange(rankSortedVessel);
+    }
+    public static bool IncludeNonLockedRank(this List<DiffusedRankInfo> diffusedbet, out int counter)
+    {
+        counter = 0;
+        bool NonLockedExist = false;
+        foreach (var item in diffusedbet)
+        {
+            if (item.CardsCount < CardManager.MaxRankCounter)
+            {
+                counter++;
+                NonLockedExist = true;
+            }
+        }
+        return NonLockedExist;
     }
     #endregion
 }

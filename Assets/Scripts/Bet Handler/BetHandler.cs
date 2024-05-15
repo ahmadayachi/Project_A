@@ -38,6 +38,7 @@ public class BetHandler
         return _validatorChain.Validate(Args);
     }
 
+#if UNITY_EDITOR
     public bool LevelOne(ValidatorArguments Args)
     {
         return _oneCardValidator.Validate(Args);
@@ -50,6 +51,7 @@ public class BetHandler
     {
         return _betValidator.Validate(Args);
     }
+#endif
 }
 
 

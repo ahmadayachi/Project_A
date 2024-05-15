@@ -20,7 +20,7 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
             return false;
         }
         //dealt cards need to > 0
-        if (args.dealtCardsNumber == 0)
+        if (args.DealtCardsNumber == 0)
         {
 #if Log
             LogManager.LogError(LevelTwo + "ARGS dealt Cards are not valid ");
@@ -32,7 +32,7 @@ public class TotalBettingCountValidator : ValidatorBase, IValidator
         int PreviousBetCount = args.PreviousBet.ValidCardsCount();
 
         // can bet on more Cards then that are dealt to players
-        if (CurrentBetCount > args.dealtCardsNumber)
+        if (CurrentBetCount > args.DealtCardsNumber)
         {
 #if Log
             LogManager.Log(LevelTwo + "Current Bet  Cards Count Cant be more than dealt Cards !" + Bet + string.Join(",", args.CurrentBet), Color.yellow, LogManager.Validators);
