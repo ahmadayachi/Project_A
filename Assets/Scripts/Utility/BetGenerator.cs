@@ -257,11 +257,21 @@ public class BetGenerator
                 }
                 else
                 {
-                    byte roudededRank = 0;                   
+                    byte roudededRank = 0;
+                    bool keepSecondRankCardsCount = false;
                     //if ranks card count differ 
-                    if ( firstRank.CardsCount != secondRank.CardsCount )
-                    {                       
-                        rankToRoundUpIndex =   secondRank.Rank==highestRank ? 0 : 1;
+                    if (firstRank.CardsCount != secondRank.CardsCount)
+                    {
+                        if (secondRank.Rank != highestRank)
+                        {
+                            //checking if the two rank are not successive to round up the lowest rank in value
+                            if ((firstRank.RankBruteValue - secondRank.RankBruteValue) != 1)
+                            {
+                                rankToRoundUpIndex = 1;
+                            }
+                            else
+                                keepSecondRankCardsCount = true;
+                        }
                     }
                     else
                     //checking if the two rank are not successive to round up the lowest rank in value
@@ -280,10 +290,19 @@ public class BetGenerator
                         {
                             //setting rounded rank info
                             DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo();
+                            //making the second rank jump twice 
                             newLastBetInfo.Rank = roudededRank;
                             newLastBetInfo.RankBruteValue = rankBruteValue;
-                            newLastBetInfo.CardsCount = RankToRoundUp.CardsCount;
-                            diffusedBet[rankToRoundUpIndex] = newLastBetInfo;
+                            if (keepSecondRankCardsCount)
+                            {
+                                newLastBetInfo.CardsCount = secondRank.CardsCount;
+                                diffusedBet[1] = newLastBetInfo;
+                            }
+                            else
+                            {
+                                newLastBetInfo.CardsCount = RankToRoundUp.CardsCount;
+                                diffusedBet[rankToRoundUpIndex] = newLastBetInfo;
+                            }
 
                             roundedUpBet = diffusedBet.ToByteArray();
                             return true;

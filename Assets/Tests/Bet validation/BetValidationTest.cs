@@ -30,7 +30,7 @@ public class BetValidationTest : SinglePeerBase
 
         //_currentBet = BetGenerator.GenerateMaxBet(9);
         //_currentBet = new byte[] { 7,7,7 };
-        _previousBet = new byte[] {13,13,13,1,1};
+        _previousBet = new byte[] {1,1,1,1};
 
         bool isrounded = BetGenerator.TryRoundUpBet(_previousBet, out _currentBet,30);
 

@@ -730,6 +730,8 @@ public static class Extention
     /// <returns></returns>
     public static bool AreEqual(this byte[] a, byte[] b)
     {
+        if (a.IsNullOrEmpty() || b.IsNullOrEmpty()) return false;
+        if (a.Length != b.Length) return false;
         for (int i = 0; i < a.Length; i++)
         {
             if (a[i] != b[i]) return false;

@@ -97,6 +97,7 @@ public class GameManager :NetworkBehaviour
     }
     #endregion
     #region private Logic methods
+    //Need Rework 
     private void SetMaxPlayerCards()
     {
         if ( _activePlayersNumber == 0)

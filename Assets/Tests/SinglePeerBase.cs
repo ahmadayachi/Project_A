@@ -33,6 +33,17 @@ public class SinglePeerBase
         Debug.Log("Test Completed !");
         yield return new ExitPlayMode();
     }
+#else
+    [SetUp]
+    public void Setup()
+    {
+
+    }
+    [UnityTearDown]
+    public void TearDown()
+    {
+        Debug.Log("Test Completed !");
+    }
 #endif
 
     /// <summary>

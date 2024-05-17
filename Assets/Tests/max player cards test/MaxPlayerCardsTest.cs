@@ -4,7 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-public class MaxPlayerCardsTest
+public class MaxPlayerCardsTest:SinglePeerBase
 {
 
     private const byte _beloteDeckSize = 32;
@@ -17,15 +17,4 @@ public class MaxPlayerCardsTest
         Assert.AreEqual(3, _maxPlayerCards);
     }
 
-    #region private methods
-    private byte SetMaxPlayerCards(byte playerNumber)
-    {
-        byte playerCards = 1;
-        while ((_beloteDeckSize - (playerCards * playerNumber) > 0))
-        {
-            playerCards++;
-        }
-        return (byte)(playerCards - 1);
-    }
-    #endregion
 }
