@@ -131,10 +131,7 @@ public class BetGenerator
                     }
                     //adding a card of the NonLockedRank to bet 
                     DiffusedRankInfo nonLockedRank = diffusedBet[diffusedBet.Count - 1];
-                    DiffusedRankInfo adjustedNonLockedRank = new DiffusedRankInfo();
-                    adjustedNonLockedRank.Rank = nonLockedRank.Rank;
-                    adjustedNonLockedRank.RankBruteValue = nonLockedRank.RankBruteValue;
-                    adjustedNonLockedRank.CardsCount = (byte)(nonLockedRank.CardsCount + 1);
+                    DiffusedRankInfo adjustedNonLockedRank = new DiffusedRankInfo(nonLockedRank.Rank, nonLockedRank.RankBruteValue, (byte)(nonLockedRank.CardsCount + 1));
                     diffusedBet.Remove(nonLockedRank);
                     diffusedBet.Add(adjustedNonLockedRank);
                     //sorting is need nonLoked rank might become Locked after adding a card 
@@ -174,10 +171,8 @@ public class BetGenerator
 #endif
                         return false;
                     }
-                    DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo();
-                    diffusedRankInfo.Rank = rank;
-                    diffusedRankInfo.RankBruteValue = bruteValue;
-                    diffusedRankInfo.CardsCount = 2;
+                    DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo(rank, bruteValue, 2);
+
                     //adding rank to bet no need to sort here 
                     diffusedBet.Add(diffusedRankInfo);
                     roundedUpBet = diffusedBet.ToByteArray();
@@ -238,11 +233,7 @@ public class BetGenerator
                         return false;
                     }
                     //rounding up the secondRank because it is the lower value 
-                    DiffusedRankInfo adjustedRank = new DiffusedRankInfo();
-                    adjustedRank.Rank = secondRank.Rank;
-                    adjustedRank.RankBruteValue = secondRank.RankBruteValue;
-                    adjustedRank.CardsCount = (byte)(secondRank.CardsCount + 1);
-
+                    DiffusedRankInfo adjustedRank = new DiffusedRankInfo(secondRank.Rank, secondRank.RankBruteValue, (byte)(secondRank.CardsCount + 1));
                     if (adjustedRank.CardsCount > firstRank.CardsCount)
                     {
                         //it is safe here to put only the rounded up rank
@@ -342,10 +333,7 @@ public class BetGenerator
                             if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                             {
                                 //setting rounded rank info
-                                DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo();
-                                newLastBetInfo.Rank = roundededRank;
-                                newLastBetInfo.RankBruteValue = rankBruteValue;
-                                newLastBetInfo.CardsCount = lastBetInfo.CardsCount;
+                                DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo(roundededRank,rankBruteValue, lastBetInfo.CardsCount);
                                 diffusedBet[diffusedBet.Count - 1] = newLastBetInfo;
 
                                 roundedUpBet = diffusedBet.ToByteArray();
@@ -375,10 +363,7 @@ public class BetGenerator
                             if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                             {
                                 //setting rounded rank info
-                                DiffusedRankInfo newRoundedBetInfo = new DiffusedRankInfo();
-                                newRoundedBetInfo.Rank = roundededRank;
-                                newRoundedBetInfo.RankBruteValue = rankBruteValue;
-                                newRoundedBetInfo.CardsCount = NonSuccessiveRank.CardsCount;
+                                DiffusedRankInfo newRoundedBetInfo = new DiffusedRankInfo(roundededRank, rankBruteValue, NonSuccessiveRank.CardsCount);
 
                                 for (int index = 0; index < diffusedBet.Count; index++)
                                 {
@@ -416,15 +401,8 @@ public class BetGenerator
                             {
                                 if (diffusedBet[index].Rank == NonSuccessiveRank.Rank)
                                 {
-                                    var newRounduprankInfo = new DiffusedRankInfo();
-                                    newRounduprankInfo.Rank = existingRoundedUpRank.Rank;
-                                    newRounduprankInfo.RankBruteValue = existingRoundedUpRank.RankBruteValue;
-                                    newRounduprankInfo.CardsCount = NonSuccessiveRank.CardsCount;
-
-                                    var newLastRankInfo = new DiffusedRankInfo();
-                                    newLastRankInfo.Rank = NonSuccessiveRank.Rank;
-                                    newLastRankInfo.RankBruteValue = NonSuccessiveRank.RankBruteValue;
-                                    newLastRankInfo.CardsCount = existingRoundedUpRank.CardsCount;
+                                    DiffusedRankInfo newRounduprankInfo = new DiffusedRankInfo(existingRoundedUpRank.Rank, existingRoundedUpRank.RankBruteValue, NonSuccessiveRank.CardsCount);
+                                    DiffusedRankInfo newLastRankInfo = new DiffusedRankInfo(NonSuccessiveRank.Rank, NonSuccessiveRank.RankBruteValue, existingRoundedUpRank.CardsCount);
                                     //switching places
                                     diffusedBet[index] = newRounduprankInfo;
                                     diffusedBet[diffusedBet.Count - 1] = newLastRankInfo;
@@ -449,10 +427,7 @@ public class BetGenerator
                         if (CardManager.SortedRanks.TryGetRankBruteValue(roundededRank, out rankBruteValue))
                         {
                             //setting rounded rank info
-                            var newRoundedBetInfo = new DiffusedRankInfo();
-                            newRoundedBetInfo.Rank = roundededRank;
-                            newRoundedBetInfo.RankBruteValue = betToRoundUp.RankBruteValue;
-                            newRoundedBetInfo.CardsCount = betToRoundUp.CardsCount;
+                            DiffusedRankInfo newRoundedBetInfo = new DiffusedRankInfo(roundededRank, betToRoundUp.RankBruteValue, betToRoundUp.CardsCount);
 
                             diffusedBet[0] = newRoundedBetInfo;
 

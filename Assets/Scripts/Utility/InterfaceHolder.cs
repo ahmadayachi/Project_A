@@ -198,6 +198,14 @@ public struct DiffusedRankInfo
     public byte Rank;
     public int RankBruteValue;
     public byte CardsCount;
+
+    public DiffusedRankInfo(byte rank, int rankBruteValue, byte cardsCount)
+    {
+        Rank = rank;
+        RankBruteValue = rankBruteValue;
+        CardsCount = cardsCount;
+    }
+
     public override string ToString()
     {
         return $"Rank: {Rank}, RankBruteValue: {RankBruteValue}, CardsCount: {CardsCount}";

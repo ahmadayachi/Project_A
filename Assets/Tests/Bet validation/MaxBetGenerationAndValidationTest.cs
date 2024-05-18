@@ -7,31 +7,7 @@ using UnityEngine.tvOS;
 
 public class MaxBetGenerationAndValidationTest : SinglePeerBase
 {
-    private BetHandler _betHandler;
-    private ValidatorArguments _validatorArgs;
-
-    private byte[] _currentBet;
-    private byte[] _previousBet;
-    private byte _playerNumber = 4;
-    private int _maxDealtCards;
     private bool _correctWayOfGenerating;
-
-    [SetUp]
-    public void Setup()
-    {
-        // setting up CardManager Deck
-        StandardSizeDeckCheck(DeckType.Belote,
-        StandardSuitsNumber,
-                              Belote,
-                              CardManager.BELOTE_DECK_SUIT_SIZE);
-
-        //creating a BetHandler 
-        _betHandler = new BetHandler();
-
-
-        //setting the maxdelatsCards 
-        _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
-    }
     [Test]
     public void CorrectMaxBetGenerationAndValidationTest()
     {
@@ -46,12 +22,7 @@ public class MaxBetGenerationAndValidationTest : SinglePeerBase
         _correctWayOfGenerating = false;
         LoopAndValidateMaxBet();
     }
-    [UnityTearDown]
-    public void TearDown()
-    {
-        Debug.Log("Test Completed !");
-    }
-
+   
     #region private shitters
     private void LoopAndValidateMaxBet()
     {

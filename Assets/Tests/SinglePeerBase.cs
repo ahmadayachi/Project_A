@@ -20,6 +20,18 @@ public class SinglePeerBase
     protected const string Belote = "Belote";
     protected const string Standard = "Standart";
     protected const string Custom = "Custom";
+
+    #region BetValidator Vars 
+    protected BetHandler _betHandler;
+    protected ValidatorArguments _validatorArgs;
+
+    protected byte[] _currentBet;
+    protected byte[] _previousBet;
+    protected byte _playerNumber = 4;
+    protected int _maxDealtCards;
+    #endregion
+
+
 #if UsingUnityTest
     [UnitySetUp]
     [Timeout(600000)]
@@ -37,7 +49,18 @@ public class SinglePeerBase
     [SetUp]
     public void Setup()
     {
+        // setting up CardManager Deck
+        StandardSizeDeckCheck(DeckType.Belote,
+        StandardSuitsNumber,
+                              Belote,
+                              CardManager.BELOTE_DECK_SUIT_SIZE);
 
+        //creating a BetHandler 
+        _betHandler = new BetHandler();
+
+
+        //setting the maxdelatsCards 
+        _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
     }
     [UnityTearDown]
     public void TearDown()
