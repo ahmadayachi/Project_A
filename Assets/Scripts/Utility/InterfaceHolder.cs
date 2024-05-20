@@ -132,9 +132,24 @@ public struct PlayerStateArguments
 {
     public GameState GameState;
 }
-
+public struct DoubtStateArguments
+{
+    public List<byte> DealtCards;
+    public byte[] Livebet;
+}
 #endregion
 #region Struct Arguments
+public struct DoubtOverUIArguments
+{
+    public List<byte> CorrectBetRanks;
+    public List<byte> WrongBetRanks;
+
+    public DoubtOverUIArguments(List<byte> correctBetRanks, List<byte> wrongBetRanks)
+    {
+        CorrectBetRanks = correctBetRanks;
+        WrongBetRanks = wrongBetRanks;
+    }
+}
 public struct CardPoolArguments
 {
     public GameObject CardPrefab;
@@ -230,6 +245,12 @@ public enum GameState:byte
     RoudOver,
     GameOver,
     HostMigration
+}
+public enum DoubtState
+{
+    NoDoubting,
+    WinDoubt,
+    LooseDoubt
 }
 public enum DeckType
 {

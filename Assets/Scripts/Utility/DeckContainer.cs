@@ -8,7 +8,7 @@ public class DeckContainer : ScriptableObject
     public List<CardSprite> SpriteContainer = new List<CardSprite>();
     public Sprite GetSuitSprite(byte Rank, CardSuit Suit)
     {
-        if (SpriteContainer.Count == 0 || Suit == CardSuit.NoSuit || !Extention.IsAValidBeloteRank(Rank))
+        if (SpriteContainer.Count == 0 || Suit == CardSuit.NoSuit /*|| !Extention.IsAValidBeloteRank(Rank)*/)
         {
             return null;
         }
