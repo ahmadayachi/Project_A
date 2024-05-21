@@ -318,6 +318,27 @@ public static class Extention
         }
         return false;
     }
+    /// <summary>
+    /// returns null is network array is empty ! 
+    /// </summary>
+    /// <param name="array"></param>
+    /// <returns></returns>
+    public static byte[] ToByteArray(this NetworkArray<byte> array)
+    {
+        int arrayCount = array.ValidCardsCount();
+        if (arrayCount == 0)
+        {
+            return null;
+        }
+        byte[] convertedArray = new byte[arrayCount];
+        int jindex = 0;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                convertedArray[jindex++] = array[index];
+        }
+        return convertedArray;
+    }
 
     #endregion Networked Card Array extentions
 

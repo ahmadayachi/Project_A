@@ -8,6 +8,9 @@ public class GameManager :NetworkBehaviour
     #region dealer
     private Dealer _dealer;
     #endregion
+    #region betHandler
+    private BetHandler _betHandler;
+    #endregion
     #region Card Pool System
     private CardPool _cardsPool;
     public CardPool CardPool;
@@ -27,8 +30,10 @@ public class GameManager :NetworkBehaviour
     /// </summary>
     [Networked, Capacity(MaxPlayersNumber)] 
     private NetworkArray<NetworkObject> _activeplayers { get;}
-    [Networked, Capacity(MaxPlayersNumber)]
+    [Networked, Capacity(MaxPlayersNumber-1)]
     private NetworkArray<string> _loosersIDs { get;}
+    [Networked] private string _winnerID { get; set; }
+    [Networked] private string _currentPlayerID { get; set;}
     private byte _activePlayersNumber;
     public byte ActivePlayersNumber { get => _activePlayersNumber;}
     #endregion
@@ -43,10 +48,12 @@ public class GameManager :NetworkBehaviour
     /// </summary>
     [Networked, Capacity(BeloteDeckSize)]
     private NetworkArray<byte> _liveBet { get; }
-
+    private List<DiffusedRankInfo> _diffusedBet = new List<DiffusedRankInfo>();
     #endregion
     #region GameState properties
     [Networked] private GameState _gameState { get; set;}
+    private byte _dealtCardsNumber;
+    public byte DealtCardsNumber { get => _dealtCardsNumber;}
     #endregion
 
     #region Runner
@@ -58,6 +65,9 @@ public class GameManager :NetworkBehaviour
 
     #region Dealer Setup
     private void CreateDealer() => _dealer = new Dealer(StartRoutine,StopRoutine);
+    #endregion
+    #region BetHandler Setup
+    private void CreateBetHandler() => _betHandler = new BetHandler();
     #endregion
     #region Cards Pool Setup
     private void CreateCardPool()
@@ -158,4 +168,30 @@ public class GameManager :NetworkBehaviour
         StopCoroutine(routineCash);
     }
     #endregion
-}
+    #region GameMode Methods
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_ConfirmBet(byte[] bet, string playerID)
+    {
+        //only current player can confirm bet 
+        if (_currentPlayerID != playerID)
+        {
+#if Log
+            LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} is not the Current PLayer!,Current PLayer ID:={_currentPlayerID}",Color.red,LogManager.GameModeLogs);
+#endif
+            return;
+        }
+        byte[] liveBet = _liveBet.ToByteArray();
+        ValidatorArguments betArgs = new ValidatorArguments(bet,liveBet, _dealtCardsNumber);
+        bool isValid = _betHandler.ChainValidateBet(betArgs);
+        //bet has to be valid
+        if (!isValid)
+        {
+#if Log
+            LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} Sent an Invalid Bet!, Bet=:{string.Join(",",liveBet)}", Color.red, LogManager.GameModeLogs);
+#endif
+            return;
+        }
+
+    }
+        #endregion
+    }

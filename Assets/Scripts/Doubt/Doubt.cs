@@ -10,6 +10,13 @@ public class Doubt : State
     private Func<IEnumerator, Coroutine> _startRoutine;
     private Action<Coroutine> _stopRoutine;
 
+    public Doubt(Func<DoubtState, IEnumerator> onDoubtOverLogic, Func<IEnumerator, Coroutine> startRoutine, Action<Coroutine> stopRoutine)
+    {
+        _onDoubtOverLogic = onDoubtOverLogic;
+        _startRoutine = startRoutine;
+        _stopRoutine = stopRoutine;
+    }
+
     public override void Start<T>(T arg)
     {
         if (Extention.TryCastToStruct(arg, out DoubtStateArguments DoubtArgs))
@@ -59,7 +66,7 @@ public class Doubt : State
         DoubtState doubtState = wrongBetRanks.Count == 0 ? DoubtState.WinDoubt : DoubtState.LooseDoubt;
         //invoking further Logic 
         yield return _onDoubtOverLogic?.Invoke(doubtState);
-        var doubtOverUI = new DoubtOverUIArguments(correctBetRanks, wrongBetRanks);
-
+        //reseting coroutine
+        _doubtingRoutine = null;
     }
 }

@@ -17,10 +17,10 @@ public class BetValidationTest : SinglePeerBase
         _validatorArgs = new ValidatorArguments();
 
         //_currentBet = BetGenerator.GenerateMaxBet(9);
-        //_currentBet = new byte[] { 7,7,7 };
-        _previousBet = new byte[] {1,1,1};
+        _currentBet = new byte[] { 1,1,1 };
+        _previousBet = new byte[] {7,7,7};
 
-        bool isrounded = BetGenerator.TryRoundUpBet(_previousBet, out _currentBet,4);
+        //bool isrounded = BetGenerator.TryRoundUpBet(_previousBet, out _currentBet,4);
 
         _validatorArgs.CurrentBet = _currentBet;
         _validatorArgs.PreviousBet = _previousBet;

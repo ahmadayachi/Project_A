@@ -3,6 +3,8 @@
 //#define SUPPRESS_INFORMATIONVALUE_LOG
 //#define SUPPRESS_CARDPOOL_LOG
 //#define SUPPRESS_PLAYER_LOG
+//#define SUPPRESS_GAMEMODE_LOG
+//#define SUPPRESS_VALIDATORS_LOG
 #define LOGTOUI
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +23,8 @@ public static class LogManager
     public static string ValueInformationLog = "Value";
     public static string PlayerLog = "Player";
     public static string Validators = "Validators";
+    public static string GameModeLogs = "GameMode";
+
     #endregion Debug Keys
 
     #region Log to Ui Methods and fields
@@ -69,6 +73,12 @@ public static class LogManager
 #endif
 #if SUPPRESS_CARDPOOL_LOG
         if (DebugKey == CardPoolLog) return;
+#endif
+#if SUPPRESS_VALIDATORS_LOG
+        if (DebugKey == Validators) return;
+#endif
+#if SUPPRESS_GAMEMODE_LOG
+        if (DebugKey == GameModeLogs) return;
 #endif
         string ColorString = ColorUtility.ToHtmlStringRGB(color);
         Debug.Log($"<color=#{ColorString}>" + message + "</color>");

@@ -69,7 +69,7 @@ public class BetGenerator
 
         //<======Launching a Bet when there is no Previous Bet=======>
 
-        //for Ill check for valid cards Count assuimg ill be getting the bet array directly from a networked array and it cant be null
+        //check for valid cards Count assuimg ill be getting the bet array directly from a networked array and it cant be null
         if (bet.ValidCardsCount() == 0)
         {
             return LaunchBet(ref roundedUpBet, dealtCardsCount);
