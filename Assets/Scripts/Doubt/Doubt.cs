@@ -46,12 +46,21 @@ public class Doubt : State
 
     private IEnumerator DoubtBet(DoubtStateArguments args)
     {
+        //cheking for invalid args
+        if (InvalidArgs(args))
+        {
+#if Log
+            LogManager.LogError("Doubt Arguments are Invalid !");
+#endif
+            _doubtingRoutine = null;
+            yield break;
+        }
         //searching and spliting bet in two lists
         List<byte> correctBetRanks = new List<byte>();
         List<byte> wrongBetRanks = new List<byte>();
         foreach (byte Rank in args.Livebet)
         {
-            if (!args.DealtCards.Contains(Rank))
+            if (args.DealtCards.Contains(Rank))
             {
                 correctBetRanks.Add(Rank);
                 args.DealtCards.Remove(Rank);
@@ -68,5 +77,13 @@ public class Doubt : State
         yield return _onDoubtOverLogic?.Invoke(doubtState);
         //reseting coroutine
         _doubtingRoutine = null;
+    }
+    private bool InvalidArgs(DoubtStateArguments args)
+    {
+        if(args.Livebet == null||args.Livebet.ValidCardsCount()==0 ||args.DealtCards==null||args.DealtCards.Count==0)
+        {
+            return true;
+        }
+        return false;
     }
 }

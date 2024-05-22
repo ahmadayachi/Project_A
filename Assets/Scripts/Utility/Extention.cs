@@ -318,17 +318,13 @@ public static class Extention
         }
         return false;
     }
-    /// <summary>
-    /// returns null is network array is empty ! 
-    /// </summary>
-    /// <param name="array"></param>
-    /// <returns></returns>
     public static byte[] ToByteArray(this NetworkArray<byte> array)
     {
         int arrayCount = array.ValidCardsCount();
         if (arrayCount == 0)
         {
-            return null;
+            //returning an rmpty array
+            return new byte[] { };
         }
         byte[] convertedArray = new byte[arrayCount];
         int jindex = 0;
@@ -339,7 +335,35 @@ public static class Extention
         }
         return convertedArray;
     }
+    public static List<byte> ToByteList(this NetworkArray<byte> array)
+    {
+        int arrayCount = array.ValidCardsCount();
+        List<byte> byteList = new List<byte> ();
+        if (arrayCount == 0)
+        {
+            //returning an rmpty array
+            return byteList;
+        }
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                byteList.Add(array[index]);
+        }
+        return byteList;
+    }
+    public static void ToByteList(this NetworkArray<byte> array, List<byte> byteList)
+    {
+        byteList.Clear();
+        int arrayCount = array.ValidCardsCount();
 
+        if (arrayCount == 0) return;
+
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                byteList.Add(array[index]);
+        }
+    }
     #endregion Networked Card Array extentions
 
     #region UI
@@ -725,6 +749,7 @@ public static class Extention
         }
         return betArray;
     }
+    
     public static int BetTotalCardsCount(this Dictionary<byte, byte> bet)
     {
         int betTotalCardsCount = 0;

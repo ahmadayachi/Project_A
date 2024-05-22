@@ -121,7 +121,8 @@ public class SinglePeerBase
     protected byte SetMaxPlayerCards(byte playerNumber)
     {
         byte playerCards = 1;
-        while ((BeloteDeckSize - (playerCards * playerNumber) > 0))
+        int currentDeckSize = CardManager.Deck.Length;
+        while ((currentDeckSize - (playerCards * playerNumber) > 0))
         {
             playerCards++;
         }

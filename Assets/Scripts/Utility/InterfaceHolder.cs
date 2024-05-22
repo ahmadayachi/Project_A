@@ -136,6 +136,12 @@ public struct DoubtStateArguments
 {
     public List<byte> DealtCards;
     public byte[] Livebet;
+
+    public DoubtStateArguments(List<byte> dealtCards, byte[] livebet)
+    {
+        DealtCards = dealtCards;
+        Livebet = livebet;
+    }
 }
 #endregion
 #region Struct Arguments

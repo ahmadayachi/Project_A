@@ -12,9 +12,9 @@ public class MaxPlayerCardsTest:SinglePeerBase
     [Test]
     public void MaxPlayerCardsTestSimplePasses()
     {
-        byte playerNumber = 9;
+        byte playerNumber = 4;
         _maxPlayerCards = SetMaxPlayerCards(playerNumber);
-        Assert.AreEqual(3, _maxPlayerCards);
+        Assert.AreEqual(7, _maxPlayerCards);
     }
 
 }
