@@ -52,13 +52,51 @@ public class GameManager : NetworkBehaviour
 
     [Networked] private string _winnerID { get; set; }
     [Networked] private string _currentPlayerID { get; set; }
+    public IPlayer CurrentPlayer;
     private byte _activePlayersNumber;
     public byte ActivePlayersNumber { get => _activePlayersNumber; }
-
+  
+    public IPlayer[] Players;
+    private int _playerIndex;
     #endregion Player Propertys
 
+    #region Passing Turn 
+    private void NextPlayerIndex()
+    {
+        _playerIndex = _playerIndex + 1;
+        if (_playerIndex >= Players.Length)
+            _playerIndex = 0;
+    }
+    private bool GameIsStillRunning()
+    {
+        if(Players == null ||  Players.Length == 0) return false;
+        int counter = 0;
+        for(int index = 0; index < Players.Length; index++)
+        {
+            if (!Players[index].IsOut)
+                counter++;
+        }
+        if(counter >= 2) return true;
+        return false;
+    }
+    private void PassTurn()
+    {
+        //Server Only Bitch
+        if (IsClient) return;
+        if (Players == null)
+        {
+#if Log
+            LogManager.LogError("Failed Passing Turn ! Players Array is Null");
+#endif
+            return;
+        }
+        //Moving player Indexer 
+        NextPlayerIndex();
+        //loop n look for a player not out 
+       
+    }
+    #endregion
     #region Cards Networked Properties
-
     /// <summary>
     /// Array of the total cards that are dealt to players per Round
     /// </summary>
@@ -74,12 +112,6 @@ public class GameManager : NetworkBehaviour
     public byte DealtCardsNumber { get => _dealtCardsNumber; }
 
     #endregion GameState properties
-
-    #region Runner
-
-    private NetworkRunner _runner;
-
-    #endregion Runner
 
     #region Live Bet Props
 
@@ -100,7 +132,12 @@ public class GameManager : NetworkBehaviour
     #region State Props
     private State _currentState;
     #endregion
-
+    #region Simulation Props
+    public NetworkRunner GameRunner { get; set; }
+    public bool IsHost { get=> GameRunner.IsServer; }
+    public bool IsClient {get=> GameRunner.IsClient; }
+    public GameMode GameMode { get => GameRunner.GameMode; }
+    #endregion
 
 
 
@@ -193,7 +230,7 @@ public class GameManager : NetworkBehaviour
     /// <returns></returns>
     private NetworkObject SpawnObject(NetworkPrefabRef objectRef)
     {
-        if (_runner == null)
+        if (GameRunner == null)
         {
 #if Log
             LogManager.LogError("spawning object failed! runner is null!");
@@ -208,7 +245,7 @@ public class GameManager : NetworkBehaviour
             return null;
         }
 
-        return _runner.Spawn(objectRef);
+        return GameRunner.Spawn(objectRef);
     }
 
     /// <summary>
