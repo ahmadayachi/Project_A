@@ -21,6 +21,7 @@ public interface IPlayer:ICardReceiver
     void SetCardCounter(byte cardCounter);
     CardInfo[] Hand { get;}
     void ClearHand();
+    string ToString();
 }
 public interface ICardReceiver
 {

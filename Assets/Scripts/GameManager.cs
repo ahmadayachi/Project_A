@@ -1,4 +1,5 @@
 using Fusion;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,13 +24,18 @@ public class GameManager : NetworkBehaviour
     public CardPool CardPool;
 
     #endregion Card Pool System
+
     #region Doubt
+
     private Doubt _doubt;
-    #endregion
+
+    #endregion Doubt
 
     #region Deck properties
+
     private const int DoubleStandartDeckSize = 104;
     private byte _maxPlayerCards;
+
     /// <summary>
     /// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
     /// </summary>
@@ -52,57 +58,26 @@ public class GameManager : NetworkBehaviour
 
     [Networked] private string _winnerID { get; set; }
     [Networked] private string _currentPlayerID { get; set; }
+    public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
     private byte _activePlayersNumber;
     public byte ActivePlayersNumber { get => _activePlayersNumber; }
-  
+
     public IPlayer[] Players;
     private int _playerIndex;
+
     #endregion Player Propertys
 
-    #region Passing Turn 
-    private void NextPlayerIndex()
-    {
-        _playerIndex = _playerIndex + 1;
-        if (_playerIndex >= Players.Length)
-            _playerIndex = 0;
-    }
-    private bool GameIsStillRunning()
-    {
-        if(Players == null ||  Players.Length == 0) return false;
-        int counter = 0;
-        for(int index = 0; index < Players.Length; index++)
-        {
-            if (!Players[index].IsOut)
-                counter++;
-        }
-        if(counter >= 2) return true;
-        return false;
-    }
-    private void PassTurn()
-    {
-        //Server Only Bitch
-        if (IsClient) return;
-        if (Players == null)
-        {
-#if Log
-            LogManager.LogError("Failed Passing Turn ! Players Array is Null");
-#endif
-            return;
-        }
-        //Moving player Indexer 
-        NextPlayerIndex();
-        //loop n look for a player not out 
-       
-    }
-    #endregion
     #region Cards Networked Properties
+
     /// <summary>
     /// Array of the total cards that are dealt to players per Round
     /// </summary>
     [Networked, Capacity(DoubleStandartDeckSize)]
     private NetworkArray<byte> _dealtCards { get; }
+
     private List<byte> _dealtCardsList = new List<byte>();
+
     #endregion Cards Networked Properties
 
     #region GameState properties
@@ -129,26 +104,33 @@ public class GameManager : NetworkBehaviour
     [Networked] private string _liveBetPlayerID { get; set; }
 
     #endregion Live Bet Props
+
     #region State Props
+
     private State _currentState;
-    #endregion
+
+    #endregion State Props
+
     #region Simulation Props
+
     public NetworkRunner GameRunner { get; set; }
-    public bool IsHost { get=> GameRunner.IsServer; }
-    public bool IsClient {get=> GameRunner.IsClient; }
+    public bool IsHost { get => GameRunner.IsServer; }
+    public bool IsClient { get => GameRunner.IsClient; }
     public GameMode GameMode { get => GameRunner.GameMode; }
-    #endregion
 
-
+    #endregion Simulation Props
 
     #region Dealer Setup
 
     private void CreateDealer() => _dealer = new Dealer(StartRoutine, StopRoutine);
 
     #endregion Dealer Setup
+
     #region Doubt Setup
+
     private void CreateDoubt() => _doubt = new Doubt(DoubtOverLogic, StartRoutine, StopRoutine);
-    #endregion
+
+    #endregion Doubt Setup
 
     #region BetHandler Setup
 
@@ -267,14 +249,19 @@ public class GameManager : NetworkBehaviour
         StopCoroutine(routineCash);
     }
 
-    #endregion Method Wrappers
+    #endregion Mono Method Wrappers
+
     #region Doubt Over Logic
-    private IEnumerator DoubtOverLogic (DoubtState doubtState)
+
+    private IEnumerator DoubtOverLogic(DoubtState doubtState)
     {
         yield return null;
-    } 
-    #endregion
+    }
+
+    #endregion Doubt Over Logic
+
     #region Player Commands Methods
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_ConfirmBet(byte[] bet, string playerID)
     {
@@ -320,10 +307,13 @@ public class GameManager : NetworkBehaviour
         {
             _liveBet.Set(index, sotedBet[index]);
         }
-        //setting live bet player id 
+        //setting live bet player id
         _liveBetPlayerID = playerID;
-
+        //selecting Next GameState 
+        byte[] MaxBet = BetGenerator.GenerateMaxBet(_dealtCardsNumber);
     }
+    
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_Doubt(string playerID)
     {
@@ -358,9 +348,12 @@ public class GameManager : NetworkBehaviour
         DoubtStateArguments stateArguments = new DoubtStateArguments(_dealtCardsList, liveBet);
         ChangeState(_doubt, stateArguments);
     }
-    #endregion GameMode Methods
-    #region state contol methods  
-    public void ChangeState<T>(State newState,T newStateArgs) where T:struct
+
+    #endregion Player Commands Methods
+
+    #region state contol methods
+
+    public void ChangeState<T>(State newState, T newStateArgs) where T : struct
     {
         // froce end current state
         _currentState?.ForceEnd();
@@ -369,5 +362,144 @@ public class GameManager : NetworkBehaviour
         newState.Start(newStateArgs);
         _currentState = newState;
     }
-    #endregion
+
+    #endregion state contol methods
+
+    #region Passing Turn
+
+    private void NextPlayerIndex()
+    {
+        _playerIndex = _playerIndex + 1;
+        if (_playerIndex >= Players.Length)
+            _playerIndex = 0;
+    }
+
+    private bool GameIsStillRunning()
+    {
+        if (Players == null || Players.Length == 0) return false;
+        int counter = 0;
+        for (int index = 0; index < Players.Length; index++)
+        {
+            if (!Players[index].IsOut)
+                counter++;
+        }
+        if (counter >= 2) return true;
+        return false;
+    }
+
+    private void PassTurn()
+    {
+        //Server Only Bitch
+        if (IsClient) return;
+
+        if (Players.IsNullOrHaveNullElements())
+        {
+#if Log
+            LogManager.LogError("Failed Passing Turn ! Players Array is Null or Have Null Elements");
+#endif
+            return;
+        }
+        if (!GameIsStillRunning())
+        {
+#if Log
+            LogManager.Log("Failed Passing Turn !There only player left Game should be Over !", Color.red, LogManager.GameModeLogs);
+#endif
+            return;
+        }
+
+        int currentPlayerIndex = _playerIndex;
+        IPlayer player = null;
+        do
+        {
+            //Moving player Indexer
+            NextPlayerIndex();
+
+            try
+            {
+                player = Players[_playerIndex];
+            }
+            catch (Exception ex)
+            {
+#if Log
+                LogManager.LogError("Failed Passing Turn!" + ex.Message);
+#endif
+                return;
+            }
+        } while (NeedToLookForPlayers(ref currentPlayerIndex, player));
+        //final check for player
+        bool loopedArray = currentPlayerIndex == _playerIndex;
+        if (loopedArray || player.IsOut)
+        {
+#if Log
+            LogManager.LogError($"Failed Passing Turn! looped array{loopedArray}/  Player :{player}");
+#endif
+            return;
+        }
+
+        //setting current player
+        CurrentPlayer = player;
+        _currentPlayerID = player.ID;
+        //if singlePlayer invoke shit here 
+        if (GameMode == GameMode.Single)
+        {
+            //Idk Ui shit or smth
+        }
+
+    }
+
+    private bool TryFindPlayer(string playerID, out IPlayer player)
+    {
+        player = null;
+        if (string.IsNullOrEmpty(playerID)) return false;
+        if (Players.IsNullOrHaveNullElements())
+        {
+#if Log
+            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
+#endif
+            return false;
+        }
+        foreach (var item in Players)
+        {
+            if (item.ID == playerID)
+            {
+                player = item;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void OnCurrentPlayerIDChanged()
+    {
+        if (_currentPlayerID == string.Empty) return;
+
+        //if host is updated return
+        if (IsHost)
+            if (CurrentPlayer != null && CurrentPlayer.ID == _currentPlayerID) return;
+        //looking for desired payer
+        IPlayer newCurrentPlayer = null;
+        if (TryFindPlayer(_currentPlayerID, out newCurrentPlayer))
+        {
+            CurrentPlayer = newCurrentPlayer;
+            //should invoke corresponding UI or something
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed updating Current Player! Cant Find  Player with ID:=> {_currentPlayerID}");
+#endif
+            return;
+        }
+    }
+
+    private bool NeedToLookForPlayers(ref int CurrentPlayerIndex, IPlayer player)
+    {
+        //detecting if I already looped the array
+        if (CurrentPlayerIndex == _playerIndex) return false;
+        // first player is still playing Halt !
+        if (!player.IsOut) return false;
+        return true;
+    }
+
+    #endregion Passing Turn
 }

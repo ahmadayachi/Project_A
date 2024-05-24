@@ -202,7 +202,7 @@ public class Player : NetworkBehaviour, IPlayer
     }
     public override string ToString()
     {
-        return $"Name:{_name}/ ID:{_id}";
+        return $"Name:{_name}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
     }
     #region method wrappers
     public Coroutine Startroutine(IEnumerator coroutin)

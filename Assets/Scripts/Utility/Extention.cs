@@ -318,6 +318,15 @@ public static class Extention
         }
         return false;
     }
+    public static bool IsNullOrHaveNullElements(this IEnumerable<IPlayer> players)
+    {
+        if (players == null) return true;
+        foreach (var item in players)
+        {
+            if (item == null) return true;
+        }
+        return false;
+    }
     public static byte[] ToByteArray(this NetworkArray<byte> array)
     {
         int arrayCount = array.ValidCardsCount();
