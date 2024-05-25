@@ -103,6 +103,9 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     [Networked] private string _liveBetPlayerID { get; set; }
 
+    [Networked] private byte _doubtSceneTimer { get; set;}
+    public byte DoubtSceneTimer { get => _doubtSceneTimer;}
+
     #endregion Live Bet Props
 
     #region State Props
@@ -255,9 +258,29 @@ public class GameManager : NetworkBehaviour
 
     private IEnumerator DoubtOverLogic(DoubtState doubtState)
     {
+        // Calculate and Set Doubt Scene Time 
+        CaluCulateDoubtSceneTimer();
+        // Updating Clients and Host UI 
+        _gameState = GameState.Doubting;
+        //wait for the Doubt Scene Ui 
+        yield return new WaitForSeconds(_doubtSceneTimer);
+
+        //punishing Doubt looser 
+        string playerToPunishID = doubtState == DoubtState.WinDoubt ? _liveBetPlayerID : _currentPlayerID;
+        IPlayer playerToPunish;
+        if (TryFindPlayer(playerToPunishID, out playerToPunish))
+        {
+            playerToPunish.PlusOneCard();
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Doubt Over Logic Current Player! Cant Find  Player with ID:=> {playerToPunishID}");
+#endif
+            yield break;
+        }
         yield return null;
     }
-
     #endregion Doubt Over Logic
 
     #region Player Commands Methods
@@ -295,8 +318,8 @@ public class GameManager : NetworkBehaviour
         }
         //making sure the array is sorted before confirming
         Extention.BetDiffuser(bet, _diffusedBet);
-        byte[] sotedBet = _diffusedBet.ToByteArray();
-        int sortedBetLength = sotedBet.Length;
+        byte[] sortedBet = _diffusedBet.ToByteArray();
+        int sortedBetLength = sortedBet.Length;
         //cleaning Network Array
         for (int index = 0; index < _liveBet.Length; index++)
         {
@@ -305,12 +328,49 @@ public class GameManager : NetworkBehaviour
         //adding Bet
         for (int index = 0; (index < sortedBetLength); index++)
         {
-            _liveBet.Set(index, sotedBet[index]);
+            _liveBet.Set(index, sortedBet[index]);
         }
         //setting live bet player id
         _liveBetPlayerID = playerID;
-        //selecting Next GameState 
+        //passing Turn here 
+        PassTurn();
+        //generating a Max Bet  
         byte[] MaxBet = BetGenerator.GenerateMaxBet(_dealtCardsNumber);
+        //cheking if the Played Bet is a Max Bet 
+        if (MaxBet.AreEqual(sortedBet))
+        {
+            //Directing the Game To an Auto Doubt State
+            _dealtCards.ToByteList(_dealtCardsList);
+            DoubtStateArguments stateArguments = new DoubtStateArguments(_dealtCardsList, sortedBet);
+            ChangeState(_doubt, stateArguments);
+#if Log
+            LogManager.Log($"Auto Doubt is Launched!, Current Player {_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}",Color.blue,LogManager.GameModeLogs);
+#endif
+            return;
+        }
+        //checking if the next Current Player Have to Play a Max Bet 
+        byte[] roundedUpBet;
+        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, DealtCardsNumber))
+        {
+            //cheking if the rounded up bet is a max Bet 
+            if(MaxBet.AreEqual(roundedUpBet))
+            {
+                //directing Game State to a Last Player Game State 
+                _gameState = GameState.LastPlayerTrun;
+                return;
+            }
+        }
+        //abbording everythink if a bet cannot be Rounded Up 
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Confirm Rpc ! Failed Rounding Up Current Bet! CurrentPlayerID is :=>{_currentPlayerID}");
+#endif
+            return;
+        }
+
+        //Directing Game State  to a normal Player turn 
+        _gameState = GameState.PlayerTurn;
     }
     
 
@@ -321,15 +381,7 @@ public class GameManager : NetworkBehaviour
         if (string.IsNullOrEmpty(playerID))
         {
 #if Log
-            LogManager.LogError($"Blocking Confirm Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_currentPlayerID}");
-#endif
-            return;
-        }
-        //only current player can confirm bet
-        if (_currentPlayerID != playerID)
-        {
-#if Log
-            LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} is not the Current Player!,Current Player ID:={_currentPlayerID}", Color.red, LogManager.GameModeLogs);
+            LogManager.LogError($"Blocking Doubt Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_currentPlayerID}");
 #endif
             return;
         }
@@ -337,10 +389,28 @@ public class GameManager : NetworkBehaviour
         if (_doubt == null)
         {
 #if Log
-            LogManager.LogError($"Blocking Confirm Rpc ! Doubt State is not Initialized! CurrentPlayerID is :=>{_currentPlayerID}");
+            LogManager.LogError($"Blocking Doubt Rpc ! Doubt State is not Initialized! CurrentPlayerID is :=>{_currentPlayerID}");
 #endif
             return;
         }
+
+        //only current player can Doubt
+        if (_currentPlayerID != playerID)
+        {
+#if Log
+            LogManager.Log($"Blocking Doubt Rpc ! player with ID:= {playerID} is not the Current Player!,Current Player ID:={_currentPlayerID}", Color.red, LogManager.GameModeLogs);
+#endif
+            return;
+        }
+        //player cant doubt himself
+        if (_currentPlayerID == _liveBetPlayerID)
+        {
+#if Log
+            LogManager.LogError($"Blocking Doubt Rpc ! player Cant Doubt himself ,Current Player ID:={_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}");
+#endif
+            return;
+        }
+
 
         byte[] liveBet = _liveBet.ToByteArray();
         _dealtCards.ToByteList(_dealtCardsList);
@@ -350,6 +420,12 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion Player Commands Methods
+    #region Doubting State 
+    private void CaluCulateDoubtSceneTimer()
+    {
+        //TODO: Calculate Doubt Scene Timer Based On UI Needs 
+    }
+    #endregion
 
     #region state contol methods
 

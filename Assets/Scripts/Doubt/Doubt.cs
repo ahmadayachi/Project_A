@@ -55,24 +55,21 @@ public class Doubt : State
             _doubtingRoutine = null;
             yield break;
         }
-        //searching and spliting bet in two lists
-        List<byte> correctBetRanks = new List<byte>();
-        List<byte> wrongBetRanks = new List<byte>();
+        // any wrong Cards in bet results in Loosing the Bet 
+        DoubtState doubtState = DoubtState.WinDoubt;
         foreach (byte Rank in args.Livebet)
         {
             if (args.DealtCards.Contains(Rank))
             {
-                correctBetRanks.Add(Rank);
                 args.DealtCards.Remove(Rank);
             }
             else
             {
-                wrongBetRanks.Add(Rank);
+                doubtState = DoubtState.LooseDoubt;
+                break;
             }
         }
         yield return null;
-        //if the wrong Bet ranks is not empty then it is a Loss 
-        DoubtState doubtState = wrongBetRanks.Count == 0 ? DoubtState.WinDoubt : DoubtState.LooseDoubt;
         //invoking further Logic 
         yield return _onDoubtOverLogic?.Invoke(doubtState);
         //reseting coroutine

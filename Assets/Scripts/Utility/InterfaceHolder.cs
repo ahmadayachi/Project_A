@@ -18,7 +18,8 @@ public interface IPlayer:ICardReceiver
     void SetPlayerName(string playerName);
     string ID {get;}
     void SetPlayerID(string playerID);
-    void SetCardCounter(byte cardCounter);
+    void PlusOneCard();
+    void ClearCardsCounter();
     CardInfo[] Hand { get;}
     void ClearHand();
     string ToString();
@@ -168,7 +169,7 @@ public struct PlayerArguments
     public string Name;
     public string ID;
     public byte IconID;
-    public byte CardCounter;
+    //public byte CardCounter;
     public GameManager GameManager;
     public NetworkBool isplayerOut;
 }

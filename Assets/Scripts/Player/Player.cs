@@ -87,10 +87,11 @@ public class Player : NetworkBehaviour, IPlayer
     {
         SetPlayerName(playerArgs.Name);
         SetPlayerID(playerArgs.ID);
-        SetCardCounter(playerArgs.CardCounter);
+        //SetCardCounter(playerArgs.CardCounter);
         SetPlayerIcon(playerArgs.IconID);
         SetIsplayerOut(playerArgs.isplayerOut);
         SetPlayerGameManager(playerArgs.GameManager);
+        PlusOneCard();
     }
     public void SetPlayerID(string playerID)
     {
@@ -124,6 +125,17 @@ public class Player : NetworkBehaviour, IPlayer
             return;
         }
         _cardToDealCounter = cardCounter;
+    }
+    /// <summary>
+    /// adds one to the totall Cards Counter 
+    /// </summary>
+    public void PlusOneCard()
+    {
+        _cardToDealCounter++;
+    }
+    public void ClearCardsCounter()
+    {
+        _cardToDealCounter = 0;
     }
     public void SetPlayerIcon(byte IconID)
     {
