@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Unity.Plastic.Newtonsoft.Json.Linq;
 using UnityEngine;
+using WebSocketSharp;
 using static UnityEngine.ParticleSystem;
 
 public static class Extention
@@ -271,7 +272,14 @@ public static class Extention
                 array[index] = new CardInfo();
         }
     }
-
+    public static void ClearBet(this NetworkArray<byte> array)
+    {
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index] != 0)
+                array[index] = 0;
+        }
+    }
     public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
     {
         if (!card.IsValid || card.ID == 0)
@@ -372,6 +380,31 @@ public static class Extention
             if ((array[index] != 0))
                 byteList.Add(array[index]);
         }
+    }
+    public static void AddPlayerID(this NetworkArray<string> array, string playerID)
+    {
+        if (playerID.IsNullOrEmpty() || array.Contains(playerID)) return;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index].IsNullOrEmpty())
+            {
+                array.Set(index, playerID);
+                break;
+            }
+        }
+    }
+    public static bool ContainsPlayerID(this NetworkArray<string> array, string playerID)
+    {
+        if (playerID.IsNullOrEmpty()) return false;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index] == playerID)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
     #endregion Networked Card Array extentions
 

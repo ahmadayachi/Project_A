@@ -21,6 +21,9 @@ public class Player : NetworkBehaviour, IPlayer
 
     [Networked] private string _name { get; set; }
     [Networked] private string _id { get; set; }
+    /// <summary>
+    /// how many cards should the player Get 
+    /// </summary>
     [Networked] private byte _cardToDealCounter { get; set; }
     [Networked] private NetworkBool _isOut { get; set; }
     [Networked] private byte _iconID { get; set; }

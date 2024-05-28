@@ -22,6 +22,7 @@ public interface IPlayer:ICardReceiver
     void ClearCardsCounter();
     CardInfo[] Hand { get;}
     void ClearHand();
+    void SetIsplayerOut(NetworkBool isPlayerOut);
     string ToString();
 }
 public interface ICardReceiver
@@ -240,6 +241,7 @@ public struct DiffusedRankInfo
 #region enums
 public enum GameState:byte
 {
+    NoGameState,
     /// <summary>
     /// just chilling, maybe waiting for clients, a host migration happening 
     /// </summary>

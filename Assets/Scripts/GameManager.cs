@@ -2,6 +2,7 @@ using Fusion;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : NetworkBehaviour
@@ -34,7 +35,7 @@ public class GameManager : NetworkBehaviour
     #region Deck properties
 
     private const int DoubleStandartDeckSize = 104;
-    private byte _maxPlayerCards;
+    [Networked] private byte _maxPlayerCards { get; set; }
 
     /// <summary>
     /// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
@@ -103,8 +104,8 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     [Networked] private string _liveBetPlayerID { get; set; }
 
-    [Networked] private byte _doubtSceneTimer { get; set;}
-    public byte DoubtSceneTimer { get => _doubtSceneTimer;}
+    [Networked] private byte _doubtSceneTimer { get; set; }
+    public byte DoubtSceneTimer { get => _doubtSceneTimer; }
 
     #endregion Live Bet Props
 
@@ -258,16 +259,17 @@ public class GameManager : NetworkBehaviour
 
     private IEnumerator DoubtOverLogic(DoubtState doubtState)
     {
-        // Calculate and Set Doubt Scene Time 
+        // Calculate and Set Doubt Scene Time
         CaluCulateDoubtSceneTimer();
-        // Updating Clients and Host UI 
+        // Updating Clients and Host UI
         _gameState = GameState.Doubting;
-        //wait for the Doubt Scene Ui 
+        //wait for the Doubt Scene Ui
         yield return new WaitForSeconds(_doubtSceneTimer);
 
-        //punishing Doubt looser 
+        //punishing Doubt looser
         string playerToPunishID = doubtState == DoubtState.WinDoubt ? _liveBetPlayerID : _currentPlayerID;
         IPlayer playerToPunish;
+
         if (TryFindPlayer(playerToPunishID, out playerToPunish))
         {
             playerToPunish.PlusOneCard();
@@ -279,9 +281,89 @@ public class GameManager : NetworkBehaviour
 #endif
             yield break;
         }
+        //Player Control
+        if (Players.IsNullOrHaveNullElements())
+        {
+#if Log
+            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
+#endif
+            yield break;
+        }
+        //if a player cards to deal counter > max cards Count he should be out
+        foreach (var player in Players)
+        {
+            if (player.CardsToDealCounter > _maxPlayerCards)
+            {
+                if (!player.IsOut)
+                {
+                    player.ClearHand();
+                    player.ClearCardsCounter();
+                    player.SetIsplayerOut(true);
+                    _loosersIDs.AddPlayerID(player.ID);
+                }
+            }
+        }
         yield return null;
+        //setting the Current Player
+        _currentPlayerID = playerToPunishID;
+        CurrentPlayer = playerToPunish;
+        //Directing Game State
+        _gameState = GameState.RoudOver;
     }
+
     #endregion Doubt Over Logic
+
+    #region Round Over Logic
+
+    private void OnRoundIsOver()
+    {
+        //host only stuff 
+        if (IsHost)
+        {
+            //checking if the game is over
+            if (IsGameOver())
+            {
+                //fetch winner
+                IPlayer Winner = Players.First(player => (!player.IsOut));
+                if (Winner == null)
+                {
+#if Log
+                    LogManager.LogError("Failed Fetching Winner!");
+#endif
+                    return;
+                }
+                //setting the Winner ID
+                _winnerID = Winner.ID;
+                //directing Game State and updating clients
+                _gameState = GameState.GameOver;
+                //Maybe game Over stuff here
+            }
+            else
+            {
+                //clearing
+                _liveBetPlayerID = string.Empty;
+                _liveBet.ClearBet();
+                _diffusedBet.Clear();
+                _doubtSceneTimer = 0;
+                _dealtCards.ClearBet();
+                _dealtCardsList.Clear();
+                _dealtCardsNumber = 0;
+                //clearing Players Hand
+                foreach (var player in Players)
+                {
+                    if (!player.IsOut)
+                    {
+                        player.ClearHand();
+                    }
+                }
+                //directing game state
+                _gameState = GameState.Dealing;
+            }
+        }
+        //regular UI Cleaning Stuff
+    }
+
+    #endregion Round Over Logic
 
     #region Player Commands Methods
 
@@ -332,11 +414,11 @@ public class GameManager : NetworkBehaviour
         }
         //setting live bet player id
         _liveBetPlayerID = playerID;
-        //passing Turn here 
+        //passing Turn here
         PassTurn();
-        //generating a Max Bet  
+        //generating a Max Bet
         byte[] MaxBet = BetGenerator.GenerateMaxBet(_dealtCardsNumber);
-        //cheking if the Played Bet is a Max Bet 
+        //cheking if the Played Bet is a Max Bet
         if (MaxBet.AreEqual(sortedBet))
         {
             //Directing the Game To an Auto Doubt State
@@ -344,23 +426,23 @@ public class GameManager : NetworkBehaviour
             DoubtStateArguments stateArguments = new DoubtStateArguments(_dealtCardsList, sortedBet);
             ChangeState(_doubt, stateArguments);
 #if Log
-            LogManager.Log($"Auto Doubt is Launched!, Current Player {_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}",Color.blue,LogManager.GameModeLogs);
+            LogManager.Log($"Auto Doubt is Launched!, Current Player {_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}", Color.blue, LogManager.GameModeLogs);
 #endif
             return;
         }
-        //checking if the next Current Player Have to Play a Max Bet 
+        //checking if the next Current Player Have to Play a Max Bet
         byte[] roundedUpBet;
         if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, DealtCardsNumber))
         {
-            //cheking if the rounded up bet is a max Bet 
-            if(MaxBet.AreEqual(roundedUpBet))
+            //cheking if the rounded up bet is a max Bet
+            if (MaxBet.AreEqual(roundedUpBet))
             {
-                //directing Game State to a Last Player Game State 
+                //directing Game State to a Last Player Game State
                 _gameState = GameState.LastPlayerTrun;
                 return;
             }
         }
-        //abbording everythink if a bet cannot be Rounded Up 
+        //abbording everythink if a bet cannot be Rounded Up
         else
         {
 #if Log
@@ -369,10 +451,9 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        //Directing Game State  to a normal Player turn 
+        //Directing Game State  to a normal Player turn
         _gameState = GameState.PlayerTurn;
     }
-    
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_Doubt(string playerID)
@@ -411,7 +492,6 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-
         byte[] liveBet = _liveBet.ToByteArray();
         _dealtCards.ToByteList(_dealtCardsList);
         //invoking Doubt State
@@ -420,12 +500,15 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion Player Commands Methods
-    #region Doubting State 
+
+    #region Doubting State
+
     private void CaluCulateDoubtSceneTimer()
     {
-        //TODO: Calculate Doubt Scene Timer Based On UI Needs 
+        //TODO: Calculate Doubt Scene Timer Based On UI Needs
     }
-    #endregion
+
+    #endregion Doubting State
 
     #region state contol methods
 
@@ -450,7 +533,7 @@ public class GameManager : NetworkBehaviour
             _playerIndex = 0;
     }
 
-    private bool GameIsStillRunning()
+    private bool IsGameOver()
     {
         if (Players == null || Players.Length == 0) return false;
         int counter = 0;
@@ -459,7 +542,7 @@ public class GameManager : NetworkBehaviour
             if (!Players[index].IsOut)
                 counter++;
         }
-        if (counter >= 2) return true;
+        if (counter == 1) return true;
         return false;
     }
 
@@ -475,10 +558,10 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        if (!GameIsStillRunning())
+        if (IsGameOver())
         {
 #if Log
-            LogManager.Log("Failed Passing Turn !There only player left Game should be Over !", Color.red, LogManager.GameModeLogs);
+            LogManager.Log("Failed Passing Turn ! Game should be Over !", Color.red, LogManager.GameModeLogs);
 #endif
             return;
         }
@@ -515,12 +598,11 @@ public class GameManager : NetworkBehaviour
         //setting current player
         CurrentPlayer = player;
         _currentPlayerID = player.ID;
-        //if singlePlayer invoke shit here 
+        //if singlePlayer invoke shit here
         if (GameMode == GameMode.Single)
         {
             //Idk Ui shit or smth
         }
-
     }
 
     private bool TryFindPlayer(string playerID, out IPlayer player)
