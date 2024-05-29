@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 #region Interfaces
 #region Player stuff 
-public interface IPlayerBehaviour
+public interface IplayerState
 {
 
 }
@@ -23,6 +23,7 @@ public interface IPlayer:ICardReceiver
     CardInfo[] Hand { get;}
     void ClearHand();
     void SetIsplayerOut(NetworkBool isPlayerOut);
+    State PlayerState { get;}
     string ToString();
 }
 public interface ICardReceiver
@@ -134,6 +135,13 @@ public struct DealerStateArguments
 public struct PlayerStateArguments
 {
     public GameState GameState;
+    public bool IsMyTurn;
+
+    public PlayerStateArguments(GameState gameState, bool isMyTurn)
+    {
+        GameState = gameState;
+        IsMyTurn = isMyTurn;
+    }
 }
 public struct DoubtStateArguments
 {
@@ -239,6 +247,12 @@ public struct DiffusedRankInfo
 
 
 #region enums
+public enum PlayerTimerState
+{
+    NoTimer,
+    StartTimer,
+    StopTimer
+}
 public enum GameState:byte
 {
     NoGameState,

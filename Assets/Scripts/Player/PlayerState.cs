@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerBehaviour : State
+public class PlayerState : State
 {
     private PlayerUIController _uiControler;
-    public PlayerBehaviour(PlayerUIController uIController)
+    public PlayerState(PlayerUIController uIController)
     {
         _uiControler = uIController;
     }
@@ -16,7 +16,8 @@ public class PlayerBehaviour : State
             //starting timer
             _uiControler.StartTimer();
             //showing Player UI Commands 
-            UnlockPlayerUI(PlayerStateArgs.GameState);
+            if (PlayerStateArgs.IsMyTurn)
+                UnlockPlayerUICommands(PlayerStateArgs.GameState);
         }
         else
         {
@@ -30,13 +31,13 @@ public class PlayerBehaviour : State
         _uiControler.StopTimer();
         _uiControler.HidePlayerUICommands();
     }
-    private void UnlockPlayerUI(GameState gameState)
+    private void UnlockPlayerUICommands(GameState gameState)
     {
         switch (gameState)
         {
             case GameState.FirstPlayerTurn: _uiControler.ShowFirstPlayerUI(); break;
-            case GameState.PlayerTurn: _uiControler.ShowNormalPlayerUICommands(); break;
-            case GameState.LastPlayerTrun: _uiControler.ShowLastPlayerUI(); break;
+            case GameState.PlayerTurn: _uiControler.ShowNormalPlayerUI(); break;
+            //case GameState.LastPlayerTrun: _uiControler.ShowLastPlayerUI(); break;
         }
     }
 

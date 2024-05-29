@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using WebSocketSharp;
 
 public class GameManager : NetworkBehaviour
 {
@@ -59,6 +60,7 @@ public class GameManager : NetworkBehaviour
 
     [Networked] private string _winnerID { get; set; }
     [Networked] private string _currentPlayerID { get; set; }
+    [Networked] private PlayerTimerState _playerTimerState { get; set;}
     public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
     private byte _activePlayersNumber;
@@ -184,6 +186,13 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion methods to link with UI
+    #region General Logic
+    public bool IsMyTurn()
+    {
+        if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
+        return LocalPlayer.ID == _currentPlayerID;
+    }
+    #endregion
 
     #region private Logic methods
 
@@ -256,6 +265,7 @@ public class GameManager : NetworkBehaviour
     #endregion Mono Method Wrappers
 
     #region Doubt Over Logic
+
 
     private IEnumerator DoubtOverLogic(DoubtState doubtState)
     {
@@ -512,7 +522,7 @@ public class GameManager : NetworkBehaviour
 
     #region state contol methods
 
-    public void ChangeState<T>(State newState, T newStateArgs) where T : struct
+    private void ChangeState<T>(State newState, T newStateArgs) where T : struct
     {
         // froce end current state
         _currentState?.ForceEnd();
@@ -660,4 +670,30 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion Passing Turn
+    #region Player Timer State Callback
+    private void OnPlayerTimerStateChanged()
+    {
+        //blocking resets
+        if(_playerTimerState == PlayerTimerState.NoTimer) return;
+        //at this time each simulation should Have a Current Player 
+        if (CurrentPlayer == null)
+        {
+#if Log
+            LogManager.LogError($"Failed Player Turn CallBack! {LocalPlayer} Current Player is null");
+#endif
+            return;
+        }
+
+        if(_playerTimerState == PlayerTimerState.StopTimer) 
+        {
+            _currentState?.ForceEnd();
+#if Log
+            LogManager.Log($"Player Timer Stoped!Simulation=> {LocalPlayer}",Color.green,LogManager.ValueInformationLog);
+#endif
+            return;
+        }
+        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameState,IsMyTurn());
+        ChangeState(CurrentPlayer.PlayerState, PlayerStateArgs);
+    }
+    #endregion
 }

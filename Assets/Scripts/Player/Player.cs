@@ -10,7 +10,7 @@ public class Player : NetworkBehaviour, IPlayer
 
     private NetworkRunner _runner;
     private ChangeDetector _changeDetector;
-    private IPlayerBehaviour _playerState;
+    private State _playerState;
     private IPlayerUIControler _playerUIControler;
     [SerializeField] 
     private PlayerUI _playerUI;
@@ -37,7 +37,7 @@ public class Player : NetworkBehaviour, IPlayer
 
     #region Player Properties
 
-    public IPlayerBehaviour PlayerState { get => _playerState; }
+    public State PlayerState { get => _playerState; }
     public IPlayerUIControler PlayerUIControler { get => _playerUIControler; }
     public string Name { get => _name; }
     public string ID { get => _id; }

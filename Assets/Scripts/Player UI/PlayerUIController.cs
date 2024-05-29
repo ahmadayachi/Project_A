@@ -80,7 +80,7 @@ public class PlayerUIController : IPlayerUIControler
     {
 
     }
-    public void ShowNormalPlayerUICommands()
+    public void ShowNormalPlayerUI()
     {
 
     }

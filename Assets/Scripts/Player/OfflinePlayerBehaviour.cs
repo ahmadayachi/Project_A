@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OfflinePlayerBehaviour : IPlayerBehaviour
+public class OfflinePlayerBehaviour : IplayerState
 {
     
 }
