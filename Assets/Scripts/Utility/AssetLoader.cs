@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 public static class AssetLoader 
 {
     #region Deck Loader
-    private const string CartoonishSkinAddr = "CartoonishCD.asset";
+    private const string CartoonishSkinAddr = "CartoonishCD";
     
     private static DeckContainer _deckContainer;
     public static DeckContainer DeckContainerInstance
@@ -47,6 +47,25 @@ public static class AssetLoader
         _prefabcontainer = opUirefs.Result;
     }
     #endregion
+    #region RunTimeData
+    private const string RunTimeDataHolderaddr = "RunTimeData";
+    private static RunTimeDataHolder _runTimeDataHolder;
+    public static RunTimeDataHolder RunTimeDataHolder
+    {
+        get
+        {
+            if (_runTimeDataHolder == null)
+                LoadCardContainer();
+            return _runTimeDataHolder;
+        }
+    }
+    private static void LoadRunTimeDataHolder()
+    {
+        var opUirefs = Addressables.LoadAssetAsync<RunTimeDataHolder>(RunTimeDataHolderaddr);
+        opUirefs.WaitForCompletion();
+        _runTimeDataHolder = opUirefs.Result;
+    }
+    #endregion
     #region Icons
 
     private static List<Sprite> _allIcons = null;
@@ -60,7 +79,7 @@ public static class AssetLoader
             return _allIcons;
         }
     }
-    public static void LoadIcons()
+    private static void LoadIcons()
     {
         _allIcons = new List<Sprite>();
         var op = Addressables.LoadAssetsAsync<Sprite>(Icon,null);
@@ -72,4 +91,5 @@ public static class AssetLoader
 
     }
     #endregion
+   
 }

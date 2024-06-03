@@ -43,6 +43,20 @@ public interface IPlayerUIControler
     void SetPlayerIcon();
     void LoadPlayerCards();
 }
+[Serializable]
+public struct RunTimePlayerData
+{
+    public string PlayerName;
+    public string PlayerID;
+    public int IconIndex;
+
+    public RunTimePlayerData(string playerName, string playerID, int iconIndex)
+    {
+        PlayerName = playerName;
+        PlayerID = playerID;
+        IconIndex = iconIndex;
+    }
+}
 #endregion
 
 #region Card stuff  

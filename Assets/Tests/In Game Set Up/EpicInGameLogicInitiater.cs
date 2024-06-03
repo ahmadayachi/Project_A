@@ -42,8 +42,12 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     [SerializeField] private GameObject _CustomDeckModPanel;
     [SerializeField] private Transform _scrollCardsHolder;
     [SerializeField] private Transform _finalCardsCombinationHolder;
-    [SerializeField] private Button _confirm;
+    [SerializeField] private Button _confirmCustomCombination;
+    [SerializeField] private Button _resetCustomCombination;
     [SerializeField] private CustomCombinationCard _CustomDeckCardPrefab;
+    [SerializeField] private Image _customCombinationIndicator;
+    [SerializeField] private Sprite _greenIndicator;
+    [SerializeField] private Sprite _redIndicator;
     List<CustomCombinationCard> _customCombinationCards = new List<CustomCombinationCard>();
     List<byte> _customDeckCards = new List<byte>();
     List<byte> _selectedCustomDeckCards = new List<byte>();
@@ -52,11 +56,13 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     #region Players Info Panel
     [Header("Players Panel Refs")]
     [SerializeField] private GameObject _playersPanel;
+    [SerializeField] private RunTimePlayerUI _inGameSetUpPlayerPrefab;
+    private List<RunTimePlayerUI> _playersUI = new List<RunTimePlayerUI>();
     #endregion
 
     [Header("Panel Indipendant Shit")]
     [SerializeField] private Button _StartGame;
-
+    [SerializeField] private RunTimeDataHolder _dataHolder;
 
 
     private void Awake()
@@ -66,6 +72,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         InitGameLogicFirstPhaze();
 
         InitGameLogicSecondPhaze();
+
+        InitCustomCombinationPanel();
     }
 
 
@@ -119,18 +127,18 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         _playerNumberText.text = NumberBumber(_playerNumberText.text);
     }
-    private void Belote()
+    private void Belote(bool isOn)
     {
-        if (_belote.isOn)
+        if (isOn)
         {
             _selectedDeckType = DeckType.Belote;
             _standart.SetIsOnWithoutNotify(false);
             _custom.SetIsOnWithoutNotify(false);
         }
     }
-    private void Standart()
+    private void Standart(bool isOn)
     {
-        if (_standart.isOn)
+        if (isOn)
         {
 
             _selectedDeckType = DeckType.Standard;
@@ -138,9 +146,9 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             _custom.SetIsOnWithoutNotify(false);
         }
     }
-    private void Custom()
+    private void Custom(bool isOn)
     {
-        if (_custom.isOn)
+        if (isOn)
         {
             _selectedDeckType = DeckType.Custom;
             _belote.SetIsOnWithoutNotify(false);
@@ -166,7 +174,9 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         _belote.isOn = true;
         _standart.isOn = false;
         _custom.isOn = false;
-
+        _belote.onValueChanged.AddListener(Belote);
+        _standart.onValueChanged.AddListener(Standart);
+        _custom.onValueChanged.AddListener(Custom);
         _next.onClick.RemoveAllListeners();
         _next.onClick.AddListener(GameLogicNextFirstphaze);
     }
@@ -227,25 +237,78 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     #region Custom Deck Mod Methods
     private void InitCustomCombinationCards()
     {
-        CustomCombinationCard CustomCard;
-
         _customDeckCards.Clear();
+        _selectedCustomDeckCards.Clear();
         _customCombinationCards.Clear();
-        for(int index =1;index<=13;index++)
+        for (int index = 1; index <= 13; index++)
         {
-            CustomCard = Instantiate(_CustomDeckCardPrefab);
-            CustomCard.CardRank = (byte)index;
-            CustomCard.CardImage.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(CustomCard.CardRank, _customDeckSuit);
-            _customCombinationCards.Add(CustomCard);
-            _customDeckCards.Add(CustomCard.CardRank);
+            CustomCombinationCard customCard = Instantiate(_CustomDeckCardPrefab,_scrollCardsHolder);
+            customCard.CardRank = (byte)index;
+            customCard.CardImage.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(customCard.CardRank, _customDeckSuit);
+            customCard.CardButton.onClick.RemoveAllListeners();
+            customCard.CardButton.onClick.AddListener(() =>OnCustomCardClicked(customCard));
+            _customCombinationCards.Add(customCard);
+            _customDeckCards.Add(customCard.CardRank);
         }
+        _customCombinationIndicator.sprite = _redIndicator;
     }
     private void OnCustomCardClicked(CustomCombinationCard card)
     {
         if(_customDeckCards.Contains(card.CardRank))
         {
+            _selectedCustomDeckCards.Add(card.CardRank);
             _customDeckCards.Remove(card.CardRank);
+            card.gameObject.transform.SetParent(_finalCardsCombinationHolder);
+        }
+        else
+        {
+            _selectedCustomDeckCards.Remove(card.CardRank);
+            _customDeckCards.Add(card.CardRank);
+            card.gameObject.transform.SetParent(_scrollCardsHolder);
+        }
+        _customCombinationIndicator.sprite = _selectedCustomDeckCards.Count >= 8 ? _greenIndicator : _redIndicator;
+    }
+    private void ResetCustomComnbination()
+    {
+        _selectedCustomDeckCards.Clear();
+        _customDeckCards.Clear();
+        foreach (var item in _customCombinationCards)
+        {
+            item.CardButton.onClick.RemoveAllListeners();
+            item.CardButton.onClick.AddListener(() => { OnCustomCardClicked(item); });
+            item.gameObject.transform.SetParent(_scrollCardsHolder);
+            _customDeckCards.Add(item.CardRank);
+        }
+        _customCombinationIndicator.sprite = _redIndicator;
+    }
+    private void ConfirmCustomCombination()
+    {
+        if (_selectedCustomDeckCards.Count < 8) return;
+        _CustomDeckModPanel.SetActive(false);
+        _playersPanel.SetActive(true);
+    }
+    private void InitCustomCombinationPanel()
+    {
+        _confirmCustomCombination.onClick.RemoveAllListeners();
+        _confirmCustomCombination.onClick.AddListener(ConfirmCustomCombination);
+        _resetCustomCombination.onClick.RemoveAllListeners();
+        _resetCustomCombination.onClick.AddListener(ResetCustomComnbination);
+        InitCustomCombinationCards();
+    }
+    #endregion
 
+    #region Player Panel Set up 
+    private void InitPlayersUI()
+    {
+        _playersUI.Clear();
+        int playersNumber = int.Parse(_playerNumberText.text);
+
+        if (playersNumber < 2) return;
+        for(int index=0; index<playersNumber; index++)
+        {
+            var player = Instantiate(_inGameSetUpPlayerPrefab,_playersPanel.transform);
+            player.PlayerIcon.sprite = AssetLoader.AllIcons[Random.Range(0, AssetLoader.AllIcons.Count)];
+            _playersUI.Add(player);
         }
     }
     #endregion
