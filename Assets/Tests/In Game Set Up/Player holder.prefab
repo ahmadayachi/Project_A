@@ -260,7 +260,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerIcon: {fileID: 2688130084594629139}
-  PlayerName: {fileID: 6960821989133350862}
+  IconIndex: 0
+  PlayerNameInput: {fileID: 6960821989133350862}
+  PlayerName: 
 --- !u!1 &3308118349863578075
 GameObject:
   m_ObjectHideFlags: 0

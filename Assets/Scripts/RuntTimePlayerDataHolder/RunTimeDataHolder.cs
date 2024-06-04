@@ -6,4 +6,5 @@ using UnityEngine;
 public class RunTimeDataHolder : ScriptableObject
 {
     public List<RunTimePlayerData> RunTimePlayersData = new List<RunTimePlayerData>();
+
 }

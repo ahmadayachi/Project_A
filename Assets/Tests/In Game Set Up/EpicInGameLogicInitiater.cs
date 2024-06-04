@@ -1,8 +1,13 @@
 using Fusion;
+using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class EpicInGameLogicInitiater : MonoBehaviour
@@ -58,13 +63,23 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     [SerializeField] private GameObject _playersPanel;
     [SerializeField] private RunTimePlayerUI _inGameSetUpPlayerPrefab;
     private List<RunTimePlayerUI> _playersUI = new List<RunTimePlayerUI>();
+    private List<RunTimePlayerData> _playersData = new List<RunTimePlayerData>();
+    private const string Player = "Player";
     #endregion
 
     [Header("Panel Indipendant Shit")]
     [SerializeField] private Button _StartGame;
     [SerializeField] private RunTimeDataHolder _dataHolder;
-
-
+    private bool _generateID;
+    private GameObject _runnerPrefab;
+    private GameObject RunnerPrefab;
+    private StartGameArgs StartGameArgs;
+    private Coroutine StartOnlineCoroutine;
+    private List<GameManager> GameManagerlist = new List<GameManager>();
+    private List<Task> RunnerTasksList = new List<Task>();
+    public bool AllSet { get; set; }
+    public List<PeerOnlineInfo> PeersInfoList = new List<PeerOnlineInfo>();
+    private PeerOnlineInfo NewPeerData;
     private void Awake()
     {
         InitFirstPanelButtons();
@@ -84,6 +99,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         _mode = InGameLogicModes.Offline;
         OpenGameLogicPanel();
+        _generateID = true;
     }
     private void OnlineButton()
     {
@@ -94,6 +110,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         _mode = InGameLogicModes.Multipeer;
         OpenGameLogicPanel();
+        _generateID = true;
     }
     private void OpenGameLogicPanel()
     {
@@ -217,6 +234,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         _gameLogicModPanelSecondPhaze.SetActive(false);
         _playersPanel.SetActive(true);
+        InitPlayersUI();
     }
     private void InitGameLogicSecondPhaze()
     {
@@ -304,12 +322,181 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         int playersNumber = int.Parse(_playerNumberText.text);
 
         if (playersNumber < 2) return;
-        for(int index=0; index<playersNumber; index++)
+        for (int index = 0; index < playersNumber; index++)
         {
-            var player = Instantiate(_inGameSetUpPlayerPrefab,_playersPanel.transform);
-            player.PlayerIcon.sprite = AssetLoader.AllIcons[Random.Range(0, AssetLoader.AllIcons.Count)];
+            var player = Instantiate(_inGameSetUpPlayerPrefab, _playersPanel.transform);
+            int IconIndex = UnityEngine.Random.Range(0, AssetLoader.AllIcons.Count);
+            player.PlayerIcon.sprite = AssetLoader.AllIcons[IconIndex];
+            player.IconIndex = IconIndex;
             _playersUI.Add(player);
         }
+    }
+    private string GenerateUniqueID()
+    {
+        string ID = Guid.NewGuid().ToString();
+        if (_playersData.Count == 0) return ID;
+        int counter;
+        do
+        {
+            counter = 0;
+            foreach (var player in _playersData)
+            {
+                if (player.PlayerID == ID)
+                {
+                    counter++;
+                    ID = Guid.NewGuid().ToString();
+                    break;
+                }
+            }
+
+        } while (counter > 0);
+        return ID;
+    }
+    private void SetUpPlayersData()
+    {
+        _playersData.Clear();
+        string playerName = string.Empty;
+        int playerIndex = 1;
+        foreach (var playerUi in _playersUI)
+        {
+            playerName = string.IsNullOrEmpty(playerUi.PlayerName) ? Player + playerIndex : playerUi.PlayerName;
+            RunTimePlayerData playerData = new RunTimePlayerData(playerName, GenerateUniqueID(), playerUi.IconIndex);
+            playerIndex++;
+            _playersData.Add(playerData);
+        }
+    }
+    #endregion
+
+    #region Start Game SetUp
+    private void SingletonRunner()
+    {
+        NetworkRunner existingrunner = FindObjectOfType<NetworkRunner>();
+        if (existingrunner != null)
+            Destroy(gameObject);
+        _runnerPrefab = AssetLoader.PrefabContainer.RunnerPrefab;
+    }
+    private Task StartRunner(StartGameArgs startarg)
+    {
+        GameObject runnerobj = Instantiate(RunnerPrefab);
+        DontDestroyOnLoad(runnerobj);
+        runnerobj.name = startarg.GameMode.ToString() + " Runner";
+        NetworkRunner runner = runnerobj.GetComponent<NetworkRunner>();
+
+        if (startarg.GameMode != GameMode.Single)
+        {
+            Debug.Log($"Starting {runnerobj.name}!");
+            PeerOnlineInfo peerOnlineInfo = new PeerOnlineInfo();
+            peerOnlineInfo.PeerRunner = runner;
+            PeersInfoList.Add(peerOnlineInfo);
+        }
+        return runner.StartGame(startarg);
+    }
+    public async void OfflineRunner()
+    {
+        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
+        StartGameArgs = new StartGameArgs()
+        {
+            SessionName = "offlinetestroom",
+            GameMode = GameMode.Single,
+            Scene = scene
+        };
+        await StartRunner(StartGameArgs);
+    }
+    private IEnumerator WaitForTask(Task task)
+    {
+        RunnerTasksList.Add(task);
+
+        while (task.IsCompleted == false)
+        {
+            yield return new WaitForSeconds(1);
+        }
+        if (task.IsFaulted)
+        {
+            Debug.LogWarning(task.Exception);
+            StopCoroutine(StartOnlineCoroutine);
+            yield break;
+        }
+    }
+    private IEnumerator SetUpClients()
+    {
+        StartGameArgs.GameMode = GameMode.Client;
+
+        for (int i = 0; i < _playersData.Count-1; i++)
+        {
+            yield return WaitForTask(StartRunner(StartGameArgs));
+        }
+
+        yield return null;
+        Task clientTasks = Task.WhenAll(RunnerTasksList);
+        while (clientTasks.IsCompleted == false)
+        {
+            yield return new WaitForSeconds(1);
+        }
+        if (clientTasks.IsFaulted)
+        {
+            Debug.LogWarning(clientTasks.Exception);
+            StopCoroutine(StartOnlineCoroutine);
+            yield break;
+        }
+    }
+    private IEnumerator SetPeersInfo()
+    {
+        GameManagerlist.AddRange(FindObjectsOfType<GameManager>().ToList());
+        yield return new WaitForSeconds(2);
+        int gamemangercount = GameManagerlist.Count;
+        int playernumber = _playersData.Count;
+
+        Assert.AreEqual(
+            playernumber,
+            gamemangercount,
+            $"GameManagerList Missing data! GameManagerlist count = {gamemangercount} PlayerNumber{playernumber}");
+
+        foreach (GameManager manager in GameManagerlist)
+        {
+            NewPeerData = new PeerOnlineInfo();
+            foreach (PeerOnlineInfo peerdata in PeersInfoList.ToList())
+            {
+                if (peerdata.PeerRunner.LocalPlayer == manager.GameRunner.LocalPlayer)
+                {
+                    //resetting data and readding it to peerdatalist
+                    NewPeerData.PeerRunner = peerdata.PeerRunner;
+                    //sending peertoken to gamemanger
+                    NewPeerData.PeerManager = manager;
+                    PeersInfoList.Remove(peerdata);
+                    PeersInfoList.Add(NewPeerData);
+                    //setting peer connection token on peer gamemanager
+                    Debug.Log($"PeerData Added to list => {NewPeerData}");
+                }
+            }
+            yield return null;
+        }
+    }
+    public IEnumerator StartOnline()
+    {
+        AllSet = false;
+        //moving to dontdestroy on load
+        gameObject.transform.parent = null;
+        DontDestroyOnLoad(this);
+        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
+
+        //setting args for host runner 
+        StartGameArgs = new StartGameArgs()
+        {
+            SessionName = "OnlineTestRoom",
+            GameMode = GameMode.Host,
+            Scene = scene,
+        };
+        //starting host runner 
+        Debug.Log("Starting Host");
+        yield return WaitForTask(StartRunner(StartGameArgs));
+        //starting clients
+        Debug.Log("Staring Clients!");
+        yield return SetUpClients();
+        //just making sure that peers gameManager spawned
+        yield return new WaitForSeconds(1);
+        // setting up peer data 
+        yield return SetPeersInfo();
+        AllSet = true;
     }
     #endregion
 }
@@ -318,4 +505,13 @@ public enum InGameLogicModes
     Offline,
     Online,
     Multipeer
+}
+public struct PeerOnlineInfo
+{
+    public NetworkRunner PeerRunner;
+    public GameManager PeerManager;
+    public override string ToString()
+    {
+        return $"PeerPlayerRef = {PeerRunner.LocalPlayer}";
+    }
 }

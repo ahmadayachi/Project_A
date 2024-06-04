@@ -2,7 +2,6 @@ using UnityEngine;
 using Fusion;
 using System;
 using System.Collections;
-using UnityEditorInternal;
 
 public class Player : NetworkBehaviour, IPlayer
 {

@@ -37,6 +37,12 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 079cedc238e21df49b22acc03b666bea
+    m_Address: Assets/UI/Icons/doggo icon 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Icon
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 14090ee14254b9a41bdaa4ec791eb352, type: 2}
   m_SchemaSet:

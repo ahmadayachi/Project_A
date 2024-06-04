@@ -69,7 +69,7 @@ public static class AssetLoader
     #region Icons
 
     private static List<Sprite> _allIcons = null;
-    private const string Icon = "Icons";
+    private const string Icon = "Icon";
     public static List<Sprite> AllIcons
     {
         get

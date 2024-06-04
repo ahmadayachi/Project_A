@@ -7,9 +7,9 @@ using UnityEngine.UI;
 public class RunTimePlayerUI : MonoBehaviour
 {
     public Image PlayerIcon;
+    public int IconIndex;
     public TMP_InputField PlayerNameInput;
     public string PlayerName;
-
 
     private void Awake()
     {
