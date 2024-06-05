@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerPrefab:
     RawGuidValue: 00000000000000000000000000000000
-  CardPrefab:
-    RawGuidValue: 00000000000000000000000000000000
+  CardPrefab: {fileID: 0}
+  RunnerPrefab: {fileID: 3184919321294230871, guid: fc812d1970a2ecd4ba5d3ea76ab59860, type: 3}
   LogPrefab: {fileID: 6493413077421578651, guid: 66cc5c5661ae0ec40837c3745fd4c057, type: 3}

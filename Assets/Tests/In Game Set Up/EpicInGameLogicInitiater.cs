@@ -34,13 +34,11 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     [SerializeField] private GameObject _gameLogicModPanelSecondPhaze;
     [SerializeField] private TextMeshProUGUI _totalSuitsNumberText;
     [SerializeField] private Button _totalSuitNumber;
-    [SerializeField] private Slider _maxCardsInHand;
+    [SerializeField] private Slider _maxCardsInHandSlider;
     [SerializeField] private TextMeshProUGUI _mixMaxCardsInHandsText;
     [SerializeField] private TextMeshProUGUI _maxCardsInHandText;
     [SerializeField] private Button _nextTwo;
     private const int MinCardsInHand = 2;
-    private int _mixMaxCardsInHand;
-    private int _maxCardsInHands;
     #endregion
     #region Custom Deck Panel Refs
     [Header("Custom Deck Mod Panel Refs")]
@@ -72,9 +70,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     [SerializeField] private RunTimeDataHolder _dataHolder;
     private bool _generateID;
     private GameObject _runnerPrefab;
-    private GameObject RunnerPrefab;
     private StartGameArgs StartGameArgs;
-    private Coroutine StartOnlineCoroutine;
+    private Coroutine _startOnlineCoroutine;
     private List<GameManager> GameManagerlist = new List<GameManager>();
     private List<Task> RunnerTasksList = new List<Task>();
     public bool AllSet { get; set; }
@@ -82,6 +79,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     private PeerOnlineInfo NewPeerData;
     private void Awake()
     {
+        SingletonRunner();
+
         InitFirstPanelButtons();
 
         InitGameLogicFirstPhaze();
@@ -131,6 +130,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         //_onlineMode.onClick.AddListener(OnlineButton);
         _multiPeerMode.onClick.RemoveAllListeners();
         _multiPeerMode.onClick.AddListener(MultiPeerButton);
+        _StartGame.onClick.RemoveAllListeners();
+        _StartGame.onClick.AddListener(StartGame);
     }
     #endregion
 
@@ -202,14 +203,15 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     #region  Game Logic Panel Second phaze Methods
     private void CalculateMaxCardsInHand()
     {
-        int playersNumber =int.Parse(_playerNumberText.text);
+        int playersNumber = int.Parse(_playerNumberText.text);
         int totalSuitsNumber = int.Parse(_totalSuitsNumberText.text);
         int CardsInSuitNumber = 0;
+        int mixMaxCardsInHand = 0;
         switch (_selectedDeckType)
         {
-            case DeckType.Standard: CardsInSuitNumber = 13;break;
-            case DeckType.Belote: CardsInSuitNumber = 8;break;
-            case DeckType.Custom: CardsInSuitNumber = _customDeckCards.Count;break;
+            case DeckType.Standard: CardsInSuitNumber = 13; break;
+            case DeckType.Belote: CardsInSuitNumber = 8; break;
+            case DeckType.Custom: CardsInSuitNumber = _customDeckCards.Count; break;
         }
         int DeckCount = CardsInSuitNumber * totalSuitsNumber;
         int playerCards = 1;
@@ -217,24 +219,26 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         {
             playerCards++;
         }
-        _mixMaxCardsInHand = playerCards - 1;
-        _mixMaxCardsInHandsText.text = _mixMaxCardsInHand.ToString();
+        mixMaxCardsInHand = playerCards - 1;
+        _mixMaxCardsInHandsText.text = mixMaxCardsInHand.ToString();
+        _maxCardsInHandSlider.maxValue = mixMaxCardsInHand;
+        _maxCardsInHandSlider.wholeNumbers = true;
     }
     private void SuitNumber()
     {
-        _totalSuitsNumberText.text = NumberBumber(_playerNumberText.text);
+        _totalSuitsNumberText.text = NumberBumber(_totalSuitsNumberText.text);
         CalculateMaxCardsInHand();
     }
     private void MaxCardsInHandSlider(float value)
     {
-        _maxCardsInHands =(int)value;
-        _maxCardsInHandText.text = _maxCardsInHand.ToString();
+        _maxCardsInHandText.text = ((int)value).ToString();
     }
     private void SecondPhazeNext()
     {
         _gameLogicModPanelSecondPhaze.SetActive(false);
-        _playersPanel.SetActive(true);
         InitPlayersUI();
+        _playersPanel.SetActive(true);
+        _StartGame.gameObject.SetActive(true);
     }
     private void InitGameLogicSecondPhaze()
     {
@@ -242,11 +246,10 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         CalculateMaxCardsInHand();
         _totalSuitNumber.onClick.RemoveAllListeners();
         _totalSuitNumber.onClick.AddListener(SuitNumber);
-        _maxCardsInHand.minValue = MinCardsInHand;
-        _maxCardsInHand.maxValue = _mixMaxCardsInHand;
-        _maxCardsInHand.wholeNumbers = true;
-        _maxCardsInHand.onValueChanged.RemoveAllListeners();
-        _maxCardsInHand.onValueChanged.AddListener(MaxCardsInHandSlider);
+        _maxCardsInHandSlider.minValue = MinCardsInHand;
+        _maxCardsInHandSlider.wholeNumbers = true;
+        _maxCardsInHandSlider.onValueChanged.RemoveAllListeners();
+        _maxCardsInHandSlider.onValueChanged.AddListener(MaxCardsInHandSlider);
         _nextTwo.onClick.RemoveAllListeners();
         _nextTwo.onClick.AddListener(SecondPhazeNext);
     }
@@ -303,7 +306,9 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         if (_selectedCustomDeckCards.Count < 8) return;
         _CustomDeckModPanel.SetActive(false);
+        InitPlayersUI();
         _playersPanel.SetActive(true);
+        _StartGame.gameObject.SetActive(true);
     }
     private void InitCustomCombinationPanel()
     {
@@ -375,32 +380,24 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             Destroy(gameObject);
         _runnerPrefab = AssetLoader.PrefabContainer.RunnerPrefab;
     }
-    private Task StartRunner(StartGameArgs startarg)
+    private Task StartRunner(StartGameArgs startarg,string playerID)
     {
-        GameObject runnerobj = Instantiate(RunnerPrefab);
+        GameObject runnerobj = Instantiate(_runnerPrefab);
         DontDestroyOnLoad(runnerobj);
         runnerobj.name = startarg.GameMode.ToString() + " Runner";
         NetworkRunner runner = runnerobj.GetComponent<NetworkRunner>();
 
         if (startarg.GameMode != GameMode.Single)
         {
-            Debug.Log($"Starting {runnerobj.name}!");
+#if Log 
+            LogManager.Log($"Starting {runnerobj.name}!",Color.blue,LogManager.ValueInformationLog);
+#endif
             PeerOnlineInfo peerOnlineInfo = new PeerOnlineInfo();
             peerOnlineInfo.PeerRunner = runner;
+            peerOnlineInfo.PeerID = playerID;
             PeersInfoList.Add(peerOnlineInfo);
         }
         return runner.StartGame(startarg);
-    }
-    public async void OfflineRunner()
-    {
-        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
-        StartGameArgs = new StartGameArgs()
-        {
-            SessionName = "offlinetestroom",
-            GameMode = GameMode.Single,
-            Scene = scene
-        };
-        await StartRunner(StartGameArgs);
     }
     private IEnumerator WaitForTask(Task task)
     {
@@ -413,7 +410,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         if (task.IsFaulted)
         {
             Debug.LogWarning(task.Exception);
-            StopCoroutine(StartOnlineCoroutine);
+            StopCoroutine(_startOnlineCoroutine);
             yield break;
         }
     }
@@ -421,9 +418,9 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         StartGameArgs.GameMode = GameMode.Client;
 
-        for (int i = 0; i < _playersData.Count-1; i++)
+        for (int index = 1; index < _playersData.Count; index++)
         {
-            yield return WaitForTask(StartRunner(StartGameArgs));
+            yield return WaitForTask(StartRunner(StartGameArgs, _playersData[index].PlayerID));
         }
 
         yield return null;
@@ -435,7 +432,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         if (clientTasks.IsFaulted)
         {
             Debug.LogWarning(clientTasks.Exception);
-            StopCoroutine(StartOnlineCoroutine);
+            StopCoroutine(_startOnlineCoroutine);
             yield break;
         }
     }
@@ -465,11 +462,28 @@ public class EpicInGameLogicInitiater : MonoBehaviour
                     PeersInfoList.Remove(peerdata);
                     PeersInfoList.Add(NewPeerData);
                     //setting peer connection token on peer gamemanager
-                    Debug.Log($"PeerData Added to list => {NewPeerData}");
+#if Log
+
+                    LogManager.Log($"PeerData Added to list => {NewPeerData}",Color.blue,LogManager.ValueInformationLog);
+#endif
                 }
             }
             yield return null;
         }
+    }
+    public async void OfflineRunner()
+    {
+        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
+        gameObject.transform.parent = null;
+        DontDestroyOnLoad(this);
+        StartGameArgs = new StartGameArgs()
+        {
+            SessionName = "offlinetestroom",
+            GameMode = GameMode.Single,
+            Scene = scene
+        };
+        string hostID = _playersData.First().PlayerID;
+        await StartRunner(StartGameArgs,hostID);
     }
     public IEnumerator StartOnline()
     {
@@ -486,19 +500,38 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             GameMode = GameMode.Host,
             Scene = scene,
         };
+        string hostID = _playersData.First().PlayerID;
         //starting host runner 
-        Debug.Log("Starting Host");
-        yield return WaitForTask(StartRunner(StartGameArgs));
+#if Log
+
+        LogManager.Log("Starting Host",Color.blue,LogManager.ValueInformationLog);
+#endif
+        yield return WaitForTask(StartRunner(StartGameArgs, hostID));
         //starting clients
-        Debug.Log("Staring Clients!");
+#if Log
+
+        LogManager.Log("Staring Clients!", Color.blue, LogManager.ValueInformationLog);
+#endif
         yield return SetUpClients();
         //just making sure that peers gameManager spawned
         yield return new WaitForSeconds(1);
         // setting up peer data 
         yield return SetPeersInfo();
         AllSet = true;
+        _startOnlineCoroutine = null;
+#if Log
+        LogManager.Log("Players Runners Prep Is Done!", Color.blue, LogManager.ValueInformationLog);
+#endif
     }
-    #endregion
+    private void StartGame()
+    {
+        SetUpPlayersData();
+        if (_mode == InGameLogicModes.Offline)
+            OfflineRunner();
+        else
+            _startOnlineCoroutine = StartCoroutine(StartOnline());
+    }
+#endregion
 }
 public enum InGameLogicModes
 {
@@ -510,6 +543,7 @@ public struct PeerOnlineInfo
 {
     public NetworkRunner PeerRunner;
     public GameManager PeerManager;
+    public string PeerID;
     public override string ToString()
     {
         return $"PeerPlayerRef = {PeerRunner.LocalPlayer}";

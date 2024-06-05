@@ -36,11 +36,11 @@ public class GameManager : NetworkBehaviour
     #region Deck properties
 
     private const int DoubleStandartDeckSize = 104;
-    [Networked] private byte _maxPlayerCards { get; set; }
+    [Networked] private byte _maxPlayerCards { get=>default; set { } }
 
-    /// <summary>
-    /// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
-    /// </summary>
+    ///// <summary>
+    ///// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
+    ///// </summary>
     public byte MaxPlayerCards { get => _maxPlayerCards; }
 
     #endregion Deck properties
@@ -119,13 +119,12 @@ public class GameManager : NetworkBehaviour
 
     #region Simulation Props
 
-    public NetworkRunner GameRunner { get; set; }
+    public NetworkRunner GameRunner { get => Runner; }
     public bool IsHost { get => GameRunner.IsServer; }
     public bool IsClient { get => GameRunner.IsClient; }
     public GameMode GameMode { get => GameRunner.GameMode; }
 
     #endregion Simulation Props
-
     #region Dealer Setup
 
     private void CreateDealer() => _dealer = new Dealer(StartRoutine, StopRoutine);
@@ -171,6 +170,11 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion Cards Pool Setup
+
+    public override void Spawned()
+    {
+        
+    }
 
     #region methods to link with UI
 
