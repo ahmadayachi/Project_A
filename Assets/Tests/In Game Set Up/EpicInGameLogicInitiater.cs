@@ -365,10 +365,18 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         foreach (var playerUi in _playersUI)
         {
             playerName = string.IsNullOrEmpty(playerUi.PlayerName) ? Player + playerIndex : playerUi.PlayerName;
-            RunTimePlayerData playerData = new RunTimePlayerData(playerName, GenerateUniqueID(), playerUi.IconIndex);
+            RunTimePlayerData playerData = new RunTimePlayerData();
+            playerData.PlayerRef = PlayerRef.None;
+            playerData.PlayerName = playerName;
+            playerData.PlayerID = GenerateUniqueID();
+            playerData.IconIndex = playerUi.IconIndex;
+            playerData.PlayerNetObject = null;
+            playerData.AuthorityAssigned = false;
             playerIndex++;
             _playersData.Add(playerData);
         }
+        _dataHolder.RunTimePlayersData.Clear();
+        _dataHolder.RunTimePlayersData.AddRange(_playersData);
     }
     #endregion
 
@@ -395,6 +403,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             PeerOnlineInfo peerOnlineInfo = new PeerOnlineInfo();
             peerOnlineInfo.PeerRunner = runner;
             peerOnlineInfo.PeerID = playerID;
+            peerOnlineInfo.PeerRef = runner.LocalPlayer;
             PeersInfoList.Add(peerOnlineInfo);
         }
         return runner.StartGame(startarg);
@@ -459,8 +468,10 @@ public class EpicInGameLogicInitiater : MonoBehaviour
                     NewPeerData.PeerRunner = peerdata.PeerRunner;
                     //sending peertoken to gamemanger
                     NewPeerData.PeerManager = manager;
+
                     PeersInfoList.Remove(peerdata);
                     PeersInfoList.Add(NewPeerData);
+                    
                     //setting peer connection token on peer gamemanager
 #if Log
 
@@ -469,6 +480,25 @@ public class EpicInGameLogicInitiater : MonoBehaviour
                 }
             }
             yield return null;
+        }
+
+        foreach (PeerOnlineInfo peerdata in PeersInfoList)
+        {
+            for (int index = 0; index < _dataHolder.RunTimePlayersData.Count; index++)
+            {
+                if (peerdata.PeerID == _dataHolder.RunTimePlayersData[index].PlayerID)
+                {
+                    var oldData = _dataHolder.RunTimePlayersData[index];
+                    var newData = new RunTimePlayerData();
+                    newData.PlayerRef = peerdata.PeerRef;
+                    newData.PlayerName = oldData.PlayerName;
+                    newData.PlayerID = oldData.PlayerID;
+                    newData.IconIndex = oldData.IconIndex;
+                    newData.PlayerNetObject = null;
+                    newData.AuthorityAssigned = false;
+                    _dataHolder.RunTimePlayersData[index] = newData;
+                }
+            }
         }
     }
     public async void OfflineRunner()
@@ -543,6 +573,7 @@ public struct PeerOnlineInfo
 {
     public NetworkRunner PeerRunner;
     public GameManager PeerManager;
+    public PlayerRef PeerRef;
     public string PeerID;
     public override string ToString()
     {

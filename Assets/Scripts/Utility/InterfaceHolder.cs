@@ -46,16 +46,12 @@ public interface IPlayerUIControler
 [Serializable]
 public struct RunTimePlayerData
 {
+    public PlayerRef PlayerRef;
     public string PlayerName;
     public string PlayerID;
     public int IconIndex;
-
-    public RunTimePlayerData(string playerName, string playerID, int iconIndex)
-    {
-        PlayerName = playerName;
-        PlayerID = playerID;
-        IconIndex = iconIndex;
-    }
+    public NetworkObject PlayerNetObject;
+    public bool AuthorityAssigned;
 }
 #endregion
 

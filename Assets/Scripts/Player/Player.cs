@@ -41,7 +41,7 @@ public class Player : NetworkBehaviour, IPlayer
     public string Name { get => _name; }
     public string ID { get => _id; }
     public byte IconID { get => _iconID; }
-
+    public bool IsLocalPlayer { get => Object.HasInputAuthority; }
     public CardInfo[] Hand
     {
         get

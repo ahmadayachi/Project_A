@@ -33,10 +33,18 @@ public class GameManager : NetworkBehaviour
 
     #endregion Doubt
 
+    #region UI Manager
+    [SerializeField] UIManager _uiManager;
+    #endregion
+
+    #region Run Time Data
+    [SerializeField] private RunTimeDataHolder _runTimeDataHolder;
+    #endregion
+
     #region Deck properties
 
     private const int DoubleStandartDeckSize = 104;
-    [Networked] private byte _maxPlayerCards { get=>default; set { } }
+    [Networked] private byte _maxPlayerCards { get; set;}
 
     ///// <summary>
     ///// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
@@ -173,7 +181,10 @@ public class GameManager : NetworkBehaviour
 
     public override void Spawned()
     {
-        
+        //injecting UI dependancy 
+        _uiManager.InjectGameManager(this);
+        //setting UI 
+        _uiManager.InitUI();
     }
 
     #region methods to link with UI
@@ -190,11 +201,84 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion methods to link with UI
+
     #region General Logic
     public bool IsMyTurn()
     {
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
         return LocalPlayer.ID == _currentPlayerID;
+    }
+    private void StartGame()
+    {
+        if (IsClient) return;
+
+        //Initialising players 
+        InitPlayers();
+
+
+        //semulation Prep
+        _gameState = GameState.Idle;
+    }
+    private void InitPlayers()
+    {
+        //canceling if not enough run time data
+        int dataCount = _runTimeDataHolder.RunTimePlayersData.Count;
+        if (dataCount < 2)
+        {
+#if Log
+            LogManager.LogError($"Players Init Is Canceled ! not enough Run Time Data , Run Time Data Count = {dataCount}");
+#endif
+            return;
+        }
+
+        int playerIndex = 0;
+        List<RunTimePlayerData> newRunTimeData = new List<RunTimePlayerData>();
+        foreach (RunTimePlayerData playerData in _runTimeDataHolder.RunTimePlayersData)
+        {
+            //spawping player 
+            NetworkObject playerObject = GameRunner.Spawn(AssetLoader.PrefabContainer.PlayerPrefab, default, default, playerData.PlayerRef);
+            playerObject.name = playerData.PlayerName;
+            Player player = playerObject.GetComponent<Player>();
+         
+            //player prep 
+            PlayerArguments playerArgs = new PlayerArguments();
+            playerArgs.Name = playerData.PlayerName;
+            playerArgs.ID = playerData.PlayerID;
+            playerArgs.IconID = (byte)playerData.IconIndex;
+            playerArgs.GameManager = this;
+            playerArgs.isplayerOut = false;
+            player.InitPlayer(playerArgs);
+
+            //RunTime Data Adjust 
+            RunTimePlayerData newData = new RunTimePlayerData();
+            newData.PlayerRef =playerData.PlayerRef;
+            newData.PlayerName = playerData.PlayerName;
+            newData.PlayerID = playerData.PlayerID;
+            newData.IconIndex = playerData.IconIndex;
+            newData.PlayerNetObject = playerObject;
+            newData.AuthorityAssigned = true;
+            newRunTimeData.Add(newData);
+
+            // setting Local Player 
+            SetLocalPlayer(player);
+
+            //storing player netobject on cloud
+            _activeplayers.Set(playerIndex, playerObject);
+            //stroing player on local simulation
+            Players[playerIndex] = player;
+            playerIndex++;
+        }
+    }
+    private void SetLocalPlayer(Player player)
+    {
+        if (player.HasInputAuthority)
+        {
+            LocalPlayer = player;
+#if Log
+            LogManager.Log($"{player} Local Player Is Set", Color.cyan, LogManager.ValueInformationLog);
+#endif
+
+        }
     }
     #endregion
 
@@ -379,7 +463,7 @@ public class GameManager : NetworkBehaviour
 
     #endregion Round Over Logic
 
-    #region Player Commands Methods
+    #region Player Commands  RPC Methods
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_ConfirmBet(byte[] bet, string playerID)
@@ -674,6 +758,7 @@ public class GameManager : NetworkBehaviour
     }
 
     #endregion Passing Turn
+
     #region Player Timer State Callback
     private void OnPlayerTimerStateChanged()
     {
