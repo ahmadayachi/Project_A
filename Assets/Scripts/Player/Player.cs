@@ -17,7 +17,7 @@ public class Player : NetworkBehaviour, IPlayer
     #endregion Player fields
 
     #region Player Networked Properties
-
+    [Networked] public PlayerRef playerRef { get; set; }
     [Networked] private string _name { get; set; }
     [Networked] private string _id { get; set; }
     /// <summary>
@@ -42,6 +42,7 @@ public class Player : NetworkBehaviour, IPlayer
     public string ID { get => _id; }
     public byte IconID { get => _iconID; }
     public bool IsLocalPlayer { get => Object.HasInputAuthority; }
+    public NetworkObject NetworkObject { get => Object; }
     public CardInfo[] Hand
     {
         get
@@ -87,6 +88,7 @@ public class Player : NetworkBehaviour, IPlayer
     #region Player Set Up Methods    
     public void InitPlayer(PlayerArguments playerArgs)
     {
+        SetPlayerRef(playerArgs.PlayerRef);
         SetPlayerName(playerArgs.Name);
         SetPlayerID(playerArgs.ID);
         //SetCardCounter(playerArgs.CardCounter);
@@ -94,6 +96,18 @@ public class Player : NetworkBehaviour, IPlayer
         SetIsplayerOut(playerArgs.isplayerOut);
         SetPlayerGameManager(playerArgs.GameManager);
         PlusOneCard();
+    }
+    public void SetPlayerRef(PlayerRef playerRef)
+    {
+        if(playerRef == null || playerRef == PlayerRef.None)
+        {
+            
+#if Log
+                LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
+#endif
+                return;
+        }
+        this.playerRef = playerRef; 
     }
     public void SetPlayerID(string playerID)
     {

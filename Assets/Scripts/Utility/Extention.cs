@@ -7,6 +7,48 @@ using WebSocketSharp;
 
 public static class Extention
 {
+    public static bool IsObjectUsable(NetworkObject _object)
+    {
+        if (_object == null)
+            return false;
+        else
+            return _object.IsValid;
+    }
+    public static bool IsEmpty(this IEnumerable<NetworkObject> items)
+    {
+        foreach (NetworkObject item in items)
+        {
+            if (IsObjectUsable(item))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public static int Count(this IEnumerable<NetworkObject> array)
+    {
+        int Length = 0;
+        foreach (var item in array)
+        {
+            if (IsObjectUsable(item))
+            {
+                Length++;
+            }
+        }
+        return Length;
+    }
+    public static int Count(this IEnumerable<IPlayer> array)
+    {
+        int Length = 0;
+        foreach (var item in array)
+        {
+            if (item!=null)
+            {
+                Length++;
+            }
+        }
+        return Length;
+    }
     #region Generic shit
 
     /// <summary>

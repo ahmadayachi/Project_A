@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using WebSocketSharp;
 
@@ -23,7 +24,7 @@ public class GameManager : NetworkBehaviour
     #region Card Pool System
 
     private CardPool _cardsPool;
-    public CardPool CardPool;
+    //public CardPool CardPool;
 
     #endregion Card Pool System
 
@@ -39,6 +40,10 @@ public class GameManager : NetworkBehaviour
 
     #region Run Time Data
     [SerializeField] private RunTimeDataHolder _runTimeDataHolder;
+    #endregion
+
+    #region Change Detector
+    private ChangeDetector _changeDetector;
     #endregion
 
     #region Deck properties
@@ -61,7 +66,7 @@ public class GameManager : NetworkBehaviour
     /// Array of  Active Players
     /// </summary>
     [Networked, Capacity(MaxPlayersNumber)]
-    private NetworkArray<NetworkObject> _activeplayers { get; }
+    private NetworkArray<NetworkObject> _cloudplayersData { get; }
 
     [Networked, Capacity(MaxPlayersNumber - 1)]
     private NetworkArray<string> _loosersIDs { get; }
@@ -71,8 +76,8 @@ public class GameManager : NetworkBehaviour
     [Networked] private PlayerTimerState _playerTimerState { get; set;}
     public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
-    private byte _activePlayersNumber;
-    public byte ActivePlayersNumber { get => _activePlayersNumber; }
+    private int _playersNumber;
+    public int PlayersNumber { get => _playersNumber; }
 
     public IPlayer[] Players;
     private int _playerIndex;
@@ -163,10 +168,10 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        if (_activePlayersNumber == 0 || _maxPlayerCards == 0)
+        if (_playersNumber == 0 || _maxPlayerCards == 0)
         {
 #if Log
-            LogManager.LogError($" Failed Creating CardPool! active player number {_activePlayersNumber} max player cards {_maxPlayerCards}");
+            LogManager.LogError($" Failed Creating CardPool! active player number {_playersNumber} max player cards {_maxPlayerCards}");
 #endif
             return;
         }
@@ -185,6 +190,27 @@ public class GameManager : NetworkBehaviour
         _uiManager.InjectGameManager(this);
         //setting UI 
         _uiManager.InitUI();
+
+
+        if (HostNeedSetUpPlayersProperties())
+        {
+            //Initialising players 
+            InitPlayers();
+
+
+            //simulation Prep
+            _gameState = GameState.SimulationSetUp;
+        }
+    }
+    public override void FixedUpdateNetwork()
+    {
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            switch (change)
+            {
+                case nameof(_gameState): OnGameStateChanged(); break;
+            }
+        }
     }
 
     #region methods to link with UI
@@ -193,9 +219,9 @@ public class GameManager : NetworkBehaviour
     {
         if (numberOfPlayers <= 8 && numberOfPlayers > 0)
         {
-            _activePlayersNumber = (byte)numberOfPlayers;
+            _playersNumber = (byte)numberOfPlayers;
 #if Log
-            LogManager.Log($"Player number is Set !, Player Number = {_activePlayersNumber}", Color.green, LogManager.ValueInformationLog);
+            LogManager.Log($"Player number is Set !, Player Number = {_playersNumber}", Color.green, LogManager.ValueInformationLog);
 #endif
         }
     }
@@ -203,6 +229,8 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
 
     #region General Logic
+    private bool HostNeedSetUpPlayersProperties()=>(IsHost && (_gameState == GameState.NoGameState));
+    
     public bool IsMyTurn()
     {
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
@@ -210,14 +238,7 @@ public class GameManager : NetworkBehaviour
     }
     private void StartGame()
     {
-        if (IsClient) return;
-
-        //Initialising players 
-        InitPlayers();
-
-
-        //semulation Prep
-        _gameState = GameState.Idle;
+        
     }
     private void InitPlayers()
     {
@@ -232,6 +253,8 @@ public class GameManager : NetworkBehaviour
         }
 
         int playerIndex = 0;
+        Players = new IPlayer[dataCount];
+        _playersNumber = dataCount;
         List<RunTimePlayerData> newRunTimeData = new List<RunTimePlayerData>();
         foreach (RunTimePlayerData playerData in _runTimeDataHolder.RunTimePlayersData)
         {
@@ -242,6 +265,7 @@ public class GameManager : NetworkBehaviour
          
             //player prep 
             PlayerArguments playerArgs = new PlayerArguments();
+            playerArgs.PlayerRef = playerData.PlayerRef;
             playerArgs.Name = playerData.PlayerName;
             playerArgs.ID = playerData.PlayerID;
             playerArgs.IconID = (byte)playerData.IconIndex;
@@ -263,10 +287,75 @@ public class GameManager : NetworkBehaviour
             SetLocalPlayer(player);
 
             //storing player netobject on cloud
-            _activeplayers.Set(playerIndex, playerObject);
+            _cloudplayersData.Set(playerIndex, playerObject);
             //stroing player on local simulation
             Players[playerIndex] = player;
             playerIndex++;
+        }
+        //resetting RunTime Data
+        _runTimeDataHolder.RunTimePlayersData.Clear();
+        _runTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
+    }
+    private void SetUpRunTimeData()
+    {
+        if (Players == null || Players.Count() == 0)
+        {
+#if Log
+            LogManager.LogError("Run Time Data Set Up Is Canceled!");
+#endif
+            return;
+        }
+        //just making sure 
+        _runTimeDataHolder.RunTimePlayersData.Clear();
+
+        foreach (IPlayer player in Players)
+        {
+            RunTimePlayerData playerData = new RunTimePlayerData();
+            playerData.PlayerRef = player.playerRef;
+            playerData.PlayerName =player.Name;
+            playerData.PlayerID = player.ID;
+            playerData.IconIndex = player.IconID;
+            playerData.PlayerNetObject = player.NetworkObject;
+            //since this only happens after spawning players im assuming it should be true
+            playerData.AuthorityAssigned = true;
+
+            _runTimeDataHolder.RunTimePlayersData.Add(playerData);
+        }
+    }
+    /// <summary>
+    /// Initializes The Players Array Data
+    /// </summary>
+    private void LoadPlayers()
+    {
+        if (_cloudplayersData.IsEmpty())
+        {
+#if Log
+            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {LocalPlayer} is Canceled",Color.cyan,LogManager.ValueInformationLog);
+#endif
+            return;
+        }
+        Players = new IPlayer[_cloudplayersData.Count()];
+        int playerIndex = 0;
+        //players need to be spawned before Fetching 
+        foreach (NetworkObject playerNetObject in _cloudplayersData)
+        {
+            if (Extention.IsObjectUsable(playerNetObject))
+            {
+                Player player = playerNetObject.GetComponent<Player>();
+                if (player == null)
+                {
+#if Log
+                    LogManager.LogError($"Player Loading Is Canceled! Cloud Player Data does not Contain a Player Component ! Local Player {LocalPlayer}");
+#endif
+                    return;
+                }
+                //setting local player
+                SetLocalPlayer(player);
+
+                //storing player on local simulation
+                Players[playerIndex] = player;
+                playerIndex++;
+            }
         }
     }
     private void SetLocalPlayer(Player player)
@@ -286,7 +375,7 @@ public class GameManager : NetworkBehaviour
 
     private void SetMaxPlayerCards()
     {
-        if (_activePlayersNumber == 0)
+        if (_playersNumber == 0)
         {
 #if Log
             LogManager.LogError("player number need to be > 0 before setting the max player cards ");
@@ -295,7 +384,7 @@ public class GameManager : NetworkBehaviour
         }
         byte playerCards = 1;
         int currentDeckSize = CardManager.Deck.Length;
-        while ((currentDeckSize - (playerCards * ActivePlayersNumber) > 0))
+        while ((currentDeckSize - (playerCards * PlayersNumber) > 0))
         {
             playerCards++;
         }
@@ -784,5 +873,36 @@ public class GameManager : NetworkBehaviour
         PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameState,IsMyTurn());
         ChangeState(CurrentPlayer.PlayerState, PlayerStateArgs);
     }
+    #endregion
+
+    #region GameState Call Backs
+    private void OnGameStateChanged()
+    {
+        switch (_gameState)
+        {
+            case GameState.SimulationSetUp:SimulationPrepGameState();break;
+        }
+    }
+    private void SimulationPrepGameState()
+    {
+        if (IsHost)
+        {
+            if (Players == null)
+            {
+                LoadPlayers();
+                SetUpRunTimeData();
+            }
+            CreateDealer();
+            CreateDoubt();
+        }
+        else
+        {
+            LoadPlayers();
+            SetUpRunTimeData();
+        }
+        CreateCardPool();
+        CreateBetHandler();
+    }
+
     #endregion
 }

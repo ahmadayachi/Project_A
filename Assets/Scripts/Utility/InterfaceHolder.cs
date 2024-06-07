@@ -14,6 +14,7 @@ public interface IplayerState
 }
 public interface IPlayer:ICardReceiver
 {
+    public PlayerRef playerRef {get;}
     string Name {get;}
     void SetPlayerName(string playerName);
     string ID {get;}
@@ -24,6 +25,9 @@ public interface IPlayer:ICardReceiver
     void ClearHand();
     void SetIsplayerOut(NetworkBool isPlayerOut);
     State PlayerState { get;}
+    byte IconID { get; }
+    bool IsLocalPlayer { get; }
+    public NetworkObject NetworkObject {get;}
     string ToString();
 }
 public interface ICardReceiver
@@ -185,9 +189,11 @@ public struct CardPoolArguments
 }
 public struct PlayerArguments
 {
+    public PlayerRef PlayerRef;
     public string Name;
     public string ID;
     public byte IconID;
+
     //public byte CardCounter;
     public GameManager GameManager;
     public NetworkBool isplayerOut;
@@ -269,7 +275,7 @@ public enum GameState:byte
     /// <summary>
     /// just chilling, maybe waiting for clients, a host migration happening 
     /// </summary>
-    Idle,
+    SimulationSetUp,
     GameStarted,
     Dealing,
     FirstPlayerTurn,
