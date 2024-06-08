@@ -377,6 +377,31 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         }
         _dataHolder.RunTimePlayersData.Clear();
         _dataHolder.RunTimePlayersData.AddRange(_playersData);
+        SetUpDeckInfo();
+    }
+    private void SetUpDeckInfo()
+    {
+        _dataHolder.DeckInfo = new DeckInfo();
+        _dataHolder.DeckInfo.DeckType = _selectedDeckType;
+        _dataHolder.DeckInfo.SuitsNumber = byte.Parse(_totalSuitsNumberText.text);
+        if (_selectedDeckType == DeckType.Custom)
+        {
+            int Length = _selectedCustomDeckCards.Count;
+            if ( Length>= 8)
+            {
+                _dataHolder.DeckInfo.CustomSuitRanks = new byte[Length];
+                for (int index = 0; index < Length; index++)
+                {
+                    _dataHolder.DeckInfo.CustomSuitRanks[index] = _selectedCustomDeckCards[index];
+                }
+            }
+            else
+            {
+#if Log
+                LogManager.LogError($"Failed Setting Up Deck Info ! Custom Deck Length is Invalid Lenghth =>{Length} ");
+#endif
+            }
+        }
     }
     #endregion
 

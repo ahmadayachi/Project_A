@@ -24,7 +24,7 @@ public class GameManager : NetworkBehaviour
     #region Card Pool System
 
     private CardPool _cardsPool;
-    //public CardPool CardPool;
+    public CardPool CardPool { get => _cardsPool; }
 
     #endregion Card Pool System
 
@@ -55,9 +55,13 @@ public class GameManager : NetworkBehaviour
     ///// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
     ///// </summary>
     public byte MaxPlayerCards { get => _maxPlayerCards; }
-
+    [Networked] private DeckType _deckType { get; set; }
+    [Networked] byte _suitsNumber { get; set;}
+    private const byte MaxCardsInSuitNumber = 13;
+    [Networked, Capacity(MaxCardsInSuitNumber)]
+    private NetworkArray<byte> _customSuitRanks {  get;}
     #endregion Deck properties
-
+  
     #region Player Propertys
 
     private const byte MaxPlayersNumber = 8;
@@ -135,7 +139,8 @@ public class GameManager : NetworkBehaviour
     public NetworkRunner GameRunner { get => Runner; }
     public bool IsHost { get => GameRunner.IsServer; }
     public bool IsClient { get => GameRunner.IsClient; }
-    public GameMode GameMode { get => GameRunner.GameMode; }
+    public GameMode GameMode { get => GameRunner.GameMode;}
+    public SimulationSetUpState SimulationState;
 
     #endregion Simulation Props
     #region Dealer Setup
@@ -194,9 +199,12 @@ public class GameManager : NetworkBehaviour
 
         if (HostNeedSetUpPlayersProperties())
         {
+            //uploading Deck Info 
+            UploadDeckInfo();
             //Initialising players 
             InitPlayers();
-
+            //uploading max cards a player can get 
+            SetMaxPlayerCards();
 
             //simulation Prep
             _gameState = GameState.SimulationSetUp;
@@ -286,7 +294,7 @@ public class GameManager : NetworkBehaviour
             // setting Local Player 
             SetLocalPlayer(player);
 
-            //storing player netobject on cloud
+            //uploading player netobject on cloud
             _cloudplayersData.Set(playerIndex, playerObject);
             //stroing player on local simulation
             Players[playerIndex] = player;
@@ -330,7 +338,7 @@ public class GameManager : NetworkBehaviour
         if (_cloudplayersData.IsEmpty())
         {
 #if Log
-            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {LocalPlayer} is Canceled",Color.cyan,LogManager.ValueInformationLog);
+            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {LocalPlayer} is Canceled", Color.cyan, LogManager.ValueInformationLog);
 #endif
             return;
         }
@@ -353,8 +361,7 @@ public class GameManager : NetworkBehaviour
                 SetLocalPlayer(player);
 
                 //storing player on local simulation
-                Players[playerIndex] = player;
-                playerIndex++;
+                Players[playerIndex++] = player;
             }
         }
     }
@@ -369,6 +376,54 @@ public class GameManager : NetworkBehaviour
 
         }
     }
+    private void LoadDeckInfo()
+    {
+        _runTimeDataHolder.DeckInfo = new DeckInfo();
+        _runTimeDataHolder.DeckInfo.DeckType = _deckType;
+        _runTimeDataHolder.DeckInfo.SuitsNumber = _suitsNumber;
+        if (_deckType == DeckType.Custom)
+        {
+            if (_customSuitRanks.IsEmpty())
+            {
+#if Log
+                LogManager.LogError("Loading Deck Info is Canceled ! Custom Deck Suit Ranks is Empty ");
+#endif
+                return;
+            }
+            _runTimeDataHolder.DeckInfo.CustomSuitRanks = new byte[_customSuitRanks.ValidCardsCount()];
+            int index = 0;
+            foreach (byte card in _customSuitRanks)
+            {
+                if (card != 0)
+                    _runTimeDataHolder.DeckInfo.CustomSuitRanks[index++] = card;
+            }
+        }
+    }
+    private void UploadDeckInfo()
+    {
+        _deckType = _runTimeDataHolder.DeckInfo.DeckType;
+        _suitsNumber = _runTimeDataHolder.DeckInfo.SuitsNumber;
+        if (_deckType == DeckType.Custom)
+        {
+
+            if (_runTimeDataHolder.DeckInfo.CustomSuitRanks.IsEmpty())
+            {
+#if Log
+                LogManager.LogError("Uploading Deck Info is Canceled ! Custom Deck Suit Ranks is Empty ");
+#endif
+                return;
+            }
+            _customSuitRanks.ClearByteArray();
+            int index = 0;
+            foreach (byte card in _runTimeDataHolder.DeckInfo.CustomSuitRanks)
+            {
+                if (card != 0)
+                    _customSuitRanks.Set(index++, card);
+            }
+
+        }
+    }
+    private void SetUpCardManager()=>CardManager.Init(_runTimeDataHolder.DeckInfo);
     #endregion
 
     #region private Logic methods
@@ -529,10 +584,10 @@ public class GameManager : NetworkBehaviour
             {
                 //clearing
                 _liveBetPlayerID = string.Empty;
-                _liveBet.ClearBet();
+                _liveBet.ClearByteArray();
                 _diffusedBet.Clear();
                 _doubtSceneTimer = 0;
-                _dealtCards.ClearBet();
+                _dealtCards.ClearByteArray();
                 _dealtCardsList.Clear();
                 _dealtCardsNumber = 0;
                 //clearing Players Hand
@@ -889,14 +944,19 @@ public class GameManager : NetworkBehaviour
         {
             if (Players == null)
             {
+                LoadDeckInfo();
+                SetUpCardManager();
                 LoadPlayers();
                 SetUpRunTimeData();
             }
             CreateDealer();
             CreateDoubt();
+          
         }
         else
         {
+            LoadDeckInfo();
+            SetUpCardManager();
             LoadPlayers();
             SetUpRunTimeData();
         }

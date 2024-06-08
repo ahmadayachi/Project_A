@@ -310,7 +310,7 @@ public static class Extention
                 array[index] = new CardInfo();
         }
     }
-    public static void ClearBet(this NetworkArray<byte> array)
+    public static void ClearByteArray(this NetworkArray<byte> array)
     {
         for (int index = 0; index < array.Length; index++)
         {

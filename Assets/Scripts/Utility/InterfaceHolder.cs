@@ -87,6 +87,7 @@ public interface ICardBehaviour
 {
 
 }
+//TODO: check why the fuck this still networked struct
 /// <summary>
 /// network ID only 
 /// </summary>
@@ -214,7 +215,7 @@ public struct ValidatorArguments
 }
 #endregion
 #region Structs
-public struct DeckInfo
+public struct DeckInfo 
 {
     public DeckType DeckType;
     public byte SuitsNumber;
@@ -263,6 +264,13 @@ public struct DiffusedRankInfo
 
 
 #region enums
+public enum SimulationSetUpState
+{
+    NoSetUp,
+    LogicSeUp,
+    UISetUp,
+    SetUpComplete
+}
 public enum PlayerTimerState
 {
     NoTimer,
