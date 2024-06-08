@@ -5,7 +5,8 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     private GameManager _gameManager;
-    public void InitUI()
+    public IUIEvents UIEvents;
+    public void Init()
     {
 
     }

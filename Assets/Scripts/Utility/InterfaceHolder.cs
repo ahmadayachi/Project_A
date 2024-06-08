@@ -134,6 +134,10 @@ public interface IValidator
     // Method to validate Bet
     public bool Validate(ValidatorArguments args);
 }
+public interface IUIEvents
+{
+    void SetUpUI();
+}
 #endregion
 
 
@@ -267,7 +271,7 @@ public struct DiffusedRankInfo
 public enum SimulationSetUpState
 {
     NoSetUp,
-    LogicSeUp,
+    LogicSetUp,
     UISetUp,
     SetUpComplete
 }

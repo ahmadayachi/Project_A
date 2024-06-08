@@ -9,6 +9,7 @@ using WebSocketSharp;
 
 public class GameManager : NetworkBehaviour
 {
+    //<=======================================================================(Fields and Props)======================================================================>
     #region dealer
 
     private Dealer _dealer;
@@ -82,10 +83,9 @@ public class GameManager : NetworkBehaviour
     public IPlayer CurrentPlayer;
     private int _playersNumber;
     public int PlayersNumber { get => _playersNumber; }
-
     public IPlayer[] Players;
     private int _playerIndex;
-
+    private List<int> _playerReadyList = new List<int>();
     #endregion Player Propertys
 
     #region Cards Networked Properties
@@ -143,6 +143,16 @@ public class GameManager : NetworkBehaviour
     public SimulationSetUpState SimulationState;
 
     #endregion Simulation Props
+
+    #region Routins
+    private Coroutine _startGameRoutine;
+    #endregion
+
+    //<=======================================================================(Methods)======================================================================>
+
+
+
+
     #region Dealer Setup
 
     private void CreateDealer() => _dealer = new Dealer(StartRoutine, StopRoutine);
@@ -194,13 +204,15 @@ public class GameManager : NetworkBehaviour
         //injecting UI dependancy 
         _uiManager.InjectGameManager(this);
         //setting UI 
-        _uiManager.InitUI();
+        _uiManager.Init();
 
 
         if (HostNeedSetUpPlayersProperties())
         {
             //uploading Deck Info 
             UploadDeckInfo();
+            // Create CardManager 
+            SetUpCardManager();
             //Initialising players 
             InitPlayers();
             //uploading max cards a player can get 
@@ -244,9 +256,16 @@ public class GameManager : NetworkBehaviour
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
         return LocalPlayer.ID == _currentPlayerID;
     }
-    private void StartGame()
+    private IEnumerator StartGame()
     {
-        
+        //waiting Players to set Up UI 
+        yield return new WaitUntil(AllPlayersReady);
+        //callback Final UI Check Point and Prep to start a Game game 
+        _gameState = GameState.GameStarted;
+    }
+    private bool AllPlayersReady()
+    {
+        return _playerReadyList.Count == _playersNumber;
     }
     private void InitPlayers()
     {
@@ -741,6 +760,25 @@ public class GameManager : NetworkBehaviour
         ChangeState(_doubt, stateArguments);
     }
 
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_PlayerReady(int playerRefID)
+    {
+        _playerReadyList.Add(playerRefID);
+#if Log
+       LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ",Color.green,LogManager.ValueInformationLog);
+#endif
+    }
+    public void PlayerIsReady()
+    {
+        if (LocalPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, Local Player Is Null! ");
+#endif
+            return;
+        }
+        RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
+    }
     #endregion Player Commands Methods
 
     #region Doubting State
@@ -936,10 +974,14 @@ public class GameManager : NetworkBehaviour
         switch (_gameState)
         {
             case GameState.SimulationSetUp:SimulationPrepGameState();break;
+            case GameState.GameStarted: GameStarted();break;
         }
     }
     private void SimulationPrepGameState()
     {
+        //for cockblock callbacks later 
+        SimulationState = SimulationSetUpState.LogicSetUp;
+
         if (IsHost)
         {
             if (Players == null)
@@ -951,7 +993,10 @@ public class GameManager : NetworkBehaviour
             }
             CreateDealer();
             CreateDoubt();
-          
+            //starting game
+            if (_startGameRoutine != null) 
+            StopCoroutine(_startGameRoutine);
+            _startGameRoutine = StartCoroutine(StartGame());
         }
         else
         {
@@ -962,7 +1007,14 @@ public class GameManager : NetworkBehaviour
         }
         CreateCardPool();
         CreateBetHandler();
-    }
 
+        SimulationState = SimulationSetUpState.UISetUp;
+        //starting UI Set Up 
+        _uiManager.UIEvents.SetUpUI();
+    }
+    private void GameStarted()
+    {
+
+    }
     #endregion
 }
