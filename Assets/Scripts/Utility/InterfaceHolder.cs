@@ -1,6 +1,7 @@
 
 using Fusion;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -136,7 +137,15 @@ public interface IValidator
 }
 public interface IUIEvents
 {
-    void SetUpUI();
+    /// <summary>
+    /// something to let players know what are they waiting 
+    /// </summary>
+    void OnSetUpStarted();
+    IEnumerator SetUpUI();
+    /// <summary>
+    /// some UI animation only when a game starts or smthing 
+    /// </summary>
+    void OnGameStarted();
 }
 #endregion
 
@@ -273,7 +282,8 @@ public enum SimulationSetUpState
     NoSetUp,
     LogicSetUp,
     UISetUp,
-    SetUpComplete
+    SetUpComplete,
+    SetUpCanceled
 }
 public enum PlayerTimerState
 {

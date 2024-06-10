@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using WebSocketSharp;
 
@@ -141,11 +140,14 @@ public class GameManager : NetworkBehaviour
     public bool IsClient { get => GameRunner.IsClient; }
     public GameMode GameMode { get => GameRunner.GameMode;}
     public SimulationSetUpState SimulationState;
-
+    public const int MaxSetUpWaitTime = 15;
+    private bool _simulationSetUpSuccessfull;
     #endregion Simulation Props
 
     #region Routins
-    private Coroutine _startGameRoutine;
+    private Coroutine _simulationSetUpRoutine;
+    private Coroutine _waitSetUpThenWaitPlayersRoutine;
+    private Coroutine _gameStartedRoutine;
     #endregion
 
     //<=======================================================================(Methods)======================================================================>
@@ -193,7 +195,7 @@ public class GameManager : NetworkBehaviour
         CardPoolArguments poolArgs = new CardPoolArguments();
         poolArgs.CardPrefab = cardPrefab;
         poolArgs.MaxPlayerCards = _maxPlayerCards;
-        poolArgs.ActivePlayerCount = _maxPlayerCards;
+        poolArgs.ActivePlayerCount = (byte)_playersNumber;
         _cardsPool = new CardPool(poolArgs);
     }
 
@@ -249,19 +251,232 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
 
     #region General Logic
+    private void GameStartedLogic()
+    {
+        _uiManager.UIEvents.OnGameStarted();
+        if (IsHost)
+        {
+            //starting dealing  
+            _gameState = GameState.Dealing;
+        }
+    }
+    private IEnumerator GameStartRoutine()
+    {
+        yield return WaitSetUp();
+        //if Host Set Up Complete then Wait for players 
+        if (_simulationSetUpSuccessfull)
+        {
+            GameStartedLogic();
+        }
+    }
+    private IEnumerator WaitSetUp()
+    {
+        _simulationSetUpSuccessfull = false;
+        bool SetUpCanceled;
+        do
+        {
+            yield return new WaitForSeconds(1);
+            _simulationSetUpSuccessfull = SimulationState == SimulationSetUpState.SetUpComplete;
+            SetUpCanceled = SimulationState == SimulationSetUpState.SetUpCanceled;
+        } while (!_simulationSetUpSuccessfull && !SetUpCanceled);
+    }
+    private IEnumerator WaitSetUpThenWaitPlayers()
+    {
+        yield return WaitSetUp();
+
+        //if Host Set Up Complete then Wait for players 
+        if (_simulationSetUpSuccessfull)
+        {
+            yield return new WaitUntil(AllPlayersReady);
+            //reseting 
+            _playerReadyList.Clear();
+            //Moving tto Game Started Game State
+            _gameState = GameState.GameStarted;
+        }
+        else
+        {
+            //still dont know maybe disconnect? reload scene?
+        }
+        _waitSetUpThenWaitPlayersRoutine = null;
+    }
+    private void StartSimulationSetUp()
+    {
+        if (_simulationSetUpRoutine != null)
+            StopCoroutine(_simulationSetUpRoutine);
+        _simulationSetUpRoutine = StartCoroutine(SetUp());
+    }
+    private IEnumerator SetUp()
+    {
+        //some panel that tracks simulation states as a loading screen 
+        _uiManager.UIEvents.OnSetUpStarted();
+        //Logic Set up
+        yield return SimulationLogicSetUp();
+
+        //just being a protective trans mother 
+        yield return new WaitUntil(() => SimulationState == SimulationSetUpState.LogicSetUp);
+
+        //UI Set Up 
+        yield return _uiManager.UIEvents.SetUpUI();
+
+        yield return new WaitUntil(() => SimulationState == SimulationSetUpState.UISetUp);
+
+        SimulationState = SimulationSetUpState.SetUpComplete;
+
+        _simulationSetUpRoutine = null;
+
+        RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
+    }
+    private IEnumerator SimulationLogicSetUp()
+    {
+        if (IsHost)
+        {
+            if (Players == null)
+            {
+                LoadDeckInfo();
+                SetUpCardManager();
+                LoadPlayers();
+                SetUpRunTimeData();
+            }
+            CreateDealer();
+            CreateDoubt();
+        }
+        else
+        {
+            LoadDeckInfo();
+            SetUpCardManager();
+            LoadPlayers();
+            SetUpRunTimeData();
+        }
+        CreateCardPool();
+        CreateBetHandler();
+
+        yield return null;
+
+        //forcing waiting minimum one sec
+#if Log
+        LogManager.Log($"Waiting for Logic Set Up Runner Player Ref => {Runner.LocalPlayer}", Color.yellow, LogManager.ValueInformationLog);
+#endif
+        int timer = 0;
+        do
+        {
+            yield return new WaitForSeconds(1);
+            timer++;
+        } while ((!CheckLogicSetUp()) && timer <= MaxSetUpWaitTime);
+
+        // one more time !
+        if (CheckLogicSetUp())
+        {
+            SimulationState = SimulationSetUpState.LogicSetUp;
+#if Log
+            LogManager.Log($" Logic is Set Up Runner Player Ref => {Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
+#endif
+        }
+        else
+        {
+            //stop the whole process
+            StopCoroutine(_simulationSetUpRoutine);
+            SimulationState = SimulationSetUpState.SetUpCanceled;
+#if Log
+            LogManager.LogError($"Simulation Set Up is Canceled! Logic Set Up Failed! player Ref=> {Runner.LocalPlayer}");
+#endif 
+        }
+
+    }
+    private bool CheckLogicSetUp()
+    {
+        bool checkState = true;
+        if (CardManager.Deck == null)
+        {
+#if Log
+            LogManager.Log($"Deck is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+        if (Players == null)
+        {
+#if Log
+            LogManager.Log($"Players array is null  !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+
+        if (Players.Count() == 0)
+        {
+#if Log
+            LogManager.Log($"Players array is Empty  !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+
+        if (_playersNumber == 0)
+        {
+#if Log
+            LogManager.Log($"Player Number Is Invalid !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+
+        if (LocalPlayer == null)
+        {
+#if Log
+            LogManager.Log($"Local Player Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+        if(_runTimeDataHolder.RunTimePlayersData == null)
+        {
+#if Log
+            LogManager.Log($"RunTimePlayersData Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+        if (_runTimeDataHolder.RunTimePlayersData.Count!=_playersNumber)
+        {
+#if Log
+            LogManager.Log($"RunTimePlayersData Count is Invalid !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+        if (_cardsPool == null)
+        {
+#if Log
+            LogManager.Log($"cardsPool Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+        if (_betHandler == null)
+        {
+#if Log
+            LogManager.Log($"betHandler Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+            checkState = false;
+        }
+
+        if (IsHost)
+        {
+            if (_dealer == null)
+            {
+#if Log
+                LogManager.Log($"dealer Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+                checkState = false;
+            }
+            if (_doubt == null)
+            {
+#if Log
+                LogManager.Log($"doubt Is null !", Color.red, LogManager.ValueInformationLog);
+#endif
+                checkState = false;
+            }
+        }
+
+        return checkState;
+    }
     private bool HostNeedSetUpPlayersProperties()=>(IsHost && (_gameState == GameState.NoGameState));
-    
     public bool IsMyTurn()
     {
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
         return LocalPlayer.ID == _currentPlayerID;
-    }
-    private IEnumerator StartGame()
-    {
-        //waiting Players to set Up UI 
-        yield return new WaitUntil(AllPlayersReady);
-        //callback Final UI Check Point and Prep to start a Game game 
-        _gameState = GameState.GameStarted;
     }
     private bool AllPlayersReady()
     {
@@ -361,7 +576,9 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        Players = new IPlayer[_cloudplayersData.Count()];
+        int playersCount = _cloudplayersData.Count();
+        Players = new IPlayer[playersCount];
+        _playersNumber = playersCount;
         int playerIndex = 0;
         //players need to be spawned before Fetching 
         foreach (NetworkObject playerNetObject in _cloudplayersData)
@@ -979,42 +1196,30 @@ public class GameManager : NetworkBehaviour
     }
     private void SimulationPrepGameState()
     {
-        //for cockblock callbacks later 
-        SimulationState = SimulationSetUpState.LogicSetUp;
+        StartSimulationSetUp();
 
         if (IsHost)
         {
-            if (Players == null)
-            {
-                LoadDeckInfo();
-                SetUpCardManager();
-                LoadPlayers();
-                SetUpRunTimeData();
-            }
-            CreateDealer();
-            CreateDoubt();
-            //starting game
-            if (_startGameRoutine != null) 
-            StopCoroutine(_startGameRoutine);
-            _startGameRoutine = StartCoroutine(StartGame());
+            if (_waitSetUpThenWaitPlayersRoutine != null)
+                StopCoroutine(_waitSetUpThenWaitPlayersRoutine);
+            _waitSetUpThenWaitPlayersRoutine = StartCoroutine(WaitSetUpThenWaitPlayers());
+        }
+    }
+  
+    private void GameStarted()
+    {
+        if (SimulationState == SimulationSetUpState.SetUpComplete)
+        {
+            GameStartedLogic();
         }
         else
         {
-            LoadDeckInfo();
-            SetUpCardManager();
-            LoadPlayers();
-            SetUpRunTimeData();
+            StartSimulationSetUp();
+            if (_gameStartedRoutine != null)
+                StopCoroutine(_gameStartedRoutine);
+            _gameStartedRoutine = StartCoroutine(GameStartRoutine());
         }
-        CreateCardPool();
-        CreateBetHandler();
-
-        SimulationState = SimulationSetUpState.UISetUp;
-        //starting UI Set Up 
-        _uiManager.UIEvents.SetUpUI();
     }
-    private void GameStarted()
-    {
-
-    }
+   
     #endregion
 }
