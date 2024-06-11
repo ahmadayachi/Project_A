@@ -9,6 +9,7 @@ using WebSocketSharp;
 public class GameManager : NetworkBehaviour
 {
     //<=======================================================================(Fields and Props)======================================================================>
+
     #region dealer
 
     private Dealer _dealer;
@@ -35,33 +36,49 @@ public class GameManager : NetworkBehaviour
     #endregion Doubt
 
     #region UI Manager
-    [SerializeField] UIManager _uiManager;
-    #endregion
+
+    [SerializeField] private UIManager _uiManager;
+
+    #endregion UI Manager
+
+    #region Call Back Manager
+
+    private CallBackManager _callBackManager;
+    public CallBackManager CallBackManager { get => _callBackManager; }
+
+    #endregion Call Back Manager
 
     #region Run Time Data
+
     [SerializeField] private RunTimeDataHolder _runTimeDataHolder;
-    #endregion
+
+    #endregion Run Time Data
 
     #region Change Detector
+
     private ChangeDetector _changeDetector;
-    #endregion
+
+    #endregion Change Detector
 
     #region Deck properties
 
     private const int DoubleStandartDeckSize = 104;
-    [Networked] private byte _maxPlayerCards { get; set;}
+    [Networked] private byte _maxPlayerCards { get; set; }
 
     ///// <summary>
     ///// The max amount of cards that can be dealt to a player, a player should be out if he carry more than this amount
     ///// </summary>
     public byte MaxPlayerCards { get => _maxPlayerCards; }
+
     [Networked] private DeckType _deckType { get; set; }
-    [Networked] byte _suitsNumber { get; set;}
+    [Networked] private byte _suitsNumber { get; set; }
     private const byte MaxCardsInSuitNumber = 13;
+
     [Networked, Capacity(MaxCardsInSuitNumber)]
-    private NetworkArray<byte> _customSuitRanks {  get;}
+    private NetworkArray<byte> _customSuitRanks { get; }
+
     #endregion Deck properties
-  
+
     #region Player Propertys
 
     private const byte MaxPlayersNumber = 8;
@@ -77,7 +94,7 @@ public class GameManager : NetworkBehaviour
 
     [Networked] private string _winnerID { get; set; }
     [Networked] private string _currentPlayerID { get; set; }
-    [Networked] private PlayerTimerState _playerTimerState { get; set;}
+    [Networked] private PlayerTimerState _playerTimerState { get; set; }
     public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
     private int _playersNumber;
@@ -85,6 +102,7 @@ public class GameManager : NetworkBehaviour
     public IPlayer[] Players;
     private int _playerIndex;
     private List<int> _playerReadyList = new List<int>();
+
     #endregion Player Propertys
 
     #region Cards Networked Properties
@@ -138,22 +156,22 @@ public class GameManager : NetworkBehaviour
     public NetworkRunner GameRunner { get => Runner; }
     public bool IsHost { get => GameRunner.IsServer; }
     public bool IsClient { get => GameRunner.IsClient; }
-    public GameMode GameMode { get => GameRunner.GameMode;}
+    public GameMode GameMode { get => GameRunner.GameMode; }
     public SimulationSetUpState SimulationState;
     public const int MaxSetUpWaitTime = 15;
     private bool _simulationSetUpSuccessfull;
+
     #endregion Simulation Props
 
     #region Routins
+
     private Coroutine _simulationSetUpRoutine;
     private Coroutine _waitSetUpThenWaitPlayersRoutine;
     private Coroutine _gameStartedRoutine;
-    #endregion
+
+    #endregion Routins
 
     //<=======================================================================(Methods)======================================================================>
-
-
-
 
     #region Dealer Setup
 
@@ -203,27 +221,40 @@ public class GameManager : NetworkBehaviour
 
     public override void Spawned()
     {
-        //injecting UI dependancy 
+        //injecting UI dependancy
         _uiManager.InjectGameManager(this);
-        //setting UI 
+        //setting UI
         _uiManager.Init();
+        //setting CallBackManager
+        if (GameMode != GameMode.Single)
+            _callBackManager = new CallBackManager();
 
+        //change dectector Set up
+        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
-        if (HostNeedSetUpPlayersProperties())
+        //cheking if the host need to start the Game
+        if (IsHost && (_gameState == GameState.NoGameState))
         {
-            //uploading Deck Info 
+            //uploading Deck Info
             UploadDeckInfo();
-            // Create CardManager 
+            // Create CardManager
             SetUpCardManager();
-            //Initialising players 
+            //Initialising players
             InitPlayers();
-            //uploading max cards a player can get 
+            //uploading max cards a player can get
             SetMaxPlayerCards();
 
             //simulation Prep
             _gameState = GameState.SimulationSetUp;
         }
+        else
+        //cheking if immidiate simulation set up is needed
+        if (_gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp)
+        {
+            StartSimulationSetUp();
+        }
     }
+
     public override void FixedUpdateNetwork()
     {
         foreach (var change in _changeDetector.DetectChanges(this))
@@ -251,24 +282,7 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
 
     #region General Logic
-    private void GameStartedLogic()
-    {
-        _uiManager.UIEvents.OnGameStarted();
-        if (IsHost)
-        {
-            //starting dealing  
-            _gameState = GameState.Dealing;
-        }
-    }
-    private IEnumerator GameStartRoutine()
-    {
-        yield return WaitSetUp();
-        //if Host Set Up Complete then Wait for players 
-        if (_simulationSetUpSuccessfull)
-        {
-            GameStartedLogic();
-        }
-    }
+
     private IEnumerator WaitSetUp()
     {
         _simulationSetUpSuccessfull = false;
@@ -280,15 +294,16 @@ public class GameManager : NetworkBehaviour
             SetUpCanceled = SimulationState == SimulationSetUpState.SetUpCanceled;
         } while (!_simulationSetUpSuccessfull && !SetUpCanceled);
     }
+
     private IEnumerator WaitSetUpThenWaitPlayers()
     {
         yield return WaitSetUp();
 
-        //if Host Set Up Complete then Wait for players 
+        //if Host Set Up Complete then Wait for players
         if (_simulationSetUpSuccessfull)
         {
             yield return new WaitUntil(AllPlayersReady);
-            //reseting 
+            //reseting
             _playerReadyList.Clear();
             //Moving tto Game Started Game State
             _gameState = GameState.GameStarted;
@@ -299,33 +314,40 @@ public class GameManager : NetworkBehaviour
         }
         _waitSetUpThenWaitPlayersRoutine = null;
     }
+
     private void StartSimulationSetUp()
     {
         if (_simulationSetUpRoutine != null)
             StopCoroutine(_simulationSetUpRoutine);
         _simulationSetUpRoutine = StartCoroutine(SetUp());
     }
+
     private IEnumerator SetUp()
     {
-        //some panel that tracks simulation states as a loading screen 
+        //some panel that tracks simulation states as a loading screen
         _uiManager.UIEvents.OnSetUpStarted();
+
         //Logic Set up
         yield return SimulationLogicSetUp();
 
-        //just being a protective trans mother 
+        //just being a protective trans mother
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.LogicSetUp);
 
-        //UI Set Up 
+        //UI Set Up
         yield return _uiManager.UIEvents.SetUpUI();
 
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.UISetUp);
 
         SimulationState = SimulationSetUpState.SetUpComplete;
 
+        _callBackManager.SetReady(true);
+
         _simulationSetUpRoutine = null;
 
-        RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
+        if (_gameState == GameState.SimulationSetUp)
+            RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
     }
+
     private IEnumerator SimulationLogicSetUp()
     {
         if (IsHost)
@@ -378,10 +400,10 @@ public class GameManager : NetworkBehaviour
             SimulationState = SimulationSetUpState.SetUpCanceled;
 #if Log
             LogManager.LogError($"Simulation Set Up is Canceled! Logic Set Up Failed! player Ref=> {Runner.LocalPlayer}");
-#endif 
+#endif
         }
-
     }
+
     private bool CheckLogicSetUp()
     {
         bool checkState = true;
@@ -423,14 +445,14 @@ public class GameManager : NetworkBehaviour
 #endif
             checkState = false;
         }
-        if(_runTimeDataHolder.RunTimePlayersData == null)
+        if (_runTimeDataHolder.RunTimePlayersData == null)
         {
 #if Log
             LogManager.Log($"RunTimePlayersData Is null !", Color.red, LogManager.ValueInformationLog);
 #endif
             checkState = false;
         }
-        if (_runTimeDataHolder.RunTimePlayersData.Count!=_playersNumber)
+        if (_runTimeDataHolder.RunTimePlayersData.Count != _playersNumber)
         {
 #if Log
             LogManager.Log($"RunTimePlayersData Count is Invalid !", Color.red, LogManager.ValueInformationLog);
@@ -472,16 +494,18 @@ public class GameManager : NetworkBehaviour
 
         return checkState;
     }
-    private bool HostNeedSetUpPlayersProperties()=>(IsHost && (_gameState == GameState.NoGameState));
+
     public bool IsMyTurn()
     {
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
         return LocalPlayer.ID == _currentPlayerID;
     }
+
     private bool AllPlayersReady()
     {
         return _playerReadyList.Count == _playersNumber;
     }
+
     private void InitPlayers()
     {
         //canceling if not enough run time data
@@ -500,12 +524,12 @@ public class GameManager : NetworkBehaviour
         List<RunTimePlayerData> newRunTimeData = new List<RunTimePlayerData>();
         foreach (RunTimePlayerData playerData in _runTimeDataHolder.RunTimePlayersData)
         {
-            //spawping player 
+            //spawping player
             NetworkObject playerObject = GameRunner.Spawn(AssetLoader.PrefabContainer.PlayerPrefab, default, default, playerData.PlayerRef);
             playerObject.name = playerData.PlayerName;
             Player player = playerObject.GetComponent<Player>();
-         
-            //player prep 
+
+            //player prep
             PlayerArguments playerArgs = new PlayerArguments();
             playerArgs.PlayerRef = playerData.PlayerRef;
             playerArgs.Name = playerData.PlayerName;
@@ -515,9 +539,9 @@ public class GameManager : NetworkBehaviour
             playerArgs.isplayerOut = false;
             player.InitPlayer(playerArgs);
 
-            //RunTime Data Adjust 
+            //RunTime Data Adjust
             RunTimePlayerData newData = new RunTimePlayerData();
-            newData.PlayerRef =playerData.PlayerRef;
+            newData.PlayerRef = playerData.PlayerRef;
             newData.PlayerName = playerData.PlayerName;
             newData.PlayerID = playerData.PlayerID;
             newData.IconIndex = playerData.IconIndex;
@@ -525,7 +549,7 @@ public class GameManager : NetworkBehaviour
             newData.AuthorityAssigned = true;
             newRunTimeData.Add(newData);
 
-            // setting Local Player 
+            // setting Local Player
             SetLocalPlayer(player);
 
             //uploading player netobject on cloud
@@ -538,6 +562,7 @@ public class GameManager : NetworkBehaviour
         _runTimeDataHolder.RunTimePlayersData.Clear();
         _runTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
     }
+
     private void SetUpRunTimeData()
     {
         if (Players == null || Players.Count() == 0)
@@ -547,14 +572,14 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        //just making sure 
+        //just making sure
         _runTimeDataHolder.RunTimePlayersData.Clear();
 
         foreach (IPlayer player in Players)
         {
             RunTimePlayerData playerData = new RunTimePlayerData();
             playerData.PlayerRef = player.playerRef;
-            playerData.PlayerName =player.Name;
+            playerData.PlayerName = player.Name;
             playerData.PlayerID = player.ID;
             playerData.IconIndex = player.IconID;
             playerData.PlayerNetObject = player.NetworkObject;
@@ -564,6 +589,7 @@ public class GameManager : NetworkBehaviour
             _runTimeDataHolder.RunTimePlayersData.Add(playerData);
         }
     }
+
     /// <summary>
     /// Initializes The Players Array Data
     /// </summary>
@@ -580,7 +606,7 @@ public class GameManager : NetworkBehaviour
         Players = new IPlayer[playersCount];
         _playersNumber = playersCount;
         int playerIndex = 0;
-        //players need to be spawned before Fetching 
+        //players need to be spawned before Fetching
         foreach (NetworkObject playerNetObject in _cloudplayersData)
         {
             if (Extention.IsObjectUsable(playerNetObject))
@@ -601,6 +627,7 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
+
     private void SetLocalPlayer(Player player)
     {
         if (player.HasInputAuthority)
@@ -609,9 +636,9 @@ public class GameManager : NetworkBehaviour
 #if Log
             LogManager.Log($"{player} Local Player Is Set", Color.cyan, LogManager.ValueInformationLog);
 #endif
-
         }
     }
+
     private void LoadDeckInfo()
     {
         _runTimeDataHolder.DeckInfo = new DeckInfo();
@@ -635,13 +662,13 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
+
     private void UploadDeckInfo()
     {
         _deckType = _runTimeDataHolder.DeckInfo.DeckType;
         _suitsNumber = _runTimeDataHolder.DeckInfo.SuitsNumber;
         if (_deckType == DeckType.Custom)
         {
-
             if (_runTimeDataHolder.DeckInfo.CustomSuitRanks.IsEmpty())
             {
 #if Log
@@ -656,11 +683,12 @@ public class GameManager : NetworkBehaviour
                 if (card != 0)
                     _customSuitRanks.Set(index++, card);
             }
-
         }
     }
-    private void SetUpCardManager()=>CardManager.Init(_runTimeDataHolder.DeckInfo);
-    #endregion
+
+    private void SetUpCardManager() => CardManager.Init(_runTimeDataHolder.DeckInfo);
+
+    #endregion General Logic
 
     #region private Logic methods
 
@@ -734,7 +762,6 @@ public class GameManager : NetworkBehaviour
 
     #region Doubt Over Logic
 
-
     private IEnumerator DoubtOverLogic(DoubtState doubtState)
     {
         // Calculate and Set Doubt Scene Time
@@ -795,7 +822,7 @@ public class GameManager : NetworkBehaviour
 
     private void OnRoundIsOver()
     {
-        //host only stuff 
+        //host only stuff
         if (IsHost)
         {
             //checking if the game is over
@@ -982,9 +1009,10 @@ public class GameManager : NetworkBehaviour
     {
         _playerReadyList.Add(playerRefID);
 #if Log
-       LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ",Color.green,LogManager.ValueInformationLog);
+        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
 #endif
     }
+
     public void PlayerIsReady()
     {
         if (LocalPlayer == null)
@@ -996,7 +1024,8 @@ public class GameManager : NetworkBehaviour
         }
         RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
     }
-    #endregion Player Commands Methods
+
+    #endregion Player Commands  RPC Methods
 
     #region Doubting State
 
@@ -1159,11 +1188,12 @@ public class GameManager : NetworkBehaviour
     #endregion Passing Turn
 
     #region Player Timer State Callback
+
     private void OnPlayerTimerStateChanged()
     {
         //blocking resets
-        if(_playerTimerState == PlayerTimerState.NoTimer) return;
-        //at this time each simulation should Have a Current Player 
+        if (_playerTimerState == PlayerTimerState.NoTimer) return;
+        //at this time each simulation should Have a Current Player
         if (CurrentPlayer == null)
         {
 #if Log
@@ -1172,28 +1202,31 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        if(_playerTimerState == PlayerTimerState.StopTimer) 
+        if (_playerTimerState == PlayerTimerState.StopTimer)
         {
             _currentState?.ForceEnd();
 #if Log
-            LogManager.Log($"Player Timer Stoped!Simulation=> {LocalPlayer}",Color.green,LogManager.ValueInformationLog);
+            LogManager.Log($"Player Timer Stoped!Simulation=> {LocalPlayer}", Color.green, LogManager.ValueInformationLog);
 #endif
             return;
         }
-        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameState,IsMyTurn());
+        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameState, IsMyTurn());
         ChangeState(CurrentPlayer.PlayerState, PlayerStateArgs);
     }
-    #endregion
+
+    #endregion Player Timer State Callback
 
     #region GameState Call Backs
+
     private void OnGameStateChanged()
     {
         switch (_gameState)
         {
-            case GameState.SimulationSetUp:SimulationPrepGameState();break;
-            case GameState.GameStarted: GameStarted();break;
+            case GameState.SimulationSetUp: SimulationPrepGameState(); break;
+            case GameState.GameStarted: _callBackManager.EnqueueOrExecute(GameStarted); break;
         }
     }
+
     private void SimulationPrepGameState()
     {
         StartSimulationSetUp();
@@ -1205,21 +1238,20 @@ public class GameManager : NetworkBehaviour
             _waitSetUpThenWaitPlayersRoutine = StartCoroutine(WaitSetUpThenWaitPlayers());
         }
     }
-  
+
     private void GameStarted()
     {
-        if (SimulationState == SimulationSetUpState.SetUpComplete)
+        _uiManager.UIEvents.OnGameStarted();
+        if (IsHost)
         {
-            GameStartedLogic();
-        }
-        else
-        {
-            StartSimulationSetUp();
-            if (_gameStartedRoutine != null)
-                StopCoroutine(_gameStartedRoutine);
-            _gameStartedRoutine = StartCoroutine(GameStartRoutine());
+            //starting dealing
+            _gameState = GameState.Dealing;
         }
     }
-   
-    #endregion
+
+    private void Dealing()
+    {
+    }
+
+    #endregion GameState Call Backs
 }

@@ -14,6 +14,7 @@ public static class Extention
         else
             return _object.IsValid;
     }
+
     public static bool IsEmpty(this IEnumerable<NetworkObject> items)
     {
         foreach (NetworkObject item in items)
@@ -25,6 +26,7 @@ public static class Extention
         }
         return true;
     }
+
     public static int Count(this IEnumerable<NetworkObject> array)
     {
         int Length = 0;
@@ -37,18 +39,20 @@ public static class Extention
         }
         return Length;
     }
+
     public static int Count(this IEnumerable<IPlayer> array)
     {
         int Length = 0;
         foreach (var item in array)
         {
-            if (item!=null)
+            if (item != null)
             {
                 Length++;
             }
         }
         return Length;
     }
+
     #region Generic shit
 
     /// <summary>
@@ -310,6 +314,7 @@ public static class Extention
                 array[index] = new CardInfo();
         }
     }
+
     public static void ClearByteArray(this NetworkArray<byte> array)
     {
         for (int index = 0; index < array.Length; index++)
@@ -318,6 +323,7 @@ public static class Extention
                 array[index] = 0;
         }
     }
+
     public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
     {
         if (!card.IsValid || card.ID == 0)
@@ -364,6 +370,7 @@ public static class Extention
         }
         return false;
     }
+
     public static bool IsNullOrHaveNullElements(this IEnumerable<IPlayer> players)
     {
         if (players == null) return true;
@@ -373,6 +380,7 @@ public static class Extention
         }
         return false;
     }
+
     public static byte[] ToByteArray(this NetworkArray<byte> array)
     {
         int arrayCount = array.ValidCardsCount();
@@ -390,10 +398,11 @@ public static class Extention
         }
         return convertedArray;
     }
+
     public static List<byte> ToByteList(this NetworkArray<byte> array)
     {
         int arrayCount = array.ValidCardsCount();
-        List<byte> byteList = new List<byte> ();
+        List<byte> byteList = new List<byte>();
         if (arrayCount == 0)
         {
             //returning an rmpty array
@@ -406,6 +415,7 @@ public static class Extention
         }
         return byteList;
     }
+
     public static void ToByteList(this NetworkArray<byte> array, List<byte> byteList)
     {
         byteList.Clear();
@@ -419,6 +429,7 @@ public static class Extention
                 byteList.Add(array[index]);
         }
     }
+
     public static void AddPlayerID(this NetworkArray<string> array, string playerID)
     {
         if (playerID.IsNullOrEmpty() || array.Contains(playerID)) return;
@@ -431,6 +442,7 @@ public static class Extention
             }
         }
     }
+
     public static bool ContainsPlayerID(this NetworkArray<string> array, string playerID)
     {
         if (playerID.IsNullOrEmpty()) return false;
@@ -444,6 +456,7 @@ public static class Extention
 
         return false;
     }
+
     #endregion Networked Card Array extentions
 
     #region UI
@@ -473,10 +486,6 @@ public static class Extention
     }
 
     #endregion UI
-
-
-
-
 
     #region byte Array
 
@@ -578,7 +587,6 @@ public static class Extention
         return false;
     }
 
-    
     public static int RankCounter(byte[] bet, byte rank)
     {
         int counter = 0;
@@ -596,7 +604,6 @@ public static class Extention
         if (Bet[Index] == rank) return RankCounterAlpha(Bet, rank, ++Index, ++Counter);
         return RankCounterAlpha(Bet, rank, ++Index, Counter);
     }
-
 
     public static void BetDiffuser(byte[] bet, Dictionary<byte, byte> diffusedBet)
     {
@@ -708,7 +715,6 @@ public static class Extention
             bet.Add(rankPair.Key, rankPair.Value);
     }
 
-
     public static void ByteToBruteValue(this byte[] bet)
     {
         int bruteValue;
@@ -757,7 +763,7 @@ public static class Extention
             bet.Add(item.Key, item.Value);
         }
     }
-    
+
     public static void BruteValueToByte(this byte[] bet)
     {
         byte rank;
@@ -816,7 +822,8 @@ public static class Extention
         }
         return betArray;
     }
-    public static byte[] ToByteArray (this List<DiffusedRankInfo> bet)
+
+    public static byte[] ToByteArray(this List<DiffusedRankInfo> bet)
     {
         if (bet.Count == 0) return null;
 
@@ -829,7 +836,7 @@ public static class Extention
         }
         return betArray;
     }
-    
+
     public static int BetTotalCardsCount(this Dictionary<byte, byte> bet)
     {
         int betTotalCardsCount = 0;
@@ -839,6 +846,7 @@ public static class Extention
         }
         return betTotalCardsCount;
     }
+
     public static int BetTotalCardsCount(this List<DiffusedRankInfo> bet)
     {
         int betTotalCardsCount = 0;
@@ -848,6 +856,7 @@ public static class Extention
         }
         return betTotalCardsCount;
     }
+
     /// <summary>
     /// both arrays should be sorted before hand
     /// </summary>
@@ -880,22 +889,22 @@ public static class Extention
 
     #endregion byte Array
 
-   
-
     #region List of Diffused rank Struct shit
-    public static bool IsBetRankNonSuccessive(this List<DiffusedRankInfo> betList,out DiffusedRankInfo BetRank )
+
+    public static bool IsBetRankNonSuccessive(this List<DiffusedRankInfo> betList, out DiffusedRankInfo BetRank)
     {
         BetRank = new DiffusedRankInfo();
         for (int index = 0; index < betList.Count - 1; index++)
         {
             if (betList[index].RankBruteValue - betList[index + 1].RankBruteValue > 1)
             {
-               BetRank= betList[index+1];
+                BetRank = betList[index + 1];
                 return true;
             }
         }
         return false;
     }
+
     public static bool IsRankDiffused(this List<DiffusedRankInfo> diffusedBet, byte rank)
     {
         if (diffusedBet.Count == 0) return false;
@@ -933,9 +942,9 @@ public static class Extention
                     return;
                 }
             }
-
         }
     }
+
     /// <summary>
     /// Bet Should be Valid before Sorted !
     /// </summary>
@@ -994,12 +1003,10 @@ public static class Extention
                 // casual sorting procedure
                 rankSortedVessel = SelectedDuplicates.OrderByDescending(x => x.RankBruteValue).ToList();
 
-
                 int NonLockedRanksCounter = 0;
-                //first need to check if there are any Non Locked Ranks 
+                //first need to check if there are any Non Locked Ranks
                 if (diffusedBet.IncludeNonLockedRank(out NonLockedRanksCounter))
                 {
-
                     //adding left over element PS there should only one
                     if (cardsCounterSortedVessel.Count == 1)
                     {
@@ -1023,6 +1030,7 @@ public static class Extention
         diffusedBet.Clear();
         diffusedBet.AddRange(rankSortedVessel);
     }
+
     public static bool IncludeNonLockedRank(this List<DiffusedRankInfo> diffusedbet, out int counter)
     {
         counter = 0;
@@ -1037,5 +1045,6 @@ public static class Extention
         }
         return NonLockedExist;
     }
-    #endregion
+
+    #endregion List of Diffused rank Struct shit
 }
