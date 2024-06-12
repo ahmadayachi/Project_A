@@ -103,9 +103,6 @@ public static class CardManager
     private static CardInfo[] _cards;
     private static byte[] _sortedRanks;
 
-    /// <summary>
-    /// Standart Belote Deck
-    /// </summary>
     public static CardInfo[] Deck { get => _cards; }
 
     public static byte[] SortedRanks { get => _sortedRanks; }

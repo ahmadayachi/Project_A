@@ -262,6 +262,8 @@ public class GameManager : NetworkBehaviour
             switch (change)
             {
                 case nameof(_gameState): OnGameStateChanged(); break;
+                case nameof(_playerTimerState):_callBackManager.EnqueueOrExecute(OnPlayerTimerStateChanged); break;
+                case nameof(_currentPlayerID): _callBackManager.EnqueueOrExecute(OnCurrentPlayerIDChanged); break;
             }
         }
     }
@@ -760,64 +762,6 @@ public class GameManager : NetworkBehaviour
 
     #endregion Mono Method Wrappers
 
-    #region Doubt Over Logic
-
-    private IEnumerator DoubtOverLogic(DoubtState doubtState)
-    {
-        // Calculate and Set Doubt Scene Time
-        CaluCulateDoubtSceneTimer();
-        // Updating Clients and Host UI
-        _gameState = GameState.Doubting;
-        //wait for the Doubt Scene Ui
-        yield return new WaitForSeconds(_doubtSceneTimer);
-
-        //punishing Doubt looser
-        string playerToPunishID = doubtState == DoubtState.WinDoubt ? _liveBetPlayerID : _currentPlayerID;
-        IPlayer playerToPunish;
-
-        if (TryFindPlayer(playerToPunishID, out playerToPunish))
-        {
-            playerToPunish.PlusOneCard();
-        }
-        else
-        {
-#if Log
-            LogManager.LogError($"Failed Doubt Over Logic Current Player! Cant Find  Player with ID:=> {playerToPunishID}");
-#endif
-            yield break;
-        }
-        //Player Control
-        if (Players.IsNullOrHaveNullElements())
-        {
-#if Log
-            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
-#endif
-            yield break;
-        }
-        //if a player cards to deal counter > max cards Count he should be out
-        foreach (var player in Players)
-        {
-            if (player.CardsToDealCounter > _maxPlayerCards)
-            {
-                if (!player.IsOut)
-                {
-                    player.ClearHand();
-                    player.ClearCardsCounter();
-                    player.SetIsplayerOut(true);
-                    _loosersIDs.AddPlayerID(player.ID);
-                }
-            }
-        }
-        yield return null;
-        //setting the Current Player
-        _currentPlayerID = playerToPunishID;
-        CurrentPlayer = playerToPunish;
-        //Directing Game State
-        _gameState = GameState.RoudOver;
-    }
-
-    #endregion Doubt Over Logic
-
     #region Round Over Logic
 
     private void OnRoundIsOver()
@@ -903,6 +847,8 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
+        //stoping timer 
+        _playerTimerState = PlayerTimerState.StopTimer;
         //making sure the array is sorted before confirming
         Extention.BetDiffuser(bet, _diffusedBet);
         byte[] sortedBet = _diffusedBet.ToByteArray();
@@ -943,7 +889,7 @@ public class GameManager : NetworkBehaviour
             if (MaxBet.AreEqual(roundedUpBet))
             {
                 //directing Game State to a Last Player Game State
-                _gameState = GameState.LastPlayerTrun;
+                _gameState = GameState.LastPlayerTurn;
                 return;
             }
         }
@@ -997,6 +943,9 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
+        //stoping timer 
+        _playerTimerState = PlayerTimerState.StopTimer;
+
         byte[] liveBet = _liveBet.ToByteArray();
         _dealtCards.ToByteList(_dealtCardsList);
         //invoking Doubt State
@@ -1034,6 +983,59 @@ public class GameManager : NetworkBehaviour
         //TODO: Calculate Doubt Scene Timer Based On UI Needs
     }
 
+    private IEnumerator DoubtOverLogic(DoubtState doubtState)
+    {
+        // Calculate and Set Doubt Scene Time
+        CaluCulateDoubtSceneTimer();
+        // Updating Clients and Host UI
+        _gameState = GameState.Doubting;
+        //wait for the Doubt Scene Ui
+        yield return new WaitForSeconds(_doubtSceneTimer);
+
+        //punishing Doubt looser
+        string playerToPunishID = doubtState == DoubtState.WinDoubt ? _liveBetPlayerID : _currentPlayerID;
+        IPlayer playerToPunish;
+
+        if (TryFindPlayer(playerToPunishID, out playerToPunish))
+        {
+            playerToPunish.PlusOneCard();
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Doubt Over Logic Current Player! Cant Find  Player with ID:=> {playerToPunishID}");
+#endif
+            yield break;
+        }
+        //Player Control
+        if (Players.IsNullOrHaveNullElements())
+        {
+#if Log
+            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
+#endif
+            yield break;
+        }
+        //if a player cards to deal counter > max cards Count he should be out
+        foreach (var player in Players)
+        {
+            if (player.CardsToDealCounter > _maxPlayerCards)
+            {
+                if (!player.IsOut)
+                {
+                    player.ClearHand();
+                    player.ClearCardsCounter();
+                    player.SetIsplayerOut(true);
+                    _loosersIDs.AddPlayerID(player.ID);
+                }
+            }
+        }
+        yield return null;
+        //setting the Current Player
+        _currentPlayerID = playerToPunishID;
+        CurrentPlayer = playerToPunish;
+        //Directing Game State
+        _gameState = GameState.RoudOver;
+    }
     #endregion Doubting State
 
     #region state contol methods
@@ -1111,6 +1113,7 @@ public class GameManager : NetworkBehaviour
                 return;
             }
         } while (NeedToLookForPlayers(ref currentPlayerIndex, player));
+
         //final check for player
         bool loopedArray = currentPlayerIndex == _playerIndex;
         if (loopedArray || player.IsOut)
@@ -1166,6 +1169,10 @@ public class GameManager : NetworkBehaviour
         {
             CurrentPlayer = newCurrentPlayer;
             //should invoke corresponding UI or something
+            
+            //starting Player State 
+            if (_gameState == GameState.PlayerTurn)
+                StartPlayerTimer();
         }
         else
         {
@@ -1174,6 +1181,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
+
     }
 
     private bool NeedToLookForPlayers(ref int CurrentPlayerIndex, IPlayer player)
@@ -1201,7 +1209,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-
+        //game state should a player turn states
         if (_playerTimerState == PlayerTimerState.StopTimer)
         {
             _currentState?.ForceEnd();
@@ -1224,9 +1232,34 @@ public class GameManager : NetworkBehaviour
         {
             case GameState.SimulationSetUp: SimulationPrepGameState(); break;
             case GameState.GameStarted: _callBackManager.EnqueueOrExecute(GameStarted); break;
+            case GameState.Dealing: _callBackManager.EnqueueOrExecute(Dealing); break;
+            case GameState.FirstPlayerTurn:
+            case GameState.LastPlayerTurn: _callBackManager.EnqueueOrExecute(StartPlayerTimer); break;
         }
     }
+    private void StartPlayerTimer()
+    {
+        if (IsHost)
+            _playerTimerState = PlayerTimerState.StartTimer;
+    }
 
+    private void Dealing()
+    {
+        _uiManager.UIEvents.OnDealingCards();
+        if (IsHost)
+        {
+            DealerStateArguments args = new DealerStateArguments();
+            args.DeckToDeal = CardManager.Deck;
+            args.Players = Players;
+            args.OnDealerStateEnds = OnDealingOver;
+            ChangeState(_dealer, args);
+        }
+    }
+    private void OnDealingOver()
+    {
+        //maybe some other UI Shit here 
+        _gameState = GameState.FirstPlayerTurn;
+    }
     private void SimulationPrepGameState()
     {
         StartSimulationSetUp();
@@ -1249,9 +1282,6 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private void Dealing()
-    {
-    }
 
     #endregion GameState Call Backs
 }

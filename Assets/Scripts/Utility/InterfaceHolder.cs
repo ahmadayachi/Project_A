@@ -146,6 +146,7 @@ public interface IUIEvents
     /// some UI animation only when a game starts or smthing 
     /// </summary>
     void OnGameStarted();
+    void OnDealingCards();
 }
 #endregion
 
@@ -302,7 +303,7 @@ public enum GameState:byte
     Dealing,
     FirstPlayerTurn,
     PlayerTurn,
-    LastPlayerTrun,
+    LastPlayerTurn,
     Doubting,
     RoudOver,
     GameOver,
