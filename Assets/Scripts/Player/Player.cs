@@ -211,10 +211,10 @@ public class Player : NetworkBehaviour, IPlayer
             return false;
         }
 
-        if (CardsToDealCounter == HandCount)
+        if (IsHandFull)
         {
 #if Log
-            LogManager.LogError("Add Card Failed!, Player should be Out!");
+            LogManager.LogError("Add Card Failed!, Player should Hand Is Full!");
 #endif
             return false;
         }

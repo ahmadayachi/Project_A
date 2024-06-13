@@ -120,9 +120,10 @@ public class GameManager : NetworkBehaviour
     #region GameState properties
 
     [Networked] private GameState _gameState { get; set; }
-    private byte _dealtCardsNumber;
+    [Networked] private byte _dealtCardsNumber { get; set; }
     public byte DealtCardsNumber { get => _dealtCardsNumber; }
-
+    [Networked] DoubtState _doubtState { get; set;}
+    public DoubtState DoubtState { get; set; }
     #endregion GameState properties
 
     #region Live Bet Props
@@ -181,7 +182,7 @@ public class GameManager : NetworkBehaviour
 
     #region Doubt Setup
 
-    private void CreateDoubt() => _doubt = new Doubt(DoubtOverLogic, StartRoutine, StopRoutine);
+    private void CreateDoubt() => _doubt = new Doubt(OnDoubtLogic, StartRoutine, StopRoutine);
 
     #endregion Doubt Setup
 
@@ -283,7 +284,7 @@ public class GameManager : NetworkBehaviour
 
     #endregion methods to link with UI
 
-    #region General Logic
+    #region General Logic Swamp
 
     private IEnumerator WaitSetUp()
     {
@@ -689,11 +690,6 @@ public class GameManager : NetworkBehaviour
     }
 
     private void SetUpCardManager() => CardManager.Init(_runTimeDataHolder.DeckInfo);
-
-    #endregion General Logic
-
-    #region private Logic methods
-
     private void SetMaxPlayerCards()
     {
         if (_playersNumber == 0)
@@ -711,8 +707,80 @@ public class GameManager : NetworkBehaviour
         }
         _maxPlayerCards = (byte)(playerCards - 1);
     }
+    //TODO : Link with UI
+    /// <summary>
+    /// invked by host after Doubt scene
+    /// </summary>
+    private void DoubtOverLogic()
+    {
+        //Player Control
+        PlayerControl();
 
-    #endregion private Logic methods
+        //Directing Game State
+        _gameState = GameState.RoudOver;
+    }
+    private void CaluCulateDoubtSceneTimer()
+    {
+        //TODO: Calculate Doubt Scene Timer Based On UI Needs
+    }
+
+    private void PlayerControl()
+    {
+        if (Players.IsNullOrHaveNullElements())
+        {
+#if Log
+            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
+#endif
+            return;
+        }
+        //if a player cards to deal counter > max cards Count he should be out
+        foreach (var player in Players)
+        {
+            if (player.CardsToDealCounter > _maxPlayerCards)
+            {
+                if (!player.IsOut)
+                {
+                    player.ClearHand();
+                    player.ClearCardsCounter();
+                    player.SetIsplayerOut(true);
+                    _loosersIDs.AddPlayerID(player.ID);
+                }
+            }
+        }
+    }
+
+    private void PunishingDoubtLooser(out string playerToPunishID, out IPlayer playerToPunish)
+    {
+        playerToPunishID = (_doubtState == DoubtState.WinDoubt) ? _liveBetPlayerID : _currentPlayerID;
+        if (TryFindPlayer(playerToPunishID, out playerToPunish))
+        {
+            playerToPunish.PlusOneCard();
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Doubt Over Logic Current Player! Cant Find  Player with ID:=> {playerToPunishID}");
+#endif
+            return;
+        }
+    }
+    private void RoundOverVariablesCleaning()
+    {
+        _liveBetPlayerID = string.Empty;
+        _liveBet.ClearByteArray();
+        _diffusedBet.Clear();
+        _doubtSceneTimer = 0;
+        _dealtCards.ClearByteArray();
+        _dealtCardsList.Clear();
+        _dealtCardsNumber = 0;
+        //clearing Players Hand
+        foreach (var player in Players)
+        {
+            player.ClearHand();
+        }
+        _doubtState = DoubtState.NoDoubting;
+    }
+    #endregion General Logic
 
     #region Mono Method Wrappers
 
@@ -762,62 +830,15 @@ public class GameManager : NetworkBehaviour
 
     #endregion Mono Method Wrappers
 
-    #region Round Over Logic
-
-    private void OnRoundIsOver()
-    {
-        //host only stuff
-        if (IsHost)
-        {
-            //checking if the game is over
-            if (IsGameOver())
-            {
-                //fetch winner
-                IPlayer Winner = Players.First(player => (!player.IsOut));
-                if (Winner == null)
-                {
-#if Log
-                    LogManager.LogError("Failed Fetching Winner!");
-#endif
-                    return;
-                }
-                //setting the Winner ID
-                _winnerID = Winner.ID;
-                //directing Game State and updating clients
-                _gameState = GameState.GameOver;
-                //Maybe game Over stuff here
-            }
-            else
-            {
-                //clearing
-                _liveBetPlayerID = string.Empty;
-                _liveBet.ClearByteArray();
-                _diffusedBet.Clear();
-                _doubtSceneTimer = 0;
-                _dealtCards.ClearByteArray();
-                _dealtCardsList.Clear();
-                _dealtCardsNumber = 0;
-                //clearing Players Hand
-                foreach (var player in Players)
-                {
-                    if (!player.IsOut)
-                    {
-                        player.ClearHand();
-                    }
-                }
-                //directing game state
-                _gameState = GameState.Dealing;
-            }
-        }
-        //regular UI Cleaning Stuff
-    }
-
-    #endregion Round Over Logic
-
     #region Player Commands  RPC Methods
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_ConfirmBet(byte[] bet, string playerID)
+    {
+        ConfirmingBet(bet, playerID);
+    }
+
+    private void ConfirmingBet(byte[] bet, string playerID)
     {
         //blocking invalid args
         if (string.IsNullOrEmpty(playerID) || bet == null)
@@ -977,66 +998,58 @@ public class GameManager : NetworkBehaviour
     #endregion Player Commands  RPC Methods
 
     #region Doubting State
-
-    private void CaluCulateDoubtSceneTimer()
+    private void OnDoubtLogic(DoubtState doubtState)
     {
-        //TODO: Calculate Doubt Scene Timer Based On UI Needs
-    }
-
-    private IEnumerator DoubtOverLogic(DoubtState doubtState)
-    {
+        //updating the DoubtState , removeable maybe needed for ui 
+        _doubtState = doubtState;
         // Calculate and Set Doubt Scene Time
         CaluCulateDoubtSceneTimer();
-        // Updating Clients and Host UI
-        _gameState = GameState.Doubting;
-        //wait for the Doubt Scene Ui
-        yield return new WaitForSeconds(_doubtSceneTimer);
 
         //punishing Doubt looser
-        string playerToPunishID = doubtState == DoubtState.WinDoubt ? _liveBetPlayerID : _currentPlayerID;
+        string playerToPunishID;
         IPlayer playerToPunish;
+        PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
 
-        if (TryFindPlayer(playerToPunishID, out playerToPunish))
-        {
-            playerToPunish.PlusOneCard();
-        }
-        else
-        {
-#if Log
-            LogManager.LogError($"Failed Doubt Over Logic Current Player! Cant Find  Player with ID:=> {playerToPunishID}");
-#endif
-            yield break;
-        }
-        //Player Control
-        if (Players.IsNullOrHaveNullElements())
-        {
-#if Log
-            LogManager.LogError("Failed Finding Player! Players Array is Null or Have Null Elements");
-#endif
-            yield break;
-        }
-        //if a player cards to deal counter > max cards Count he should be out
-        foreach (var player in Players)
-        {
-            if (player.CardsToDealCounter > _maxPlayerCards)
-            {
-                if (!player.IsOut)
-                {
-                    player.ClearHand();
-                    player.ClearCardsCounter();
-                    player.SetIsplayerOut(true);
-                    _loosersIDs.AddPlayerID(player.ID);
-                }
-            }
-        }
-        yield return null;
         //setting the Current Player
         _currentPlayerID = playerToPunishID;
         CurrentPlayer = playerToPunish;
-        //Directing Game State
-        _gameState = GameState.RoudOver;
+
+        // Updating Clients and Host UI
+        _gameState = GameState.Doubting;
     }
     #endregion Doubting State
+
+    #region Round Over Logic
+
+    private void OnRoundIsOverLogic()
+    {
+        //checking if the game is over
+        if (IsGameOver())
+        {
+            //fetch winner
+            IPlayer Winner = Players.First(player => (!player.IsOut));
+            if (Winner == null)
+            {
+#if Log
+                LogManager.LogError("Failed Fetching Winner!");
+#endif
+                return;
+            }
+            //setting the Winner ID
+            _winnerID = Winner.ID;
+            //directing Game State and updating clients
+            _gameState = GameState.GameOver;
+            //Maybe game Over stuff here
+        }
+        else
+        {
+            //clearing
+            RoundOverVariablesCleaning();
+            //directing game state
+            _gameState = GameState.Dealing;
+        }
+    }
+    #endregion Round Over Logic
 
     #region state contol methods
 
@@ -1233,9 +1246,42 @@ public class GameManager : NetworkBehaviour
             case GameState.SimulationSetUp: SimulationPrepGameState(); break;
             case GameState.GameStarted: _callBackManager.EnqueueOrExecute(GameStarted); break;
             case GameState.Dealing: _callBackManager.EnqueueOrExecute(Dealing); break;
+            case GameState.Doubting: _callBackManager.EnqueueOrExecute(Doubting); break;
+            case GameState.RoudOver: _callBackManager.EnqueueOrExecute(RoundOver); break;
+            case GameState.GameOver: _callBackManager.EnqueueOrExecute(GameOver); break;
+            case GameState.HostMigration: _callBackManager.EnqueueOrExecute(HostMigration); break;
             case GameState.FirstPlayerTurn:
             case GameState.LastPlayerTurn: _callBackManager.EnqueueOrExecute(StartPlayerTimer); break;
         }
+    }
+    private void HostMigration()
+    {
+        _uiManager.UIEvents.OnHostMigration();
+    }
+    private void GameOver()
+    {
+        _uiManager.UIEvents.OnGameOver();
+        //cleaing Cards 
+        _cardsPool.DestroyAll();
+        if (IsHost)
+        {
+            RoundOverVariablesCleaning();
+        }
+    }
+    private void RoundOver()
+    {
+        //regular UI Cleaning Stuff
+        _uiManager.UIEvents.OnRoundOver();
+        //TODO : Link with UI
+        //cleaing Cards , link to On ROund Over 
+        _cardsPool.DestroyAll();
+        if (IsHost)
+            OnRoundIsOverLogic();
+    }
+    private void Doubting()
+    {
+        //Doubting Scene Or Something
+        _uiManager.UIEvents.OnDoubting();
     }
     private void StartPlayerTimer()
     {

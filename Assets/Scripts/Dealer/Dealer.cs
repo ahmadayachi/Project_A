@@ -82,11 +82,11 @@ public class Dealer : State
                 if (player.AddCard(deck[arrayIndex]))
                     arrayIndex++;
                 //if for some reason adding card fails Stop Dealing 
-                else
-                {
-                    ForceEnd();
-                    yield break;
-                } 
+                //else
+                //{
+                //    ForceEnd();
+                //    yield break;
+                //} 
             }
         }
 

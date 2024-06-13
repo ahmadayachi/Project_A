@@ -6,13 +6,13 @@ using UnityEngine;
 public class Doubt : State
 {    
     private Coroutine _doubtingRoutine;
-    private Func<DoubtState, IEnumerator> _onDoubtOverLogic;
+    private Action<DoubtState> _onDoubtLogic;
     private Func<IEnumerator, Coroutine> _startRoutine;
     private Action<Coroutine> _stopRoutine;
 
-    public Doubt(Func<DoubtState, IEnumerator> onDoubtOverLogic, Func<IEnumerator, Coroutine> startRoutine, Action<Coroutine> stopRoutine)
+    public Doubt(Action<DoubtState> onDoubtLogic, Func<IEnumerator, Coroutine> startRoutine, Action<Coroutine> stopRoutine)
     {
-        _onDoubtOverLogic = onDoubtOverLogic;
+        _onDoubtLogic = onDoubtLogic;
         _startRoutine = startRoutine;
         _stopRoutine = stopRoutine;
     }
@@ -71,7 +71,7 @@ public class Doubt : State
         }
         yield return null;
         //invoking further Logic 
-        yield return _onDoubtOverLogic?.Invoke(doubtState);
+        _onDoubtLogic?.Invoke(doubtState);
         //reseting coroutine
         _doubtingRoutine = null;
     }

@@ -147,6 +147,10 @@ public interface IUIEvents
     /// </summary>
     void OnGameStarted();
     void OnDealingCards();
+    void OnDoubting();
+    void OnRoundOver();
+    void OnGameOver();
+    void OnHostMigration();
 }
 #endregion
 
