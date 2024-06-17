@@ -1,3 +1,4 @@
+#define AUTOSTARTGAMECONTROL
 using Fusion;
 using System;
 using System.Collections;
@@ -119,7 +120,8 @@ public class GameManager : NetworkBehaviour
 
     #region GameState properties
 
-    [Networked] private GameState _gameState { get; set; }
+    [Networked]
+    public GameState _gameState { get; set; }
     [Networked] private byte _dealtCardsNumber { get; set; }
     public byte DealtCardsNumber { get => _dealtCardsNumber; }
     [Networked] DoubtState _doubtState { get; set;}
@@ -161,8 +163,10 @@ public class GameManager : NetworkBehaviour
     public SimulationSetUpState SimulationState;
     public const int MaxSetUpWaitTime = 15;
     private bool _simulationSetUpSuccessfull;
-
-    #endregion Simulation Props
+#if AUTOSTARTGAMECONTROL
+    public bool AutoStartGame;
+#endif
+#endregion Simulation Props
 
     #region Routins
 
@@ -187,9 +191,7 @@ public class GameManager : NetworkBehaviour
     #endregion Doubt Setup
 
     #region BetHandler Setup
-
     private void CreateBetHandler() => _betHandler = new BetHandler();
-
     #endregion BetHandler Setup
 
     #region Cards Pool Setup
@@ -226,38 +228,44 @@ public class GameManager : NetworkBehaviour
         _uiManager.InjectGameManager(this);
         //setting UI
         _uiManager.Init();
+
         //setting CallBackManager
         if (GameMode != GameMode.Single)
+        {
+#if Log
+            LogManager.Log($"{Runner.LocalPlayer} Callback Manager and Changer detector is Set Up  !",Color.gray,LogManager.ValueInformationLog);
+#endif
             _callBackManager = new CallBackManager();
 
-        //change dectector Set up
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+            Runner.SetIsSimulated(Object, true);
+            //change dectector Set up
+            _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+        }
 
         //cheking if the host need to start the Game
-        if (IsHost && (_gameState == GameState.NoGameState))
+        if (CanStartGame())
         {
-            //uploading Deck Info
-            UploadDeckInfo();
-            // Create CardManager
-            SetUpCardManager();
-            //Initialising players
-            InitPlayers();
-            //uploading max cards a player can get
-            SetMaxPlayerCards();
-
-            //simulation Prep
-            _gameState = GameState.SimulationSetUp;
+#if AUTOSTARTGAMECONTROL
+            if (AutoStartGame)
+#endif
+                HostStartGame();
         }
         else
         //cheking if immidiate simulation set up is needed
-        if (_gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp)
+        if (NeedSimuationSetUp())
         {
             StartSimulationSetUp();
         }
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Game Manager spawned", Color.gray, LogManager.ValueInformationLog);
+#endif
     }
 
     public override void FixedUpdateNetwork()
     {
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network  !", Color.gray, LogManager.ValueInformationLog);
+#endif
         foreach (var change in _changeDetector.DetectChanges(this))
         {
             switch (change)
@@ -285,7 +293,28 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
 
     #region General Logic Swamp
+    private bool NeedSimuationSetUp()
+    {
+        return _gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp;
+    }
+    public bool CanStartGame()
+    {
+        return IsHost && (_gameState == GameState.NoGameState);
+    }
+    public void HostStartGame()
+    {
+        //uploading Deck Info
+        UploadDeckInfo();
+        // Create CardManager
+        SetUpCardManager();
+        //Initialising players
+        InitPlayers();
+        //uploading max cards a player can get
+        SetMaxPlayerCards();
 
+        //simulation Prep
+        _gameState = GameState.SimulationSetUp;
+    }
     private IEnumerator WaitSetUp()
     {
         _simulationSetUpSuccessfull = false;
@@ -305,7 +334,14 @@ public class GameManager : NetworkBehaviour
         //if Host Set Up Complete then Wait for players
         if (_simulationSetUpSuccessfull)
         {
+#if Log
+            LogManager.Log("Host Waiting For Players Simulation Set Up",Color.yellow,LogManager.ValueInformationLog);
+#endif
+
             yield return new WaitUntil(AllPlayersReady);
+#if Log
+            LogManager.Log("All Players Simulation is Set Up", Color.green, LogManager.ValueInformationLog);
+#endif
             //reseting
             _playerReadyList.Clear();
             //Moving tto Game Started Game State
@@ -328,7 +364,7 @@ public class GameManager : NetworkBehaviour
     private IEnumerator SetUp()
     {
         //some panel that tracks simulation states as a loading screen
-        _uiManager.UIEvents.OnSetUpStarted();
+        _uiManager.UIEvents?.OnSetUpStarted();
 
         //Logic Set up
         yield return SimulationLogicSetUp();
@@ -337,7 +373,7 @@ public class GameManager : NetworkBehaviour
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.LogicSetUp);
 
         //UI Set Up
-        yield return _uiManager.UIEvents.SetUpUI();
+        yield return _uiManager.UIEvents?.SetUpUI();
 
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.UISetUp);
 
@@ -367,6 +403,9 @@ public class GameManager : NetworkBehaviour
         }
         else
         {
+#if Log
+                LogManager.Log($"{Runner.LocalPlayer} Client Simulation is ongoing", Color.gray, LogManager.ValueInformationLog);
+#endif
             LoadDeckInfo();
             SetUpCardManager();
             LoadPlayers();
@@ -393,7 +432,7 @@ public class GameManager : NetworkBehaviour
         {
             SimulationState = SimulationSetUpState.LogicSetUp;
 #if Log
-            LogManager.Log($" Logic is Set Up Runner Player Ref => {Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
+            LogManager.Log($" Logic is Set Up Local Player => {LocalPlayer}", Color.green, LogManager.ValueInformationLog);
 #endif
         }
         else
@@ -532,13 +571,16 @@ public class GameManager : NetworkBehaviour
             playerObject.name = playerData.PlayerName;
             Player player = playerObject.GetComponent<Player>();
 
+            //hooking player with simulation
+            player.BondPlayerSimulation(this);
+
             //player prep
             PlayerArguments playerArgs = new PlayerArguments();
             playerArgs.PlayerRef = playerData.PlayerRef;
             playerArgs.Name = playerData.PlayerName;
             playerArgs.ID = playerData.PlayerID;
             playerArgs.IconID = (byte)playerData.IconIndex;
-            playerArgs.GameManager = this;
+            //playerArgs.GameManager = this;
             playerArgs.isplayerOut = false;
             player.InitPlayer(playerArgs);
 
@@ -601,7 +643,7 @@ public class GameManager : NetworkBehaviour
         if (_cloudplayersData.IsEmpty())
         {
 #if Log
-            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {LocalPlayer} is Canceled", Color.cyan, LogManager.ValueInformationLog);
+            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {Runner.LocalPlayer} is Canceled", Color.cyan, LogManager.ValueInformationLog);
 #endif
             return;
         }
@@ -622,9 +664,10 @@ public class GameManager : NetworkBehaviour
 #endif
                     return;
                 }
+                player.BondPlayerSimulation(this);
                 //setting local player
                 SetLocalPlayer(player);
-
+               
                 //storing player on local simulation
                 Players[playerIndex++] = player;
             }
@@ -707,7 +750,7 @@ public class GameManager : NetworkBehaviour
         }
         _maxPlayerCards = (byte)(playerCards - 1);
     }
-    //TODO : Link with UI
+    //TODO : Link with UI(when Doubt scene finsih on Host )
     /// <summary>
     /// invked by host after Doubt scene
     /// </summary>
@@ -1241,6 +1284,9 @@ public class GameManager : NetworkBehaviour
 
     private void OnGameStateChanged()
     {
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Game State Changed ! gameState={_gameState}",Color.gray,LogManager.ValueInformationLog);
+#endif
         switch (_gameState)
         {
             case GameState.SimulationSetUp: SimulationPrepGameState(); break;
@@ -1308,6 +1354,10 @@ public class GameManager : NetworkBehaviour
     }
     private void SimulationPrepGameState()
     {
+#if Log
+        if(IsClient)
+        LogManager.Log($"{Runner.LocalPlayer} Client Simulation Set Up CallBack", Color.gray, LogManager.ValueInformationLog);
+#endif
         StartSimulationSetUp();
 
         if (IsHost)

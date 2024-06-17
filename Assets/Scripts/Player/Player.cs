@@ -63,15 +63,20 @@ public class Player : NetworkBehaviour, IPlayer
     public int HandCount { get => _hand.ValidCardsCount();}
     public bool IsHandFull { get =>(HandCount==CardsToDealCounter); }
     #endregion Player Properties
+    private CallBackManager _callBackManager;
+    private Coroutine _waitSimulationInit;
 
     public override void Spawned()
     {
         _runner = Runner;
+        _callBackManager = new CallBackManager();
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         if (_name != string.Empty)
             gameObject.name = _name + ":" + _id;
         SetUpPlayerBehaviour();
-        SetUpPlayerUIControler();
+        if (_waitSimulationInit != null)
+            StopCoroutine(_waitSimulationInit);
+        _waitSimulationInit = StartCoroutine(WaitSimulation());
     }
 
     public override void FixedUpdateNetwork()
@@ -80,12 +85,25 @@ public class Player : NetworkBehaviour, IPlayer
         {
             switch (change)
             {
-                case nameof(_iconID): _playerUIControler.SetPlayerIcon(); break;
-                case nameof(_hand): _playerUIControler.LoadPlayerCards(); break;
+                case nameof(_iconID): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon); break;
+                case nameof(_hand): _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards); break;
             }
         }
     }
-    #region Player Set Up Methods    
+    #region Player Set Up Methods   
+    private IEnumerator WaitSimulation()
+    {
+        yield return new WaitUntil(PlayerReadyForCallBacks);
+        _callBackManager.SetReady(true);
+    }
+    private bool PlayerReadyForCallBacks()
+    {
+        if (_playerUIControler == null) return false;
+        if (_playerState == null) return false;
+        if (_gameManager == null) return false;
+        if(_gameManager.SimulationState!=SimulationSetUpState.SetUpComplete) return false;
+        return true;
+    }
     public void InitPlayer(PlayerArguments playerArgs)
     {
         SetPlayerRef(playerArgs.PlayerRef);
@@ -94,7 +112,7 @@ public class Player : NetworkBehaviour, IPlayer
         //SetCardCounter(playerArgs.CardCounter);
         SetPlayerIcon(playerArgs.IconID);
         SetIsplayerOut(playerArgs.isplayerOut);
-        SetPlayerGameManager(playerArgs.GameManager);
+        //BondPlayerSimulation(playerArgs.GameManager);
         PlusOneCard();
     }
     public void SetPlayerRef(PlayerRef playerRef)
@@ -157,7 +175,7 @@ public class Player : NetworkBehaviour, IPlayer
     {
         _iconID = IconID;
     }
-    public void SetPlayerGameManager(GameManager gameManager) 
+    public void BondPlayerSimulation(GameManager gameManager) 
     {
         if(gameManager == null)
         {
@@ -167,6 +185,7 @@ public class Player : NetworkBehaviour, IPlayer
             return;
         }
         _gameManager = gameManager;
+        SetUpPlayerUIControler();
     }
     public void SetIsplayerOut(NetworkBool isPlayerOut)
     {
@@ -191,7 +210,7 @@ public class Player : NetworkBehaviour, IPlayer
     }
     private void SetUpPlayerUIControler()
     {
-        if (_playerUIControler != null)
+        if (_playerUIControler == null)
             _playerUIControler = new PlayerUIController(_playerUI, this,_gameManager.CardPool);
     }
     #endregion

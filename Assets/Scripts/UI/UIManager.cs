@@ -5,10 +5,13 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     private GameManager _gameManager;
-    public IUIEvents UIEvents;
+    //later itll be an Interface 
+    public GameManager GameManagerUI { get => _gameManager;}
+    private IUIEvents _uiEvents;
+    public IUIEvents UIEvents { get => _uiEvents;}
     public void Init()
     {
-
+        _uiEvents= new UIEvents(this);
     }
     public void InjectGameManager(GameManager gameManager)=>_gameManager = gameManager;
 }

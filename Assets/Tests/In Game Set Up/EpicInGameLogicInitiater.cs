@@ -66,7 +66,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     #endregion
 
     [Header("Panel Indipendant Shit")]
-    [SerializeField] private Button _StartGame;
+    [SerializeField] private Button _startRunners;
     [SerializeField] private RunTimeDataHolder _dataHolder;
     private bool _generateID;
     private GameObject _runnerPrefab;
@@ -77,6 +77,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     public bool AllSet { get; set; }
     public List<PeerOnlineInfo> PeersInfoList = new List<PeerOnlineInfo>();
     private PeerOnlineInfo NewPeerData;
+    private GameManager _hostGameManager;
     private void Awake()
     {
         SingletonRunner();
@@ -122,7 +123,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         _gameLogicModPanel.SetActive(false);
         _CustomDeckModPanel.SetActive(false);
         _playersPanel.SetActive(false);
-        _StartGame.gameObject.SetActive(false);
+        _startRunners.gameObject.SetActive(false);
 
         _offlineMode.onClick.RemoveAllListeners();
         _offlineMode.onClick.AddListener(OfflineButton);
@@ -130,8 +131,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         //_onlineMode.onClick.AddListener(OnlineButton);
         _multiPeerMode.onClick.RemoveAllListeners();
         _multiPeerMode.onClick.AddListener(MultiPeerButton);
-        _StartGame.onClick.RemoveAllListeners();
-        _StartGame.onClick.AddListener(StartGame);
+        _startRunners.onClick.RemoveAllListeners();
+        _startRunners.onClick.AddListener(StartGame);
     }
     #endregion
 
@@ -238,7 +239,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         _gameLogicModPanelSecondPhaze.SetActive(false);
         InitPlayersUI();
         _playersPanel.SetActive(true);
-        _StartGame.gameObject.SetActive(true);
+        _startRunners.gameObject.SetActive(true);
     }
     private void InitGameLogicSecondPhaze()
     {
@@ -308,7 +309,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         _CustomDeckModPanel.SetActive(false);
         InitPlayersUI();
         _playersPanel.SetActive(true);
-        _StartGame.gameObject.SetActive(true);
+        _startRunners.gameObject.SetActive(true);
     }
     private void InitCustomCombinationPanel()
     {
@@ -428,7 +429,6 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             PeerOnlineInfo peerOnlineInfo = new PeerOnlineInfo();
             peerOnlineInfo.PeerRunner = runner;
             peerOnlineInfo.PeerID = playerID;
-            peerOnlineInfo.PeerRef = runner.LocalPlayer;
             PeersInfoList.Add(peerOnlineInfo);
         }
         return runner.StartGame(startarg);
@@ -484,6 +484,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
 
         foreach (GameManager manager in GameManagerlist)
         {
+            if(manager.IsHost)
+                _hostGameManager = manager;
             NewPeerData = new PeerOnlineInfo();
             foreach (PeerOnlineInfo peerdata in PeersInfoList.ToList())
             {
@@ -494,6 +496,8 @@ public class EpicInGameLogicInitiater : MonoBehaviour
                     //sending peertoken to gamemanger
                     NewPeerData.PeerManager = manager;
 
+                    NewPeerData.PeerID = peerdata.PeerID;
+                    NewPeerData.PeerRef = manager.GameRunner.LocalPlayer;
                     PeersInfoList.Remove(peerdata);
                     PeersInfoList.Add(NewPeerData);
                     
@@ -511,7 +515,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         {
             for (int index = 0; index < _dataHolder.RunTimePlayersData.Count; index++)
             {
-                if (peerdata.PeerID == _dataHolder.RunTimePlayersData[index].PlayerID)
+                if (peerdata.PeerID== _dataHolder.RunTimePlayersData[index].PlayerID)
                 {
                     var oldData = _dataHolder.RunTimePlayersData[index];
                     var newData = new RunTimePlayerData();
@@ -572,6 +576,10 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         yield return new WaitForSeconds(1);
         // setting up peer data 
         yield return SetPeersInfo();
+        //waiting for all simulation set up 
+        yield return new WaitForSeconds(15);
+        //starting game
+        _hostGameManager.HostStartGame();
         AllSet = true;
         _startOnlineCoroutine = null;
 #if Log

@@ -214,7 +214,7 @@ public struct PlayerArguments
     public byte IconID;
 
     //public byte CardCounter;
-    public GameManager GameManager;
+    //public GameManager GameManager;
     public NetworkBool isplayerOut;
 }
 public struct ValidatorArguments
@@ -233,6 +233,7 @@ public struct ValidatorArguments
 }
 #endregion
 #region Structs
+[System.Serializable]
 public struct DeckInfo 
 {
     public DeckType DeckType;
@@ -242,22 +243,16 @@ public struct DeckInfo
 [Serializable]
 public struct CardUI
 {
-    [Header("Card Counter Fields")]
-    public RectTransform CardCounterRect;
-    public Image CardCounterImage;
-    public TextMeshProUGUI CardCounterText;
-    public GameObject CardCounterImageGO;
-    [Header("Core Card Fields")]
-    public Button CardButton;
-    public GameObject CardRankImageGO;
-    public Image CardRank;
-    public Image CardPlate;
+    public SpriteRenderer CardRank;
+    public SpriteRenderer CardPlate;
+    public SpriteRenderer CardBack;
 }
 [Serializable]
 public struct PlayerUI
 {
     public CardPositioner CardPositioner;
     public SpriteRenderer PlayerIcon;
+    public TextMeshPro PlayerName;
 }
 
 public struct DiffusedRankInfo

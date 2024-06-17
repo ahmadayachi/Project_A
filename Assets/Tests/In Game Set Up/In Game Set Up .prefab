@@ -197,7 +197,7 @@ MonoBehaviour:
   _redIndicator: {fileID: 21300000, guid: b8217cadb0a1b6a4ab63a257134fad73, type: 3}
   _playersPanel: {fileID: 4178767495231348117}
   _inGameSetUpPlayerPrefab: {fileID: 4064783711694966502, guid: ea9800e8aa7f4144a9a02bbe5c49f840, type: 3}
-  _StartGame: {fileID: 6287676796200386584}
+  _startRunners: {fileID: 6287676796200386584}
   _dataHolder: {fileID: 11400000, guid: d0985afb4a6f32d4ab24ac3a15e85f27, type: 2}
 --- !u!1 &337051276241229898
 GameObject:
@@ -346,12 +346,12 @@ GameObject:
   - component: {fileID: 4276133256310082404}
   - component: {fileID: 6287676796200386584}
   m_Layer: 5
-  m_Name: 'Start Game '
+  m_Name: Start Runners
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3811825937554281126
 RectTransform:
   m_ObjectHideFlags: 0
@@ -725,7 +725,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Start Game
+  m_text: Start Runners
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3901,7 +3901,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4476213787250421403
 RectTransform:
   m_ObjectHideFlags: 0
