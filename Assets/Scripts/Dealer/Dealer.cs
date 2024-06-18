@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Dealer : State
 {
-    private const int _minHalfDeckSize = 10;
+    private const int _minHalfDeckSize = 8;
     public Coroutine DealingRoutine;
     private Func<IEnumerator, Coroutine> _startRoutine;
     private Action<Coroutine> _stopRoutine;

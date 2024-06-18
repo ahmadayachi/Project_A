@@ -66,7 +66,7 @@ public class Card : MonoBehaviour, ICard
 
     public bool SetSuite(CardSuit suite)
     {
-        if (Suit==CardSuit.NoSuit)
+        if (suite == CardSuit.NoSuit)
         {
 #if Log
             LogManager.LogError($"{suite} is Invalid!");

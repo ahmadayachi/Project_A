@@ -10,7 +10,7 @@ public class Player : NetworkBehaviour, IPlayer
     private NetworkRunner _runner;
     private ChangeDetector _changeDetector;
     private State _playerState;
-    private IPlayerUIControler _playerUIControler;
+    private PlayerUIController _playerUIControler;
     [SerializeField] 
     private PlayerUI _playerUI;
     private GameManager _gameManager;
@@ -65,15 +65,17 @@ public class Player : NetworkBehaviour, IPlayer
     #endregion Player Properties
     private CallBackManager _callBackManager;
     private Coroutine _waitSimulationInit;
-
+    private Coroutine _simulationBondingRoutine;
     public override void Spawned()
     {
         _runner = Runner;
         _callBackManager = new CallBackManager();
+        SetUpPlayerUIControler();
+        SetUpPlayerState();
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         if (_name != string.Empty)
             gameObject.name = _name + ":" + _id;
-        SetUpPlayerBehaviour();
+        //SetUpPlayerBehaviour();
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
         _waitSimulationInit = StartCoroutine(WaitSimulation());
@@ -91,6 +93,10 @@ public class Player : NetworkBehaviour, IPlayer
         }
     }
     #region Player Set Up Methods   
+    private void SetUpPlayerState()
+    {
+        _playerState = new PlayerState(_playerUIControler);
+    }
     private IEnumerator WaitSimulation()
     {
         yield return new WaitUntil(PlayerReadyForCallBacks);
@@ -101,6 +107,7 @@ public class Player : NetworkBehaviour, IPlayer
         if (_playerUIControler == null) return false;
         if (_playerState == null) return false;
         if (_gameManager == null) return false;
+        if(_gameManager.CardPool==null) return false;
         if(_gameManager.SimulationState!=SimulationSetUpState.SetUpComplete) return false;
         return true;
     }
@@ -185,7 +192,21 @@ public class Player : NetworkBehaviour, IPlayer
             return;
         }
         _gameManager = gameManager;
-        SetUpPlayerUIControler();
+        if (_simulationBondingRoutine != null)
+            StopCoroutine(_simulationBondingRoutine);
+        _simulationBondingRoutine = StartCoroutine(BondPlayerSimulationRoutine());
+    }
+    private IEnumerator BondPlayerSimulationRoutine()
+    {
+#if Log
+        LogManager.Log($"{this} is waiting for Simulation Set Up Complete",Color.yellow,LogManager.ValueInformationLog);
+#endif
+        yield return new WaitUntil(()=>_gameManager.CardPool!=null);
+        _playerUIControler.SetUpCardPositionerCardPool(_gameManager.CardPool);
+       
+#if Log
+        LogManager.Log($"{this} simulation Bonding is Complete", Color.green,LogManager.ValueInformationLog);
+#endif
     }
     public void SetIsplayerOut(NetworkBool isPlayerOut)
     {
@@ -211,7 +232,7 @@ public class Player : NetworkBehaviour, IPlayer
     private void SetUpPlayerUIControler()
     {
         if (_playerUIControler == null)
-            _playerUIControler = new PlayerUIController(_playerUI, this,_gameManager.CardPool);
+            _playerUIControler = new PlayerUIController(_playerUI, this);
     }
     #endregion
 

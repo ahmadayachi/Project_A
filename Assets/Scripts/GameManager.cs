@@ -403,9 +403,6 @@ public class GameManager : NetworkBehaviour
         }
         else
         {
-#if Log
-                LogManager.Log($"{Runner.LocalPlayer} Client Simulation is ongoing", Color.gray, LogManager.ValueInformationLog);
-#endif
             LoadDeckInfo();
             SetUpCardManager();
             LoadPlayers();
@@ -606,6 +603,11 @@ public class GameManager : NetworkBehaviour
         //resetting RunTime Data
         _runTimeDataHolder.RunTimePlayersData.Clear();
         _runTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
+        //setting the first player 
+        _currentPlayerID = Players[0].ID;
+        CurrentPlayer = Players[0];
+
+
     }
 
     private void SetUpRunTimeData()
@@ -1354,10 +1356,6 @@ public class GameManager : NetworkBehaviour
     }
     private void SimulationPrepGameState()
     {
-#if Log
-        if(IsClient)
-        LogManager.Log($"{Runner.LocalPlayer} Client Simulation Set Up CallBack", Color.gray, LogManager.ValueInformationLog);
-#endif
         StartSimulationSetUp();
 
         if (IsHost)

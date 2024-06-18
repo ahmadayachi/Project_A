@@ -8,13 +8,12 @@ public class PlayerUIController : IPlayerUIControler
     private Player _player;
     private Coroutine _loadingHandCoroutine;
 
-    public PlayerUIController(PlayerUI playerUI, Player player , CardPool cardPool)
+    public PlayerUIController(PlayerUI playerUI, Player player )
     {
         _playerUI = playerUI;
         _player = player;
-        _playerUI.CardPositioner.Init(cardPool);
     }
-
+    public void SetUpCardPositionerCardPool(CardPool cardPool)=> _playerUI.CardPositioner.Init(cardPool);
     public void SetPlayerIcon()
     {
         Sprite sprite = AssetLoader.AllIcons[_player.IconID];
@@ -34,7 +33,7 @@ public class PlayerUIController : IPlayerUIControler
         {
             return;
         }
-        if (_player.IsHandFull)
+        if (PlayerCanLoadCards())
         {
             _playerUI.CardPositioner.LoadCards(_player.Hand);
             return;
@@ -101,8 +100,11 @@ public class PlayerUIController : IPlayerUIControler
     }
     private IEnumerator WaitHandThenUpdate()
     {
-        yield return new WaitUntil(() => _player.IsHandFull);
+        yield return new WaitUntil(PlayerCanLoadCards);
         _playerUI.CardPositioner.LoadCards(_player.Hand);
     }
-    
+    private bool PlayerCanLoadCards()
+    {
+        return _playerUI.CardPositioner.CardPool != null && _player.IsHandFull;
+    }
 }

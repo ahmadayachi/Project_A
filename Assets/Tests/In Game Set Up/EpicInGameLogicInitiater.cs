@@ -577,7 +577,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
         // setting up peer data 
         yield return SetPeersInfo();
         //waiting for all simulation set up 
-        yield return new WaitForSeconds(15);
+        yield return new WaitForSeconds(5);
         //starting game
         _hostGameManager.HostStartGame();
         AllSet = true;
