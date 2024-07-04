@@ -172,7 +172,7 @@ public class GameManager : NetworkBehaviour
 
     private Coroutine _simulationSetUpRoutine;
     private Coroutine _waitSetUpThenWaitPlayersRoutine;
-    private Coroutine _gameStartedRoutine;
+    private Coroutine _waitingGameStartedAnimationRoutine;
 
     #endregion Routins
 
@@ -327,6 +327,26 @@ public class GameManager : NetworkBehaviour
         } while (!_simulationSetUpSuccessfull && !SetUpCanceled);
     }
 
+    /// <summary>
+    /// wait players then clears the players List
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator WaitPlayers()
+    {
+        //waiting players RPC
+        yield return new WaitUntil(AllPlayersReady);
+        //reseting
+        _playerReadyList.Clear();
+    }
+    private IEnumerator WaitForPlayersGameStartedAnimation()
+    {
+        yield return WaitPlayers();
+#if Log
+        LogManager.Log("All Players GameStarted Animation Exectuted", Color.green, LogManager.ValueInformationLog);
+#endif
+        //moving to dealing state
+        _gameState = GameState.Dealing;
+    }
     private IEnumerator WaitSetUpThenWaitPlayers()
     {
         yield return WaitSetUp();
@@ -338,12 +358,10 @@ public class GameManager : NetworkBehaviour
             LogManager.Log("Host Waiting For Players Simulation Set Up",Color.yellow,LogManager.ValueInformationLog);
 #endif
 
-            yield return new WaitUntil(AllPlayersReady);
+            yield return WaitPlayers();
 #if Log
             LogManager.Log("All Players Simulation is Set Up", Color.green, LogManager.ValueInformationLog);
 #endif
-            //reseting
-            _playerReadyList.Clear();
             //Moving tto Game Started Game State
             _gameState = GameState.GameStarted;
         }
@@ -1020,7 +1038,7 @@ public class GameManager : NetworkBehaviour
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_PlayerReady(int playerRefID)
+    public void RPC_PlayerReady(int playerRefID)
     {
         _playerReadyList.Add(playerRefID);
 #if Log
@@ -1371,8 +1389,9 @@ public class GameManager : NetworkBehaviour
         _uiManager.UIEvents.OnGameStarted();
         if (IsHost)
         {
-            //starting dealing
-            _gameState = GameState.Dealing;
+            if (_waitingGameStartedAnimationRoutine != null)
+                StopCoroutine(_waitingGameStartedAnimationRoutine);
+            _waitingGameStartedAnimationRoutine = StartCoroutine(WaitForPlayersGameStartedAnimation());
         }
     }
 

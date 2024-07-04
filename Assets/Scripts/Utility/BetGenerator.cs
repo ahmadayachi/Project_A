@@ -96,12 +96,12 @@ public class BetGenerator
             }
             else
             {
-                //<================= Second type of Rounding Up =====================> 
+                //<================= Second type of Rounding Up =====================>
                 return RoundUpMaxedBet(bet, ref roundedUpBet, dealtCardsCount, BetTotalCardsCount, diffusedBet);
                 //<=========================================================>
             }
         }
-        //<================= First type of Rounding Up =====================> 
+        //<================= First type of Rounding Up =====================>
         else
         {
             switch (diffusedBet.Count)
@@ -117,6 +117,7 @@ public class BetGenerator
         //<=========================================================>
         return false;
     }
+
     private static bool MultiRankRoundUp(ref byte[] roundedUpBet, List<DiffusedRankInfo> diffusedBet)
     {
         //checking if the last rank in this bet is not Locked
@@ -281,7 +282,7 @@ public class BetGenerator
 #endif
                 return false;
             }
-            //rounding up the secondRank because it is the lower value 
+            //rounding up the secondRank because it is the lower value
             DiffusedRankInfo adjustedRank = new DiffusedRankInfo(secondRank.Rank, secondRank.RankBruteValue, (byte)(secondRank.CardsCount + 1));
             if (adjustedRank.CardsCount > firstRank.CardsCount)
             {
@@ -299,7 +300,7 @@ public class BetGenerator
         {
             byte roudededRank = 0;
             bool keepSecondRankCardsCount = false;
-            //if ranks card count differ 
+            //if ranks card count differ
             if (firstRank.CardsCount != secondRank.CardsCount)
             {
                 if (secondRank.Rank != highestRank)
@@ -330,7 +331,7 @@ public class BetGenerator
                 {
                     //setting rounded rank info
                     DiffusedRankInfo newLastBetInfo = new DiffusedRankInfo();
-                    //making the second rank jump twice 
+                    //making the second rank jump twice
                     newLastBetInfo.Rank = roudededRank;
                     newLastBetInfo.RankBruteValue = rankBruteValue;
                     if (keepSecondRankCardsCount)
@@ -390,7 +391,7 @@ public class BetGenerator
     private static bool RoundUpMaxedBet(byte[] bet, ref byte[] roundedUpBet, int dealtCardsCount, int BetTotalCardsCount, List<DiffusedRankInfo> diffusedBet)
     {
         int NonLockedRanksCounter = 0;
-        //first need to check if there are any Non Locked Ranks 
+        //first need to check if there are any Non Locked Ranks
         if (diffusedBet.IncludeNonLockedRank(out NonLockedRanksCounter))
         {
             //at this point if Non Locked rank Exist there should only one and  position should be the Last
@@ -401,12 +402,12 @@ public class BetGenerator
 #endif
                 return false;
             }
-            //adding a card of the NonLockedRank to bet 
+            //adding a card of the NonLockedRank to bet
             DiffusedRankInfo nonLockedRank = diffusedBet[diffusedBet.Count - 1];
             DiffusedRankInfo adjustedNonLockedRank = new DiffusedRankInfo(nonLockedRank.Rank, nonLockedRank.RankBruteValue, (byte)(nonLockedRank.CardsCount + 1));
             diffusedBet.Remove(nonLockedRank);
             diffusedBet.Add(adjustedNonLockedRank);
-            //sorting is need nonLoked rank might become Locked after adding a card 
+            //sorting is need nonLoked rank might become Locked after adding a card
             diffusedBet.SortDiffusedBet();
             roundedUpBet = diffusedBet.ToByteArray();
             return true;
@@ -421,7 +422,7 @@ public class BetGenerator
 #endif
                 return false;
             }
-            //grabbing and unused rank to add to the bet 
+            //grabbing and unused rank to add to the bet
             byte rank = 0;
             int bruteValue = 0;
             bool rankisFound = false;
@@ -435,7 +436,7 @@ public class BetGenerator
                     break;
                 }
             }
-            //if No ranks found then somthing is wrong 
+            //if No ranks found then somthing is wrong
             if (!rankisFound)
             {
 #if Log
@@ -445,7 +446,7 @@ public class BetGenerator
             }
             DiffusedRankInfo diffusedRankInfo = new DiffusedRankInfo(rank, bruteValue, 2);
 
-            //adding rank to bet no need to sort here 
+            //adding rank to bet no need to sort here
             diffusedBet.Add(diffusedRankInfo);
             roundedUpBet = diffusedBet.ToByteArray();
             return true;
