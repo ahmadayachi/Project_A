@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private PlayerUIPlacementSceneRefs _playerUIPlacementSceneRefs;
+    public PlayerUIPlacementSceneRefs PlayerUIPlacementSceneRefs { get => _playerUIPlacementSceneRefs; }
     private GameManager _gameManager;
-    //later itll be an Interface 
-    public GameManager GameManagerUI { get => _gameManager;}
+
+    //later itll be an Interface
+    public GameManager GameManagerUI { get => _gameManager; }
+
     private IUIEvents _uiEvents;
-    public IUIEvents UIEvents { get => _uiEvents;}
+    public IUIEvents UIEvents { get => _uiEvents; }
+
     public void Init()
     {
-        _uiEvents= new UIEvents(this);
+        _uiEvents = new UIEvents(this);
     }
-    public void InjectGameManager(GameManager gameManager)=>_gameManager = gameManager;
+
+    public void InjectGameManager(GameManager gameManager) => _gameManager = gameManager;
 }

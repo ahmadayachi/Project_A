@@ -14,6 +14,18 @@ public class PlayerUIController : IPlayerUIControler
         _player = player;
     }
     public void SetUpCardPositionerCardPool(CardPool cardPool)=> _playerUI.CardPositioner.Init(cardPool);
+    public void SetPlayerName()
+    {
+        //maybe bypass empty one for resting 
+        if (_player.Name == string.Empty)
+        {
+#if Log
+            LogManager.LogError($"Failed to Load Icon for Player=>{_player}");
+#endif
+            return;
+        }
+        _playerUI.PlayerName.text = _player.Name;
+    }
     public void SetPlayerIcon()
     {
         Sprite sprite = AssetLoader.AllIcons[_player.IconID];

@@ -29,6 +29,7 @@ public interface IPlayer:ICardReceiver
     byte IconID { get; }
     bool IsLocalPlayer { get; }
     public NetworkObject NetworkObject {get;}
+    Transform Transform { get; }
     string ToString();
 }
 public interface ICardReceiver
@@ -233,7 +234,7 @@ public struct ValidatorArguments
 }
 #endregion
 #region Structs
-[System.Serializable]
+[Serializable]
 public struct DeckInfo 
 {
     public DeckType DeckType;
@@ -272,6 +273,22 @@ public struct DiffusedRankInfo
     {
         return $"Rank: {Rank}, RankBruteValue: {RankBruteValue}, CardsCount: {CardsCount}";
     }
+}
+
+[Serializable]
+public struct PlayerUIPlacementSceneRefs 
+{
+    [Header("Player POV Placement ")]
+    [SerializeField] public Transform PlayerPOV;
+
+    [Header("Players On Left Placement ")]
+    [SerializeField] public Transform PlayersOnLeft;
+
+    [Header("Players On Right Placement Setting")]
+    [SerializeField] public Transform PlayersOnRight;
+
+    [Header("Players On Front Placement Setting")]
+    [SerializeField] public Transform PlayersOnFront;
 }
 #endregion
 

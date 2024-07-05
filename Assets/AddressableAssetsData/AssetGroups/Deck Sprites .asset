@@ -43,6 +43,11 @@ MonoBehaviour:
     m_SerializedLabels:
     - Icon
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b3e7b8ee99b89046bb9e79ec89d988a
+    m_Address: PlayerUIPlacementSetting
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 14090ee14254b9a41bdaa4ec791eb352, type: 2}
   m_SchemaSet:

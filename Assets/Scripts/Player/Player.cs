@@ -43,6 +43,7 @@ public class Player : NetworkBehaviour, IPlayer
     public byte IconID { get => _iconID; }
     public bool IsLocalPlayer { get => Object.HasInputAuthority; }
     public NetworkObject NetworkObject { get => Object; }
+    public Transform Transform { get => gameObject.transform; }
     public CardInfo[] Hand
     {
         get
@@ -79,6 +80,7 @@ public class Player : NetworkBehaviour, IPlayer
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
         _waitSimulationInit = StartCoroutine(WaitSimulation());
+        Runner.SetIsSimulated(Object, true);
     }
 
     public override void FixedUpdateNetwork()
@@ -87,6 +89,7 @@ public class Player : NetworkBehaviour, IPlayer
         {
             switch (change)
             {
+                case nameof(_name): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName); break;
                 case nameof(_iconID): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon); break;
                 case nameof(_hand): _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards); break;
             }

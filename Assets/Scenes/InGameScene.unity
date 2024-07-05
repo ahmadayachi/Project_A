@@ -2417,6 +2417,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c071dcda62bdcf4880e0e9918efb033, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _playerUIPlacementSceneRefs:
+    PlayerPOV: {fileID: 1515237232}
+    PlayersOnLeft: {fileID: 1666016031}
+    PlayersOnRight: {fileID: 1287427611}
+    PlayersOnFront: {fileID: 372195452}
 --- !u!1 &1851186247
 GameObject:
   m_ObjectHideFlags: 0

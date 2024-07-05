@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu(menuName = "DeckContainer ")]
+[CreateAssetMenu(menuName = "SpicyHarissa/DeckContainer ")]
 public class DeckContainer : ScriptableObject
 {
     [Header("All Ranks on this Deck")]

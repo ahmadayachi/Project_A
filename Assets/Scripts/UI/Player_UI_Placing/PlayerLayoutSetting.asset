@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602e3d85d63ce734896abf5014286977, type: 3}
+  m_Name: PlayerLayoutSetting
+  m_EditorClassIdentifier: 
+  Settings:
+  - TotalPlayerNumber: 2
+    PlayersOnLeftPlayersNumber: 0
+    PlayersOnRightPlayersNumber: 0
+    PlayersOnFrontPlayersNumber: 1
+  - TotalPlayerNumber: 3
+    PlayersOnLeftPlayersNumber: 0
+    PlayersOnRightPlayersNumber: 0
+    PlayersOnFrontPlayersNumber: 2
+  - TotalPlayerNumber: 4
+    PlayersOnLeftPlayersNumber: 1
+    PlayersOnRightPlayersNumber: 1
+    PlayersOnFrontPlayersNumber: 1
+  - TotalPlayerNumber: 5
+    PlayersOnLeftPlayersNumber: 1
+    PlayersOnRightPlayersNumber: 1
+    PlayersOnFrontPlayersNumber: 2
+  - TotalPlayerNumber: 6
+    PlayersOnLeftPlayersNumber: 2
+    PlayersOnRightPlayersNumber: 2
+    PlayersOnFrontPlayersNumber: 1
+  - TotalPlayerNumber: 7
+    PlayersOnLeftPlayersNumber: 2
+    PlayersOnRightPlayersNumber: 2
+    PlayersOnFrontPlayersNumber: 2
+  - TotalPlayerNumber: 8
+    PlayersOnLeftPlayersNumber: 2
+    PlayersOnRightPlayersNumber: 2
+    PlayersOnFrontPlayersNumber: 3
+  PlayerUIExtraPosition: {x: -0.079, y: -0.285, z: -0.28}
+  PlayerUIExtraScale: {x: 0.7, y: 0.7, z: 0.7}
+  XOffset: 0
