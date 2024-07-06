@@ -166,6 +166,7 @@ public class UIEvents : IUIEvents
                 if (!Left)
                     extraPos = new Vector3(extraPos.x * -1, extraPos.y, extraPos.z);
                 player.Transform.position = extraPos;
+                break;
             }
         }
     }
@@ -182,8 +183,9 @@ public class UIEvents : IUIEvents
                     player.Transform.SetParent(_uiManager.PlayerUIPlacementSceneRefs.PlayersOnFront);
                     ResetTransform(player.Transform);
                     placedIDs.Add(player.ID);
-                    player.Transform.position = new Vector3(playerUISettings.XOffset * sign, 1, 1);
+                    player.Transform.localPosition = new Vector3(playerUISettings.XOffset * sign, 0, 0);
                     sign = -sign;
+                    break;
                 }
             }
         }
@@ -198,6 +200,7 @@ public class UIEvents : IUIEvents
                 player.Transform.SetParent(parent);
                 ResetTransform(player.Transform);
                 placedIDs.Add(player.ID);
+                break;
             }
         }
     }
