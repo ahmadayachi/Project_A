@@ -43,4 +43,4 @@ MonoBehaviour:
     PlayersOnFrontPlayersNumber: 3
   PlayerUIExtraPosition: {x: -0.079, y: -0.285, z: -0.28}
   PlayerUIExtraScale: {x: 0.7, y: 0.7, z: 0.7}
-  XOffset: 0
+  XOffset: 0.3

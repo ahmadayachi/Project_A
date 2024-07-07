@@ -106,7 +106,7 @@ public class UIEvents : IUIEvents
             //two seperated
             case 2:
                 {
-                    PlaceTwoPlayers(playerUISettings, PlayersOnLeftPlayersNumber, placedIDs);
+                    PlaceTwoPlayers(playerUISettings, PlayersOnFrontPlayersNumber, placedIDs);
                 }
                 break;
             // three players layed out
@@ -114,10 +114,11 @@ public class UIEvents : IUIEvents
                 {
                     PlacePlayer(placedIDs, _uiManager.PlayerUIPlacementSceneRefs.PlayersOnFront);
                     yield return null;
-                    PlaceTwoPlayers(playerUISettings, PlayersOnLeftPlayersNumber, placedIDs);
+                    PlaceTwoPlayers(playerUISettings, PlayersOnFrontPlayersNumber-1, placedIDs);
                 }
                 break;
         }
+        yield return null;
         //placing players on left
         switch (PlayersOnLeftPlayersNumber)
         {
@@ -135,6 +136,7 @@ public class UIEvents : IUIEvents
                 }
                 break;
         }
+        yield return null;
         //placing players on right 
         switch (PlayersOnRightPlayersNumber)
         {
@@ -165,7 +167,7 @@ public class UIEvents : IUIEvents
                 placedIDs.Add(player.ID);
                 if (!Left)
                     extraPos = new Vector3(extraPos.x * -1, extraPos.y, extraPos.z);
-                player.Transform.position = extraPos;
+                player.Transform.localPosition = extraPos;
                 break;
             }
         }
