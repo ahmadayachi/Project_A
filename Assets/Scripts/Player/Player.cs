@@ -3,7 +3,7 @@ using Fusion;
 using System;
 using System.Collections;
 
-public class Player : NetworkBehaviour, IPlayer
+public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 {
     #region Player fields
 
@@ -11,23 +11,30 @@ public class Player : NetworkBehaviour, IPlayer
     private ChangeDetector _changeDetector;
     private State _playerState;
     private PlayerUIController _playerUIControler;
-    [SerializeField] 
+
+    [SerializeField]
     private PlayerUI _playerUI;
+
     private GameManager _gameManager;
+
     #endregion Player fields
 
     #region Player Networked Properties
+
     [Networked] public PlayerRef playerRef { get; set; }
     [Networked] private string _name { get; set; }
     [Networked] private string _id { get; set; }
+
     /// <summary>
-    /// how many cards should the player Get 
+    /// how many cards should the player Get
     /// </summary>
     [Networked] private byte _cardToDealCounter { get; set; }
+
     [Networked] private NetworkBool _isOut { get; set; }
     [Networked] private byte _iconID { get; set; }
+
     /// <summary>
-    /// an array of player Card ID's 
+    /// an array of player Card ID's
     /// </summary>
     [Networked, Capacity(15)]
     private NetworkArray<byte> _hand { get; }
@@ -44,6 +51,7 @@ public class Player : NetworkBehaviour, IPlayer
     public bool IsLocalPlayer { get => Object.HasInputAuthority; }
     public NetworkObject NetworkObject { get => Object; }
     public Transform Transform { get => gameObject.transform; }
+
     public CardInfo[] Hand
     {
         get
@@ -61,18 +69,24 @@ public class Player : NetworkBehaviour, IPlayer
 
     public NetworkBool IsOut { get => _isOut; }
     public byte CardsToDealCounter { get => _cardToDealCounter; }
-    public int HandCount { get => _hand.ValidCardsCount();}
-    public bool IsHandFull { get =>(HandCount==CardsToDealCounter); }
+    public int HandCount { get => _hand.ValidCardsCount(); }
+    public bool IsHandFull { get => (HandCount == CardsToDealCounter); }
+
     #endregion Player Properties
+
     private CallBackManager _callBackManager;
     private Coroutine _waitSimulationInit;
     private Coroutine _simulationBondingRoutine;
+    private Coroutine _firstTickSyncRoutine;
+
     public override void Spawned()
     {
         _runner = Runner;
         _callBackManager = new CallBackManager();
         SetUpPlayerUIControler();
         SetUpPlayerState();
+
+        Runner.SetIsSimulated(Object, true);
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         if (_name != string.Empty)
             gameObject.name = _name + ":" + _id;
@@ -80,7 +94,13 @@ public class Player : NetworkBehaviour, IPlayer
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
         _waitSimulationInit = StartCoroutine(WaitSimulation());
-        Runner.SetIsSimulated(Object, true);
+    }
+
+    public void AfterSpawned()
+    {
+        if(_firstTickSyncRoutine != null)
+            StopCoroutine(_firstTickSyncRoutine);
+        _firstTickSyncRoutine = StartCoroutine(WaitSimulationAndSyncFirstTick());
     }
 
     public override void FixedUpdateNetwork()
@@ -95,25 +115,38 @@ public class Player : NetworkBehaviour, IPlayer
             }
         }
     }
-    #region Player Set Up Methods   
+
+    #region Player Set Up Methods
+
     private void SetUpPlayerState()
     {
         _playerState = new PlayerState(_playerUIControler);
     }
+
     private IEnumerator WaitSimulation()
     {
         yield return new WaitUntil(PlayerReadyForCallBacks);
         _callBackManager.SetReady(true);
     }
+
+    private IEnumerator WaitSimulationAndSyncFirstTick()
+    {
+        yield return new WaitUntil(PlayerReadyForCallBacks);
+        _playerUIControler.SetPlayerName();
+        _playerUIControler.SetPlayerIcon();
+        _playerUIControler.LoadPlayerCards();
+    }
+
     private bool PlayerReadyForCallBacks()
     {
         if (_playerUIControler == null) return false;
         if (_playerState == null) return false;
         if (_gameManager == null) return false;
-        if(_gameManager.CardPool==null) return false;
-        if(_gameManager.SimulationState!=SimulationSetUpState.SetUpComplete) return false;
+        if (_gameManager.CardPool == null) return false;
+        if (_gameManager.SimulationState != SimulationSetUpState.SetUpComplete) return false;
         return true;
     }
+
     public void InitPlayer(PlayerArguments playerArgs)
     {
         SetPlayerRef(playerArgs.PlayerRef);
@@ -125,18 +158,19 @@ public class Player : NetworkBehaviour, IPlayer
         //BondPlayerSimulation(playerArgs.GameManager);
         PlusOneCard();
     }
+
     public void SetPlayerRef(PlayerRef playerRef)
     {
-        if(playerRef == null || playerRef == PlayerRef.None)
+        if (playerRef == null || playerRef == PlayerRef.None)
         {
-            
 #if Log
-                LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
+            LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
 #endif
-                return;
+            return;
         }
-        this.playerRef = playerRef; 
+        this.playerRef = playerRef;
     }
+
     public void SetPlayerID(string playerID)
     {
         if (playerID == string.Empty)
@@ -148,6 +182,7 @@ public class Player : NetworkBehaviour, IPlayer
         }
         _id = playerID;
     }
+
     public void SetPlayerName(string playerName)
     {
         if (playerName == string.Empty)
@@ -159,6 +194,7 @@ public class Player : NetworkBehaviour, IPlayer
         }
         _name = playerName;
     }
+
     public void SetCardCounter(byte cardCounter)
     {
         if (cardCounter == 0)
@@ -170,24 +206,28 @@ public class Player : NetworkBehaviour, IPlayer
         }
         _cardToDealCounter = cardCounter;
     }
+
     /// <summary>
-    /// adds one to the totall Cards Counter 
+    /// adds one to the totall Cards Counter
     /// </summary>
     public void PlusOneCard()
     {
         _cardToDealCounter++;
     }
+
     public void ClearCardsCounter()
     {
         _cardToDealCounter = 0;
     }
+
     public void SetPlayerIcon(byte IconID)
     {
         _iconID = IconID;
     }
-    public void BondPlayerSimulation(GameManager gameManager) 
+
+    public void BondPlayerSimulation(GameManager gameManager)
     {
-        if(gameManager == null)
+        if (gameManager == null)
         {
 #if Log
             LogManager.LogError("Player GameManager is Null!");
@@ -199,28 +239,31 @@ public class Player : NetworkBehaviour, IPlayer
             StopCoroutine(_simulationBondingRoutine);
         _simulationBondingRoutine = StartCoroutine(BondPlayerSimulationRoutine());
     }
+
     private IEnumerator BondPlayerSimulationRoutine()
     {
 #if Log
-        LogManager.Log($"{this} is waiting for Simulation Set Up Complete",Color.yellow,LogManager.ValueInformationLog);
+        LogManager.Log($"{this} is waiting for Simulation Set Up Complete", Color.yellow, LogManager.ValueInformationLog);
 #endif
-        yield return new WaitUntil(()=>_gameManager.CardPool!=null);
+        yield return new WaitUntil(() => _gameManager.CardPool != null);
         _playerUIControler.SetUpCardPositionerCardPool(_gameManager.CardPool);
-       
+
 #if Log
-        LogManager.Log($"{this} simulation Bonding is Complete", Color.green,LogManager.ValueInformationLog);
+        LogManager.Log($"{this} simulation Bonding is Complete", Color.green, LogManager.ValueInformationLog);
 #endif
     }
+
     public void SetIsplayerOut(NetworkBool isPlayerOut)
     {
         if (isPlayerOut)
         {
 #if Log
-            LogManager.Log($"{this} is Out !",Color.yellow,LogManager.ValueInformationLog);
+            LogManager.Log($"{this} is Out !", Color.yellow, LogManager.ValueInformationLog);
 #endif
         }
         _isOut = isPlayerOut;
     }
+
     private void SetUpPlayerBehaviour()
     {
         //if (_runner.GameMode == GameMode.Single)
@@ -232,12 +275,14 @@ public class Player : NetworkBehaviour, IPlayer
         //    _playerState = new OnlinePlayerBehaviour();
         //}
     }
+
     private void SetUpPlayerUIControler()
     {
         if (_playerUIControler == null)
             _playerUIControler = new PlayerUIController(_playerUI, this);
     }
-    #endregion
+
+    #endregion Player Set Up Methods
 
     public void ClearHand()
     {
@@ -271,18 +316,23 @@ public class Player : NetworkBehaviour, IPlayer
         }
         return true;
     }
+
     public override string ToString()
     {
         return $"Name:{_name}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
     }
+
     #region method wrappers
+
     public Coroutine Startroutine(IEnumerator coroutin)
     {
         return StartCoroutine(coroutin);
     }
+
     public void StopRoutine(Coroutine coroutin)
     {
         StopCoroutine(coroutin);
     }
-    #endregion
+
+    #endregion method wrappers
 }

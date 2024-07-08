@@ -36,6 +36,9 @@ public class PlayerUIController : IPlayerUIControler
 #endif
             return;
         }
+#if Log
+        LogManager.Log($"{_player.Runner.LocalPlayer} Icon Is Set !",Color.gray,LogManager.ValueInformationLog);
+#endif
         _playerUI.PlayerIcon.sprite = sprite;
     }
 

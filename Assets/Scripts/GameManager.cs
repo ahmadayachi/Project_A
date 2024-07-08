@@ -1,4 +1,5 @@
 #define AUTOSTARTGAMECONTROL
+
 using Fusion;
 using System;
 using System.Collections;
@@ -122,10 +123,12 @@ public class GameManager : NetworkBehaviour
 
     [Networked]
     public GameState _gameState { get; set; }
+
     [Networked] private byte _dealtCardsNumber { get; set; }
     public byte DealtCardsNumber { get => _dealtCardsNumber; }
-    [Networked] DoubtState _doubtState { get; set;}
+    [Networked] private DoubtState _doubtState { get; set; }
     public DoubtState DoubtState { get; set; }
+
     #endregion GameState properties
 
     #region Live Bet Props
@@ -166,7 +169,8 @@ public class GameManager : NetworkBehaviour
 #if AUTOSTARTGAMECONTROL
     public bool AutoStartGame;
 #endif
-#endregion Simulation Props
+
+    #endregion Simulation Props
 
     #region Routins
 
@@ -191,7 +195,9 @@ public class GameManager : NetworkBehaviour
     #endregion Doubt Setup
 
     #region BetHandler Setup
+
     private void CreateBetHandler() => _betHandler = new BetHandler();
+
     #endregion BetHandler Setup
 
     #region Cards Pool Setup
@@ -233,7 +239,7 @@ public class GameManager : NetworkBehaviour
         if (GameMode != GameMode.Single)
         {
 #if Log
-            LogManager.Log($"{Runner.LocalPlayer} Callback Manager and Changer detector is Set Up  !",Color.gray,LogManager.ValueInformationLog);
+            LogManager.Log($"{Runner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);
 #endif
             _callBackManager = new CallBackManager();
 
@@ -264,14 +270,14 @@ public class GameManager : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
 #if Log
-        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network  !", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
 #endif
         foreach (var change in _changeDetector.DetectChanges(this))
         {
             switch (change)
             {
                 case nameof(_gameState): OnGameStateChanged(); break;
-                case nameof(_playerTimerState):_callBackManager.EnqueueOrExecute(OnPlayerTimerStateChanged); break;
+                case nameof(_playerTimerState): _callBackManager.EnqueueOrExecute(OnPlayerTimerStateChanged); break;
                 case nameof(_currentPlayerID): _callBackManager.EnqueueOrExecute(OnCurrentPlayerIDChanged); break;
             }
         }
@@ -293,14 +299,17 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
 
     #region General Logic Swamp
+
     private bool NeedSimuationSetUp()
     {
         return _gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp;
     }
+
     public bool CanStartGame()
     {
         return IsHost && (_gameState == GameState.NoGameState);
     }
+
     public void HostStartGame()
     {
         //uploading Deck Info
@@ -315,6 +324,7 @@ public class GameManager : NetworkBehaviour
         //simulation Prep
         _gameState = GameState.SimulationSetUp;
     }
+
     private IEnumerator WaitSetUp()
     {
         _simulationSetUpSuccessfull = false;
@@ -338,6 +348,7 @@ public class GameManager : NetworkBehaviour
         //reseting
         _playerReadyList.Clear();
     }
+
     private IEnumerator WaitForPlayersGameStartedAnimation()
     {
         yield return WaitPlayers();
@@ -347,6 +358,7 @@ public class GameManager : NetworkBehaviour
         //moving to dealing state
         _gameState = GameState.Dealing;
     }
+
     private IEnumerator WaitSetUpThenWaitPlayers()
     {
         yield return WaitSetUp();
@@ -355,7 +367,7 @@ public class GameManager : NetworkBehaviour
         if (_simulationSetUpSuccessfull)
         {
 #if Log
-            LogManager.Log("Host Waiting For Players Simulation Set Up",Color.yellow,LogManager.ValueInformationLog);
+            LogManager.Log("Host Waiting For Players Simulation Set Up", Color.yellow, LogManager.ValueInformationLog);
 #endif
 
             yield return WaitPlayers();
@@ -621,11 +633,9 @@ public class GameManager : NetworkBehaviour
         //resetting RunTime Data
         _runTimeDataHolder.RunTimePlayersData.Clear();
         _runTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
-        //setting the first player 
+        //setting the first player
         _currentPlayerID = Players[0].ID;
         CurrentPlayer = Players[0];
-
-
     }
 
     private void SetUpRunTimeData()
@@ -687,7 +697,7 @@ public class GameManager : NetworkBehaviour
                 player.BondPlayerSimulation(this);
                 //setting local player
                 SetLocalPlayer(player);
-               
+
                 //storing player on local simulation
                 Players[playerIndex++] = player;
             }
@@ -753,6 +763,7 @@ public class GameManager : NetworkBehaviour
     }
 
     private void SetUpCardManager() => CardManager.Init(_runTimeDataHolder.DeckInfo);
+
     private void SetMaxPlayerCards()
     {
         if (_playersNumber == 0)
@@ -770,6 +781,7 @@ public class GameManager : NetworkBehaviour
         }
         _maxPlayerCards = (byte)(playerCards - 1);
     }
+
     //TODO : Link with UI(when Doubt scene finsih on Host )
     /// <summary>
     /// invked by host after Doubt scene
@@ -782,6 +794,7 @@ public class GameManager : NetworkBehaviour
         //Directing Game State
         _gameState = GameState.RoudOver;
     }
+
     private void CaluCulateDoubtSceneTimer()
     {
         //TODO: Calculate Doubt Scene Timer Based On UI Needs
@@ -827,6 +840,7 @@ public class GameManager : NetworkBehaviour
             return;
         }
     }
+
     private void RoundOverVariablesCleaning()
     {
         _liveBetPlayerID = string.Empty;
@@ -843,7 +857,8 @@ public class GameManager : NetworkBehaviour
         }
         _doubtState = DoubtState.NoDoubting;
     }
-    #endregion General Logic
+
+    #endregion General Logic Swamp
 
     #region Mono Method Wrappers
 
@@ -931,7 +946,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        //stoping timer 
+        //stoping timer
         _playerTimerState = PlayerTimerState.StopTimer;
         //making sure the array is sorted before confirming
         Extention.BetDiffuser(bet, _diffusedBet);
@@ -1027,7 +1042,7 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        //stoping timer 
+        //stoping timer
         _playerTimerState = PlayerTimerState.StopTimer;
 
         byte[] liveBet = _liveBet.ToByteArray();
@@ -1061,9 +1076,10 @@ public class GameManager : NetworkBehaviour
     #endregion Player Commands  RPC Methods
 
     #region Doubting State
+
     private void OnDoubtLogic(DoubtState doubtState)
     {
-        //updating the DoubtState , removeable maybe needed for ui 
+        //updating the DoubtState , removeable maybe needed for ui
         _doubtState = doubtState;
         // Calculate and Set Doubt Scene Time
         CaluCulateDoubtSceneTimer();
@@ -1080,6 +1096,7 @@ public class GameManager : NetworkBehaviour
         // Updating Clients and Host UI
         _gameState = GameState.Doubting;
     }
+
     #endregion Doubting State
 
     #region Round Over Logic
@@ -1112,6 +1129,7 @@ public class GameManager : NetworkBehaviour
             _gameState = GameState.Dealing;
         }
     }
+
     #endregion Round Over Logic
 
     #region state contol methods
@@ -1245,8 +1263,8 @@ public class GameManager : NetworkBehaviour
         {
             CurrentPlayer = newCurrentPlayer;
             //should invoke corresponding UI or something
-            
-            //starting Player State 
+
+            //starting Player State
             if (_gameState == GameState.PlayerTurn)
                 StartPlayerTimer();
         }
@@ -1257,7 +1275,6 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-
     }
 
     private bool NeedToLookForPlayers(ref int CurrentPlayerIndex, IPlayer player)
@@ -1305,7 +1322,7 @@ public class GameManager : NetworkBehaviour
     private void OnGameStateChanged()
     {
 #if Log
-        LogManager.Log($"{Runner.LocalPlayer} Game State Changed ! gameState={_gameState}",Color.gray,LogManager.ValueInformationLog);
+        LogManager.Log($"{Runner.LocalPlayer} Game State Changed ! gameState={_gameState}", Color.gray, LogManager.ValueInformationLog);
 #endif
         switch (_gameState)
         {
@@ -1320,35 +1337,40 @@ public class GameManager : NetworkBehaviour
             case GameState.LastPlayerTurn: _callBackManager.EnqueueOrExecute(StartPlayerTimer); break;
         }
     }
+
     private void HostMigration()
     {
         _uiManager.UIEvents.OnHostMigration();
     }
+
     private void GameOver()
     {
         _uiManager.UIEvents.OnGameOver();
-        //cleaing Cards 
+        //cleaing Cards
         _cardsPool.DestroyAll();
         if (IsHost)
         {
             RoundOverVariablesCleaning();
         }
     }
+
     private void RoundOver()
     {
         //regular UI Cleaning Stuff
         _uiManager.UIEvents.OnRoundOver();
         //TODO : Link with UI
-        //cleaing Cards , link to On ROund Over 
+        //cleaing Cards , link to On ROund Over
         _cardsPool.DestroyAll();
         if (IsHost)
             OnRoundIsOverLogic();
     }
+
     private void Doubting()
     {
         //Doubting Scene Or Something
         _uiManager.UIEvents.OnDoubting();
     }
+
     private void StartPlayerTimer()
     {
         if (IsHost)
@@ -1367,11 +1389,13 @@ public class GameManager : NetworkBehaviour
             ChangeState(_dealer, args);
         }
     }
+
     private void OnDealingOver()
     {
-        //maybe some other UI Shit here 
+        //maybe some other UI Shit here
         _gameState = GameState.FirstPlayerTurn;
     }
+
     private void SimulationPrepGameState()
     {
         StartSimulationSetUp();
@@ -1394,7 +1418,6 @@ public class GameManager : NetworkBehaviour
             _waitingGameStartedAnimationRoutine = StartCoroutine(WaitForPlayersGameStartedAnimation());
         }
     }
-
 
     #endregion GameState Call Backs
 }

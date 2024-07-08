@@ -237,7 +237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SortKey: 2724684804
   ObjectInterest: 1
-  Flags: 262145
+  Flags: 524289
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8202717803055195448}
@@ -314,7 +314,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 2eaea66b25eccde43b8dcf874d4a140a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 89ffeec4f59908e4eb7c356c7b07e8af, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
