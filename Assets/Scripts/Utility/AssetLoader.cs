@@ -8,7 +8,7 @@ public static class AssetLoader
 {
     #region Deck Loader
     private const string CartoonishSkinAddr = "CartoonishCD";
-    
+    private const string WhiteDeckAddr = "White_deck.asset";
     private static DeckContainer _deckContainer;
     public static DeckContainer DeckContainerInstance
     {
@@ -22,7 +22,7 @@ public static class AssetLoader
     }
     public static void LoadCardContainer()
     {       
-        var opCard = Addressables.LoadAssetAsync<DeckContainer>(CartoonishSkinAddr);
+        var opCard = Addressables.LoadAssetAsync<DeckContainer>(WhiteDeckAddr);
         opCard.WaitForCompletion();
         _deckContainer = opCard.Result;
     }
