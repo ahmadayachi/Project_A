@@ -40,6 +40,7 @@ public class GameManager : NetworkBehaviour
     #region UI Manager
 
     [SerializeField] private UIManager _uiManager;
+    public UIManager UIManager { get => _uiManager; }
 
     #endregion UI Manager
 
@@ -223,6 +224,7 @@ public class GameManager : NetworkBehaviour
         poolArgs.CardPrefab = cardPrefab;
         poolArgs.MaxPlayerCards = _maxPlayerCards;
         poolArgs.ActivePlayerCount = (byte)_playersNumber;
+        poolArgs.CardsHolder = _uiManager.CardsHolder;
         _cardsPool = new CardPool(poolArgs);
     }
 
@@ -905,7 +907,6 @@ public class GameManager : NetworkBehaviour
     {
         StopCoroutine(routineCash);
     }
-
     #endregion Mono Method Wrappers
 
     #region Player Commands  RPC Methods

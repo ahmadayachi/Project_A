@@ -118,10 +118,11 @@ public class CardPool
     private Queue<int> emptyIndex = new Queue<int>();
     private ICard currentCard => _cards[_arrayIndex];
     private bool arrayFull => _cards.Length == _arrayIndex;
-
+    private Transform _cardsHolder;
     public CardPool(CardPoolArguments poolArgs)
     {
        _cardPrefab = poolArgs.CardPrefab;
+        _cardsHolder = poolArgs.CardsHolder;
 #if USE_FIXED_ARRAY_SIZE
         InitArray(poolArgs.MaxPlayerCards,poolArgs.ActivePlayerCount);
 #endif
@@ -247,7 +248,7 @@ public class CardPool
 
     private ICard InstantiateCard()
     {
-        var gameobj = MonoBehaviour.Instantiate(_cardPrefab);
+        var gameobj = GameObject.Instantiate(_cardPrefab,_cardsHolder);
         return gameobj.GetComponent<ICard>();
     }
 }

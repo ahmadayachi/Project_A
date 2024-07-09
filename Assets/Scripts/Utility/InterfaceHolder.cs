@@ -105,6 +105,7 @@ public struct CardInfo : INetworkStruct
     }
 
 }
+[Serializable]
 public enum CardSuit : byte
 {
     NoSuit = 0,
@@ -206,6 +207,7 @@ public struct CardPoolArguments
     public GameObject CardPrefab;
     public byte MaxPlayerCards;
     public byte ActivePlayerCount;
+    public Transform CardsHolder;
 }
 public struct PlayerArguments
 {

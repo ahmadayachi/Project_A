@@ -8,9 +8,9 @@ public class Card : MonoBehaviour, ICard
     #region Card Fields
 
     [SerializeField] private CardUI _cardUI;
-    private byte _rank;
-    private byte _id;
-    private CardSuit _suit;
+    [SerializeField] private byte _rank;
+    [SerializeField] private byte _id;
+    [SerializeField] private CardSuit _suit;
     private ICardUIControler _cardUIControler;
 
     #endregion Card Fields

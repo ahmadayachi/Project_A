@@ -6,6 +6,7 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private PlayerUIPlacementSceneRefs _playerUIPlacementSceneRefs;
     public PlayerUIPlacementSceneRefs PlayerUIPlacementSceneRefs { get => _playerUIPlacementSceneRefs; }
+    [SerializeField] public Transform CardsHolder;
     private GameManager _gameManager;
 
     //later itll be an Interface
