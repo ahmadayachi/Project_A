@@ -91,3 +91,82 @@ MonoBehaviour:
     - {fileID: 21300000, guid: cb8a1e431faf30a4b8a6933573aaf15b, type: 3}
     - {fileID: 21300000, guid: c0bc234144c7a9a4a8793e1e4aab467a, type: 3}
     - {fileID: 21300000, guid: f9dc116d69566b749ab0cc0a5b6a2737, type: 3}
+  MaterialContainer:
+  - Rank: 1
+    Suits:
+    - {fileID: 2100000, guid: 59fd8f60524a0c0439d15d929dd6983f, type: 2}
+    - {fileID: 2100000, guid: d47bbaf519da84243be608dc551e5b2e, type: 2}
+    - {fileID: 2100000, guid: 5605ed7271857c34c9c5ae935ca27e06, type: 2}
+    - {fileID: 2100000, guid: c92675eae6fb3ba40a1029b60f4c9295, type: 2}
+  - Rank: 2
+    Suits:
+    - {fileID: 2100000, guid: a12e888123eed4d49a6bd023b47ce4d4, type: 2}
+    - {fileID: 2100000, guid: e50f16b230049354c89f9359b9a9431b, type: 2}
+    - {fileID: 2100000, guid: 9364c89cb20025f4fab1ff391a0aebfc, type: 2}
+    - {fileID: 2100000, guid: ebd12d27b23f0634b8ef3d48cd25da6d, type: 2}
+  - Rank: 3
+    Suits:
+    - {fileID: 2100000, guid: aa02d8cb01881f6498d30e6501bd5df0, type: 2}
+    - {fileID: 2100000, guid: 40c8a188f6730964fb6c7c6053fd23dd, type: 2}
+    - {fileID: 2100000, guid: 5e7df0877294a2a41ac38686f244648a, type: 2}
+    - {fileID: 2100000, guid: f91ca35575a468c45865acf50fcad4fe, type: 2}
+  - Rank: 4
+    Suits:
+    - {fileID: 2100000, guid: ee1a8060745a42d48b1a84d7c438d6aa, type: 2}
+    - {fileID: 2100000, guid: f7c843d762bb3384899d1d69fc39e304, type: 2}
+    - {fileID: 2100000, guid: 273abea75875fdc488210dffa6b47103, type: 2}
+    - {fileID: 2100000, guid: 7f8a3e5bbb62b6146a3f1e222f253c92, type: 2}
+  - Rank: 5
+    Suits:
+    - {fileID: 2100000, guid: 234ef0c16501ccd48b00d4d2cb0ad302, type: 2}
+    - {fileID: 2100000, guid: c5e6638e0b613434c83974942a3f0abd, type: 2}
+    - {fileID: 2100000, guid: de72dec32c2c52f4a9582b0a4e5e710f, type: 2}
+    - {fileID: 2100000, guid: ef13c9d05480f4949b34c79dc7382d71, type: 2}
+  - Rank: 6
+    Suits:
+    - {fileID: 2100000, guid: 3a35440582c72284d964ab95d4b85206, type: 2}
+    - {fileID: 2100000, guid: 1106c189d96efff4cb41c143417ef848, type: 2}
+    - {fileID: 2100000, guid: 90e262065597f6e46a1a18bf1b4c9cb4, type: 2}
+    - {fileID: 2100000, guid: 444a3049d92e71b4b99090b346903b72, type: 2}
+  - Rank: 7
+    Suits:
+    - {fileID: 2100000, guid: 090f38a50d549cc4895383b9c0455925, type: 2}
+    - {fileID: 2100000, guid: 3e468d584eacae04eb54b3a794066693, type: 2}
+    - {fileID: 2100000, guid: 28aa7dd8b6277f94d8de76ed2b696bb2, type: 2}
+    - {fileID: 2100000, guid: 1e06a7429042520438f5e2bc6b3d1f31, type: 2}
+  - Rank: 8
+    Suits:
+    - {fileID: 2100000, guid: c9e6df0a3cac6674695029dcbd591ea3, type: 2}
+    - {fileID: 2100000, guid: ce8bc35597795554ead8a7e3f4298170, type: 2}
+    - {fileID: 2100000, guid: 08008e9ced799a5419e5c4955cbada1c, type: 2}
+    - {fileID: 2100000, guid: 9afecdc3caa6cb94d8d7189f6e47b640, type: 2}
+  - Rank: 9
+    Suits:
+    - {fileID: 2100000, guid: 6374a7ddbd5baca4d8dcb094b6bbe1da, type: 2}
+    - {fileID: 2100000, guid: dcf31a9e3c31c3642996c03281280546, type: 2}
+    - {fileID: 2100000, guid: 06f5329d2f9e2ed4d8338a7ad842d0f5, type: 2}
+    - {fileID: 2100000, guid: 80a77b113b3a4bf4fb8cf0d31be5abea, type: 2}
+  - Rank: 10
+    Suits:
+    - {fileID: 2100000, guid: 456a5a3731e9f2d489a5ce99cd49dc2c, type: 2}
+    - {fileID: 2100000, guid: a60a6cc737a4f814b852a0c6e90c4117, type: 2}
+    - {fileID: 2100000, guid: b4907f34ec4f39f43bff46ee74295cf6, type: 2}
+    - {fileID: 2100000, guid: fd30dfb1c78e1fa47883b1838ad4d0c9, type: 2}
+  - Rank: 11
+    Suits:
+    - {fileID: 2100000, guid: 5ee99329bc70dff43b9814dce0561ac8, type: 2}
+    - {fileID: 2100000, guid: 888a6fbf2e7c1494ba197614b9555892, type: 2}
+    - {fileID: 2100000, guid: ed85f2e902e34fb4fb6ea60f6cc6da98, type: 2}
+    - {fileID: 2100000, guid: 593abf5e13b18964d94c0f1338778f11, type: 2}
+  - Rank: 12
+    Suits:
+    - {fileID: 2100000, guid: 79f711ecdacc3e941b0523f5b8a922a3, type: 2}
+    - {fileID: 2100000, guid: a21a8cc98fbafac47abee5c91373fbdd, type: 2}
+    - {fileID: 2100000, guid: d67fdc57b1034d44f9a74515ffd97697, type: 2}
+    - {fileID: 2100000, guid: 03a76d46af58fe441beeb0b2dabae953, type: 2}
+  - Rank: 13
+    Suits:
+    - {fileID: 2100000, guid: 842603bf151c9bc489874efa1308126e, type: 2}
+    - {fileID: 2100000, guid: 900f9fb79027c20438fcf20b6f939138, type: 2}
+    - {fileID: 2100000, guid: c135eb0cd4ca7e4458ba1e950647cc8b, type: 2}
+    - {fileID: 2100000, guid: c0bc2e995e33d0e47a89ff682a13dc89, type: 2}

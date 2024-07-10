@@ -49,7 +49,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a05e36423c5657540af9801feae46ec6
-    m_Address: Assets/prefabs/Deck/White_deck.asset
+    m_Address: White_deck.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

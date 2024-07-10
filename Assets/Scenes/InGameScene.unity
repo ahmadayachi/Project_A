@@ -139,6 +139,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (10)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -376,7 +380,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4199332720837305407, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6395319450776571910, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
       propertyPath: SortKey
@@ -803,6 +807,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -1031,6 +1039,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -1242,6 +1254,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
@@ -1658,6 +1674,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -1977,6 +1997,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
@@ -2732,6 +2756,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -2943,6 +2971,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (12)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
@@ -3263,6 +3295,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -3462,6 +3498,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
@@ -3839,7 +3879,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1929744545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3941,6 +3981,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
@@ -4141,6 +4185,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.01
@@ -4218,6 +4266,10 @@ PrefabInstance:
     - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_Name
       value: Blue_PlayingCards_Blank_00 (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693041384023231204, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7690226722388015351, guid: 3164b38464b3a9547beb4522f03f3031, type: 3}
       propertyPath: m_LocalScale.x

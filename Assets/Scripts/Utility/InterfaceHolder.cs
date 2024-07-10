@@ -246,9 +246,9 @@ public struct DeckInfo
 [Serializable]
 public struct CardUI
 {
-    public SpriteRenderer CardRank;
-    public SpriteRenderer CardPlate;
-    public SpriteRenderer CardBack;
+    public MeshRenderer CardRank;
+    //public SpriteRenderer CardPlate;
+    //public SpriteRenderer CardBack;
 }
 [Serializable]
 public struct PlayerUI
