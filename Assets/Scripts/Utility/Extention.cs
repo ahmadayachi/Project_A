@@ -80,11 +80,10 @@ public static class Extention
         }
     }
 
-    public static bool IsAValidBeloteRank(byte rank)
+    public static bool IsAValidCardRank(byte rank)
     {
-        if (rank == 1) return true;
-        if (rank >= 7 && rank <= 13) return true;
-        return false;
+        if(rank<=0||rank>13)return false;
+        return true;
     }
 
     /// <summary>
@@ -159,7 +158,15 @@ public static class Extention
                 firstCard.Rank == secondCard.Rank &&
                 firstCard.Suit == secondCard.Suit);
     }
-
+    public static bool ContainsCard(this List<ICard> cards, int cardID)
+    {
+        foreach (var card in cards)
+        {
+            if (card.ID == cardID)
+                return true;
+        }
+        return false;
+    }
     public static bool RemoveCard(this CardInfo[] array, CardInfo cardToRemove)
     {
         //blocking if card is not instentiated
@@ -361,6 +368,12 @@ public static class Extention
         return false;
     }
 
+    /// <summary>
+    /// Only for Arrays of IDs
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="cardID"></param>
+    /// <returns></returns>
     public static bool ContainsCardID(this NetworkArray<byte> array, byte cardID)
     {
         for (int index = 0; index < array.Length; index++)
@@ -456,7 +469,7 @@ public static class Extention
 
         return false;
     }
-
+    
     #endregion Networked Card Array extentions
 
     #region UI

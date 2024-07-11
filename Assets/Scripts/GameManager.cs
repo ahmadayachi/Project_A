@@ -1,4 +1,5 @@
 #define AUTOSTARTGAMECONTROL
+#define STARTWITH13CARDS
 
 using Fusion;
 using System;
@@ -613,6 +614,12 @@ public class GameManager : NetworkBehaviour
             playerArgs.isplayerOut = false;
             player.InitPlayer(playerArgs);
 
+#if STARTWITH13CARDS
+            for (int index = 0; index < 12; index++)
+            {
+                player.PlusOneCard();
+            }
+#endif
             //RunTime Data Adjust
             RunTimePlayerData newData = new RunTimePlayerData();
             newData.PlayerRef = playerData.PlayerRef;
@@ -860,7 +867,7 @@ public class GameManager : NetworkBehaviour
         _doubtState = DoubtState.NoDoubting;
     }
 
-    #endregion General Logic Swamp
+#endregion General Logic Swamp
 
     #region Mono Method Wrappers
 
@@ -907,6 +914,7 @@ public class GameManager : NetworkBehaviour
     {
         StopCoroutine(routineCash);
     }
+
     #endregion Mono Method Wrappers
 
     #region Player Commands  RPC Methods

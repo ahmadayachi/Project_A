@@ -22,6 +22,7 @@ public class Card : MonoBehaviour, ICard
     public byte ID { get => _id; }
     public CardSuit Suit { get => _suit; }
     public ICardUIControler CardUIControl { get => _cardUIControler; }
+    public Transform Transform { get=>transform; }
 
     #endregion ICard Properties
 
@@ -38,10 +39,10 @@ public class Card : MonoBehaviour, ICard
 
     private bool SetRank(byte rank)
     {
-        if (!Extention.IsAValidBeloteRank(rank))
+        if (!Extention.IsAValidCardRank(rank))
         {
 #if Log
-            LogManager.LogError($"{rank} this rank is not a valid belote rank !");
+            LogManager.LogError($"{rank}  is not a Valid Rank !");
 #endif
             return false;
         }
@@ -90,6 +91,7 @@ public class Card : MonoBehaviour, ICard
         if (SetRank(card.Rank) && SetID(card.ID) && SetSuite(card.Suit))
         {
             _cardUIControler.SetCardRankSprite();
+            gameObject.name = $"Rank={_rank} ID = {_id}";
 #if Log
             LogManager.Log($"{this} is enabled !", Color.green, LogManager.ValueInformationLog);
 #endif

@@ -72,6 +72,7 @@ public interface ICard : ICardInfo
     void Enable(CardInfo card);
     void Disable();
     CardInfo ToCardInfo();
+    Transform Transform { get; }
     string ToString();
 }
 public interface ICardInfo
