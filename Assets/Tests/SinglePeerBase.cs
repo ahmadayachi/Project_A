@@ -1,4 +1,4 @@
-//#define UsingUnityTest
+#define UsingUnityTest
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,36 +37,38 @@ public class SinglePeerBase
     [Timeout(600000)]
     public IEnumerator MultiPeerSetup()
     {
-        yield return new EnterPlayMode();
+       // yield return new EnterPlayMode();
+        yield return null;
     }
     [UnityTearDown]
     public IEnumerator TearDown()
     {
         Debug.Log("Test Completed !");
-        yield return new ExitPlayMode();
+        yield return null;
+        //yield return new ExitPlayMode();
     }
 #else
-    [SetUp]
-    public void Setup()
-    {
-        // setting up CardManager Deck
-        StandardSizeDeckCheck(DeckType.Belote,
-        StandardSuitsNumber,
-                              Belote,
-                              CardManager.BELOTE_DECK_SUIT_SIZE);
+    //[SetUp]
+    //public void Setup()
+    //{
+    //    // setting up CardManager Deck
+    //    StandardSizeDeckCheck(DeckType.Belote,
+    //    StandardSuitsNumber,
+    //                          Belote,
+    //                          CardManager.BELOTE_DECK_SUIT_SIZE);
 
-        //creating a BetHandler 
-        _betHandler = new BetHandler();
+    //    //creating a BetHandler 
+    //    _betHandler = new BetHandler();
 
 
-        //setting the maxdelatsCards 
-        _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
-    }
-    [UnityTearDown]
-    public void TearDown()
-    {
-        Debug.Log("Test Completed !");
-    }
+    //    //setting the maxdelatsCards 
+    //    _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
+    //}
+    //[UnityTearDown]
+    //public void TearDown()
+    //{
+    //    Debug.Log("Test Completed !");
+    //}
 #endif
 
     /// <summary>
@@ -128,7 +130,16 @@ public class SinglePeerBase
         }
         return (byte)(playerCards - 1);
     }
-
+    protected bool DeckAirPocketsCheck(CardInfo[] deck)
+    {
+        //checking if there air case inside deck 
+        for (int index = 0; index < deck.Length; index++)
+        {
+            if(!deck[index].IsValid)return true;
+            if(!Extention.IsAValidCardRank(deck[index].Rank))return true;
+        }
+        return false;
+    }
     protected void LogDeck(CardInfo[] deck, string header)
     {
         for (int index = 0; index < deck.Length; index++)

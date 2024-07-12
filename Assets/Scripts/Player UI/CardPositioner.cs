@@ -9,7 +9,7 @@ public class CardPositioner : MonoBehaviour
     private List<ICard> _loadedCards = new List<ICard>();
     private Dictionary<int, List<ICard>> _rankPairedLoadedCards = new Dictionary<int, List<ICard>>();
     private CardPool _cardPool;
-
+    private bool _isLocalPlayer;
     #region Card Positioning staff
 
     public CardPool CardPool { get => _cardPool; }
@@ -38,7 +38,7 @@ public class CardPositioner : MonoBehaviour
     private Vector3 _layoutCardPosition = Vector3.zero;
     private Vector3 _cardPosition;
     private float _centerCardXPosition;
-
+    private Quaternion _flipCard = Quaternion.Euler(-80f, 0f, 180f);
     #endregion Card Positioning staff
 
     public void LoadCards(CardInfo[] cards)
@@ -67,15 +67,18 @@ public class CardPositioner : MonoBehaviour
         //sync paired Dick
         SyncRankPairedDic();
         //position loaded cards here
-        PositionLoadedCards();
+        PositionLoadedCardsForLocalPlayer();
     }
 
-    private void PositionLoadedCards()
+    private void PositionLoadedCardsForLocalPlayer()
     {
         PresetCardsPosition();
         PositionCards();
     }
+    private void PositionLoadedCardsOutOfReach()
+    {
 
+    }
     private void PresetCardsPosition()
     {
         //setting the first card position in center
@@ -124,11 +127,13 @@ public class CardPositioner : MonoBehaviour
 
     private void PositionCards()
     {
-        float yStack = 0;
+        //float yStack = 0;
         bool needStackCards;
+        float Ysign;
+        float AbsY;
         foreach (var cardPair in _rankPairedLoadedCards)
         {
-            yStack = Math.Abs(_layoutCardPosition.y);
+            //yStack = Math.Abs(_layoutCardPosition.y);
             needStackCards = false;
             foreach (var card in cardPair.Value)
             {
@@ -136,20 +141,38 @@ public class CardPositioner : MonoBehaviour
                 card.Transform.localPosition = _layoutCardPosition;
                 if (needStackCards)
                 {
-                    float Ysign = Math.Sign(_layoutCardPosition.y);
-                    float previousY = Math.Abs(_layoutCardPosition.y);
+                    //Ysign = Math.Sign(_layoutCardPosition.y);
+                    //AbsY = Math.Abs(_layoutCardPosition.y);
 
-                    card.Transform.localPosition = new Vector3(_layoutCardPosition.x, (previousY + yStack) * Ysign, _layoutCardPosition.z);
+                    card.Transform.localPosition = Vector3.zero;
                 }
-                yStack += (_ySpacing);
+                //  yStack += (_ySpacing);
                 needStackCards = true;
+                //handling non local player cards 
+                if (!_isLocalPlayer)
+                    card.Transform.localRotation = _flipCard; 
             }
+            //regular spacing 
+
             _layoutCardPosition.x += _xSpacing;
-            _layoutCardPosition.y += _ySpacingBuffer;
+            //y is a bit cringe to handle 
+            Ysign = Math.Sign(_layoutCardPosition.y);
+            if (Ysign < 0)
+                AbsY = (Math.Abs(_layoutCardPosition.y) - _ySpacingBuffer);
+            else
+                AbsY = _layoutCardPosition.y + _ySpacingBuffer;
+
+            if (AbsY < _ySpacingBuffer)
+                AbsY = 0;
+
+            if (Ysign != 0)
+                AbsY *= Ysign;
+            _layoutCardPosition.y = AbsY;
+
         }
     }
 
-    public void Init(CardPool cardPool)
+    public void Init(CardPool cardPool,bool islocalPlayer)
     {
         if (cardPool == null)
         {
@@ -159,6 +182,7 @@ public class CardPositioner : MonoBehaviour
             return;
         }
         _cardPool = cardPool;
+        _isLocalPlayer = islocalPlayer;
     }
 
     private void SyncRankPairedDic()

@@ -13,7 +13,7 @@ public class PlayerUIController : IPlayerUIControler
         _playerUI = playerUI;
         _player = player;
     }
-    public void SetUpCardPositionerCardPool(CardPool cardPool)=> _playerUI.CardPositioner.Init(cardPool);
+    public void SetUpCardPositionerCardPool(CardPool cardPool)=> _playerUI.CardPositioner.Init(cardPool,_player.IsLocalPlayer);
     public void SetPlayerName()
     {
         //maybe bypass empty one for resting 

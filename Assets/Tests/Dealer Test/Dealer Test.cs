@@ -25,7 +25,7 @@ public class DealerTest : SinglePeerBase
         Assert.IsTrue(IsAValidBeloteDeckWithAStandartSize(FakeDeck), "Deck is not a valid Belote Deck !");
         CreateFakePlayers(PlayersNumber);
         Assert.IsTrue(ArePlayersValid(FakePlayers), "Players Ares Not Valid!");
-        _dealer = new Dealer(StartRoutine,StopRoutine);
+        _dealer = new Dealer(StartRoutine, StopRoutine);
         yield return null;
         CardInfo[] FakeDeckClone = new CardInfo[FakeDeck.Length];
         Array.Copy(FakeDeck, FakeDeckClone, FakeDeck.Length);
@@ -34,7 +34,7 @@ public class DealerTest : SinglePeerBase
         args.Players = FakePlayers;
         Assert.IsFalse(IsDeckShuffled(FakeDeck, FakeDeckClone), "Deck should not be Shuffled");
         _dealer.Start(args);
-        yield return new WaitUntil(()=>_dealer.DealingRoutine == null);
+        yield return new WaitUntil(() => _dealer.DealingRoutine == null);
         Assert.IsTrue(IsDealingValid(FakePlayers), "Dealing Is Not Valid!");
         Assert.False(IsDeckShuffled(FakeDeck, FakeDeckClone), "Deck should not be Shuffled");
     }
@@ -58,5 +58,37 @@ public class DealerTest : SinglePeerBase
         Assert.IsTrue(IsDeckShuffled(FakeDeckClone, SecondFakeDeckClone), "Deck Have Been Shuffled !");
         LogDeck(SecondFakeDeckClone, "FakeDeck Card after Riffle Shuffle =>>");
         Assert.IsTrue(IsDeckShuffled(FakeDeck, SecondFakeDeckClone), "Deck Have Been Shuffled !");
+    }
+
+    [UnityTest]
+    public IEnumerator CustomDeckShuflingTest()
+    {
+        Assert.IsNull(CardManager.Deck);
+        //standart deck variables
+        DeckInfo standartDeckInfo = new DeckInfo();
+        standartDeckInfo.DeckType = DeckType.Standard;
+
+        standartDeckInfo.SuitsNumber = 4;
+
+        CardManager.Init(standartDeckInfo);
+        yield return null;
+        Assert.NotNull(CardManager.Deck);
+        Assert.IsFalse(CardManager.Deck.IsEmpty());
+        yield return null;
+
+        //check air pockets before shuffling
+        Assert.False(DeckAirPocketsCheck(CardManager.Deck));
+        //chekcing lenght
+        Assert.AreEqual(CardManager.Deck.Length, CardManager.Deck.ValidCardsCount());
+
+        _dealer = new Dealer(StartRoutine, StopRoutine);
+        CardManager.Deck.Shuffle();
+        Assert.AreEqual(CardManager.Deck.Length, CardManager.Deck.ValidCardsCount());
+        Assert.IsFalse(DeckAirPocketsCheck(CardManager.Deck));
+
+        _dealer.RiffleShuffle(CardManager.Deck);
+        Assert.AreEqual(CardManager.Deck.Length, CardManager.Deck.ValidCardsCount());
+        Assert.IsFalse(DeckAirPocketsCheck(CardManager.Deck));
+
     }
 }

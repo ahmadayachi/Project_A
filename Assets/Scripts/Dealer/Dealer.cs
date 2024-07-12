@@ -1,7 +1,7 @@
-
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class Dealer : State
 {
@@ -9,14 +9,15 @@ public class Dealer : State
     public Coroutine DealingRoutine;
     private Func<IEnumerator, Coroutine> _startRoutine;
     private Action<Coroutine> _stopRoutine;
-    
-    public Dealer (Func<IEnumerator, Coroutine> startRoutine,Action<Coroutine> stoproutine)
+
+    public Dealer(Func<IEnumerator, Coroutine> startRoutine, Action<Coroutine> stoproutine)
     {
         _startRoutine = startRoutine;
         _stopRoutine = stoproutine;
     }
 
-    #region State    
+    #region State
+
     public override void Start<T>(T arg)
     {
         if (Extention.TryCastToStruct(arg, out DealerStateArguments DealerStructarg))
@@ -25,7 +26,7 @@ public class Dealer : State
             if (DealingRoutine != null)
                 _stopRoutine?.Invoke(DealingRoutine);
 
-            DealingRoutine =  _startRoutine?.Invoke(DealCards(DealerStructarg));
+            DealingRoutine = _startRoutine?.Invoke(DealCards(DealerStructarg));
         }
         else
         {
@@ -34,6 +35,7 @@ public class Dealer : State
 #endif
         }
     }
+
     public override void ForceEnd()
     {
         if (DealingRoutine != null)
@@ -46,62 +48,87 @@ public class Dealer : State
         LogManager.Log("Dealing is forced to Stop!", Color.yellow, LogManager.DealerLog);
 #endif
     }
-    #endregion
 
+    #endregion State
 
     private IEnumerator DealCards(DealerStateArguments arguments)
     {
-        //creating a new instance to freely manage our deck  
+        //creating a new instance to freely manage our deck
         int deckLength = arguments.DeckToDeal.Length;
         CardInfo[] deck = new CardInfo[deckLength];
 
-        // filling our new instanse 
+        // filling our new instanse
         Array.Copy(arguments.DeckToDeal, deck, deckLength);
-
-        //starting by shuffling the deck as a whole 
+        yield return null;
+        //starting by shuffling the deck as a whole
         deck.Shuffle();
         yield return null;
-        //proceeding to RiffleShuffle the deck 
-         RiffleShuffle(deck);
+        //proceeding to RiffleShuffle the deck
+        RiffleShuffle(deck);
 
         yield return null;
 
-        //dealing cards 
+        if (!DeckIsReadyTOServe(deck))
+        {
+#if Log
+            foreach (var item in deck)
+            {
+               LogManager.Log($"{item}", Color.red);
+            }
+            LogManager.LogError("Deck is not Ready to Deal to Players !");
+#endif
+            ForceEnd();
+
+            yield break;
+        }
+        //dealing cards
         int playerCount = arguments.Players.Length;
         ICardReceiver player;
         int arrayIndex = 0;
         for (int index = 0; index < playerCount; index++)
         {
             player = arguments.Players[index];
-            //jumping players that cant reciese cards 
+            //jumping players that cant reciese cards
             if (player.IsOut)
                 continue;
             for (byte jindex = 0; jindex < player.CardsToDealCounter; jindex++)
             {
                 //at this point a player should get his card
-                if (player.AddCard(deck[arrayIndex]))
-                    arrayIndex++;
-                //if for some reason adding card fails Stop Dealing 
+                player.AddCard(deck[arrayIndex++]);
+                //if for some reason adding card fails Stop Dealing
                 //else
                 //{
                 //    ForceEnd();
                 //    yield break;
-                //} 
+                //}
             }
         }
 
         //invoking callback for (some UI shet)
         arguments.OnDealerStateEnds?.Invoke();
-        //reseting coroutine 
+        //reseting coroutine
         DealingRoutine = null;
     }
-    //revert to private 
+
+    private bool DeckIsReadyTOServe(CardInfo[] deck)
+    {
+        if (deck.IsEmpty())
+            return false;
+        for (int index = 0; index < deck.Length; index++)
+        {
+            if (!deck[index].IsValid || !Extention.IsAValidCardRank(deck[index].Rank))
+                return false;
+        }
+        return true;
+    }
+
+    //revert to private
     public void RiffleShuffle(CardInfo[] deck)
     {
-        // creating a random cut which represent the point to slipt the deck 
+        // creating a random cut which represent the point to slipt the deck
         int deckLength = deck.Length;
 
-        //creating a random seed 
+        //creating a random seed
         System.Random rng = new System.Random();
         int cut = rng.Next(_minHalfDeckSize, (deckLength - _minHalfDeckSize) + 1);
 
@@ -112,7 +139,6 @@ public class Dealer : State
         int bottomHalfIndex = 0;
         for (int index = 0; index < deckLength; index++)
         {
-
             if (index < cut)
                 topHalf[index] = deck[index];
             else
@@ -122,26 +148,28 @@ public class Dealer : State
                 BottomHalf[bottomHalfIndex] = deck[index];
             }
         }
-
-        //clearing the deck just max simulation of this shuffle 
+        Assert.IsTrue(DeckIsReadyTOServe(topHalf));
+        Assert.IsTrue(DeckIsReadyTOServe(BottomHalf));
+        //clearing the deck just max simulation of this shuffle
         Array.Clear(deck, 0, deckLength);
 
-        //refilling the deck from the two splits 
+        //refilling the deck from the two splits
         int topHalfIndex = 0;
         bottomHalfIndex = 0;
         for (int deckIndex = 0; deckIndex < deckLength; deckIndex++)
         {
-            // if can add from top half 
+            // if can add from top half
             if (topHalfIndex < cut && deckIndex < deckLength)
             {
                 deck[deckIndex] = topHalf[topHalfIndex++];
             }
-            //if can can add from bottom half 
+            //if can can add from bottom half
             if (bottomHalfIndex < bottomHalflength && deckIndex < deckLength)
             {
                 deck[++deckIndex] = BottomHalf[bottomHalfIndex++];
             }
         }
+        Assert.AreEqual(CardManager.Deck.Length, deck.ValidCardsCount(),$"lenth {CardManager.Deck.Length} valid count {deck.ValidCardsCount()}");
+        Assert.IsTrue(DeckIsReadyTOServe(deck));
     }
-   
 }

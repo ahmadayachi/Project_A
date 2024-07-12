@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -79,6 +80,7 @@ public class CardManagerTest : SinglePeerBase
             int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
             int actualDeckSize = CardManager.Deck.ValidCardsCount();
             Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
+            Assert.IsTrue(DeckAirPocketsCheck(CardManager.Deck));
 #if Log
             Debug.Log($" suits Index {SuitIndex}, {LogHeader} Deck Size{actualDeckSize}");
 #endif
@@ -92,7 +94,7 @@ public class CardManagerTest : SinglePeerBase
             yield return new WaitForSeconds(1);
         }
     }
-
+   
     #endregion private Routines
 
     #region private methods
