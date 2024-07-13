@@ -54,7 +54,7 @@ public class DealerTest : SinglePeerBase
         CardInfo[] SecondFakeDeckClone = new CardInfo[FakeDeck.Length];
         Array.Copy(FakeDeckClone, SecondFakeDeckClone, FakeDeckClone.Length);
         _dealer = new Dealer(StartRoutine, StopRoutine);
-        _dealer.RiffleShuffle(SecondFakeDeckClone);
+        SecondFakeDeckClone.RiffleShuffle();
         Assert.IsTrue(IsDeckShuffled(FakeDeckClone, SecondFakeDeckClone), "Deck Have Been Shuffled !");
         LogDeck(SecondFakeDeckClone, "FakeDeck Card after Riffle Shuffle =>>");
         Assert.IsTrue(IsDeckShuffled(FakeDeck, SecondFakeDeckClone), "Deck Have Been Shuffled !");
@@ -68,7 +68,7 @@ public class DealerTest : SinglePeerBase
         DeckInfo standartDeckInfo = new DeckInfo();
         standartDeckInfo.DeckType = DeckType.Standard;
 
-        standartDeckInfo.SuitsNumber = 4;
+        standartDeckInfo.SuitsNumber = 8;
 
         CardManager.Init(standartDeckInfo);
         yield return null;
@@ -86,7 +86,7 @@ public class DealerTest : SinglePeerBase
         Assert.AreEqual(CardManager.Deck.Length, CardManager.Deck.ValidCardsCount());
         Assert.IsFalse(DeckAirPocketsCheck(CardManager.Deck));
 
-        _dealer.RiffleShuffle(CardManager.Deck);
+        CardManager.Deck.RiffleShuffle();
         Assert.AreEqual(CardManager.Deck.Length, CardManager.Deck.ValidCardsCount());
         Assert.IsFalse(DeckAirPocketsCheck(CardManager.Deck));
 

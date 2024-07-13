@@ -125,7 +125,51 @@ public static class Extention
             array[RandomIndex] = temp;
         }
     }
-
+    public static void RiffleShuffle<T>(this T[] deck)
+    {
+        // creating cut which represent the point to slipt the deck
+        int deckLength = deck.Length;
+        //cut is top half size
+        int cut = deckLength / 2;
+        //filling the two splits from the deck
+        T[] topHalf = new T[cut];
+        int bottomHalflength = deckLength - cut;
+        T[] BottomHalf = new T[bottomHalflength];
+        int bottomHalfIndex = 0;
+        for (int index = 0; index < deckLength; index++)
+        {
+            if (index < cut)
+                topHalf[index] = deck[index];
+            else
+            {
+                if (index > cut)
+                    bottomHalfIndex++;
+                BottomHalf[bottomHalfIndex] = deck[index];
+            }
+        }
+        //clearing the deck just max simulation of this shuffle
+        Array.Clear(deck, 0, deckLength);
+        //infusing the two halfs inside the deck 
+        int topHalfIndex = 0;
+        bottomHalfIndex = 0;
+        int deckIndex = 0;
+        bool needJump = false;
+        do
+        {
+            if (topHalfIndex < cut)
+            {
+                deck[deckIndex] = topHalf[topHalfIndex++];
+                needJump = true;
+            }
+            if (bottomHalfIndex < bottomHalflength)
+            {
+                if (needJump)
+                    ++deckIndex;
+                deck[deckIndex] = BottomHalf[bottomHalfIndex++];
+            }
+            ++deckIndex;
+        } while (deckIndex < deckLength);
+    }
     public static bool AddCard(this CardInfo[] array, CardInfo card)
     {
         if (!card.IsValid || array.Contains(card))

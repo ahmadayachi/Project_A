@@ -48,27 +48,27 @@ public class SinglePeerBase
         //yield return new ExitPlayMode();
     }
 #else
-    //[SetUp]
-    //public void Setup()
-    //{
-    //    // setting up CardManager Deck
-    //    StandardSizeDeckCheck(DeckType.Belote,
-    //    StandardSuitsNumber,
-    //                          Belote,
-    //                          CardManager.BELOTE_DECK_SUIT_SIZE);
+    [SetUp]
+    public void Setup()
+    {
+        // setting up CardManager Deck
+        StandardSizeDeckCheck(DeckType.Belote,
+        StandardSuitsNumber,
+                              Belote,
+                              CardManager.BELOTE_DECK_SUIT_SIZE);
 
-    //    //creating a BetHandler 
-    //    _betHandler = new BetHandler();
+        //creating a BetHandler 
+        _betHandler = new BetHandler();
 
 
-    //    //setting the maxdelatsCards 
-    //    _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
-    //}
-    //[UnityTearDown]
-    //public void TearDown()
-    //{
-    //    Debug.Log("Test Completed !");
-    //}
+        //setting the maxdelatsCards 
+        _maxDealtCards = SetMaxPlayerCards(_playerNumber) * _playerNumber;
+    }
+    [UnityTearDown]
+    public void TearDown()
+    {
+        Debug.Log("Test Completed !");
+    }
 #endif
 
     /// <summary>
