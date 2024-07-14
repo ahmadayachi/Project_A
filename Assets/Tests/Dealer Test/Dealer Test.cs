@@ -68,7 +68,7 @@ public class DealerTest : SinglePeerBase
         DeckInfo standartDeckInfo = new DeckInfo();
         standartDeckInfo.DeckType = DeckType.Standard;
 
-        standartDeckInfo.SuitsNumber = 8;
+        standartDeckInfo.SuitsNumber = 7;
 
         CardManager.Init(standartDeckInfo);
         yield return null;

@@ -8,8 +8,13 @@ public class CardPositioner : MonoBehaviour
 {
     private List<ICard> _loadedCards = new List<ICard>();
     private Dictionary<int, List<ICard>> _rankPairedLoadedCards = new Dictionary<int, List<ICard>>();
+
+    //list contains on header Cards
+    private List<ICard> _diffusedRankPairedLoadedCards = new List<ICard>();
+
     private CardPool _cardPool;
     private bool _isLocalPlayer;
+
     #region Card Positioning staff
 
     public CardPool CardPool { get => _cardPool; }
@@ -39,6 +44,7 @@ public class CardPositioner : MonoBehaviour
     private Vector3 _cardPosition;
     private float _centerCardXPosition;
     private Quaternion _flipCard = Quaternion.Euler(-80f, 0f, 180f);
+
     #endregion Card Positioning staff
 
     public void LoadCards(CardInfo[] cards)
@@ -72,14 +78,14 @@ public class CardPositioner : MonoBehaviour
 
     private void PositionLoadedCardsForLocalPlayer()
     {
-        PresetCardsPosition();
-        PositionCards();
+        PresetCardsXPosition();
+        PositionCardsOnX();
+        PositionCardsOnY();
+        PositionCardsOnZ();
+        RotateCardsOnY();
     }
-    private void PositionLoadedCardsOutOfReach()
-    {
 
-    }
-    private void PresetCardsPosition()
+    private void PresetCardsXPosition()
     {
         //setting the first card position in center
         _cardPosition = Vector3.zero;
@@ -106,31 +112,116 @@ public class CardPositioner : MonoBehaviour
                 currentXPos = _cardPosition.x;
                 _cardPosition.x = _centerCardXPosition;
                 if (currentXPos > _centerCardXPosition)
-                {
                     _cardPosition.x += (_centerCardXPosition - currentXPos);
-                    _cardPosition.y = -(_cardPosition.y);
-                }
                 else
-                {
                     _cardPosition.x += (_centerCardXPosition - currentXPos) + _xSpacing;
-                    _cardPosition.y = -(_cardPosition.y);
-                    _cardPosition.y += _cardPosition.y <= _ySpacingBuffer ? _ySpacing : _ySpacingBuffer;
-                    if (_cardPosition.z <= _zSpacing)
-                        _cardPosition.z += _zSpacing;
-                    else
-                        _cardPosition.z += _cardPosition.z >= -1 ? _zSpacingSecondBuffer : _zSpacingFirstBuffer;
-                }
             }
             index++;
         }
     }
 
-    private void PositionCards()
+    private void DiffusePairedCards()
     {
-        //float yStack = 0;
+        _diffusedRankPairedLoadedCards.Clear();
+        foreach (var item in _rankPairedLoadedCards)
+        {
+            _diffusedRankPairedLoadedCards.Add(item.Value.First());
+        }
+    }
+
+    private void RotateCardsOnY()
+    {
+        DiffusePairedCards();
+        int cardsCount = _diffusedRankPairedLoadedCards.Count;
+        bool isCardsCountEven = cardsCount % 2 == 0;
+
+        int midleCardIndex = (cardsCount / 2);
+        //starting with the card nex to the middle one
+        int CurrentCardIndex = midleCardIndex + 1;
+        int diffrence = 0;
+        float yRotationStacker = _yCardRotationBuffer;
+        int MirrorCardIndex = 0;
+        do
+        {
+            //setting card z stacker
+            var card = _diffusedRankPairedLoadedCards[CurrentCardIndex];
+            //casually hard coding temporary shet 
+            if (_isLocalPlayer)
+                card.Transform.localRotation = Quaternion.Euler(0, yRotationStacker,0);
+            else
+                card.Transform.localRotation = Quaternion.Euler(-80f, yRotationStacker, 180f);
+
+            //Mirror Card Index Calculation"Big Brain Mode"
+            diffrence = CurrentCardIndex - midleCardIndex;
+            MirrorCardIndex = midleCardIndex - diffrence;
+            //if its even we have two middle cards
+            if (isCardsCountEven)
+                MirrorCardIndex -= 1;
+            //setting mirror Card z stacker
+            card = _diffusedRankPairedLoadedCards[MirrorCardIndex];
+            if (_isLocalPlayer)
+                card.Transform.localRotation = Quaternion.Euler(0, -yRotationStacker,0);
+            else
+                card.Transform.localRotation = Quaternion.Euler(-80f, yRotationStacker, 180f);
+            //stacking y
+            yRotationStacker += _yCardRotationBuffer;
+            //advancing index I have a visible ptsd from Post Increment
+            ++CurrentCardIndex;
+        } while (CurrentCardIndex < cardsCount);
+    }
+
+    private void PositionCardsOnZ()
+    {
+        DiffusePairedCards();
+        int cardsCount = _diffusedRankPairedLoadedCards.Count;
+        bool isCardsCountEven = cardsCount % 2 == 0;
+
+        int midleCardIndex = (cardsCount / 2);
+        //starting with the card nex to the middle one
+        int CurrentCardIndex = midleCardIndex + 1;
+        int diffrence = 0;
+        float zStacker = _zSpacing;
+        int MirrorCardIndex = 0;
+        do
+        {
+            //setting card z stacker
+            var card = _diffusedRankPairedLoadedCards[CurrentCardIndex];
+            card.Transform.localPosition = new Vector3(card.Transform.localPosition.x, card.Transform.localPosition.y, zStacker);
+            //Mirror Card Index Calculation"Big Brain Mode"
+            diffrence = CurrentCardIndex - midleCardIndex;
+            MirrorCardIndex = midleCardIndex - diffrence;
+            //if its even we have two middle cards
+            if (isCardsCountEven)
+                MirrorCardIndex -= 1;
+            //setting mirror Card z stacker
+            card = _diffusedRankPairedLoadedCards[MirrorCardIndex];
+            card.Transform.localPosition = new Vector3(card.Transform.localPosition.x, card.Transform.localPosition.y, zStacker);
+            //stacking z
+            if (zStacker <= (-0.01f))
+                zStacker += _zSpacingSecondBuffer;
+            else
+                zStacker += _zSpacingFirstBuffer;
+            //advancing index I have a visible ptsd from Post Increment
+            ++CurrentCardIndex;
+        } while (CurrentCardIndex < cardsCount);
+    }
+
+    private void PositionCardsOnY()
+    {
+        //keeping y buffer low so that first position doesnt sink
+        float yPos = (_rankPairedLoadedCards.Count * _ySpacingBuffer) * -1;
+
+        foreach (var cardPair in _rankPairedLoadedCards)
+        {
+            var card = cardPair.Value.First();
+            card.Transform.localPosition = new Vector3(card.Transform.localPosition.x, yPos, card.Transform.localPosition.z);
+            yPos += _ySpacingBuffer;
+        }
+    }
+
+    private void PositionCardsOnX()
+    {
         bool needStackCards;
-        float Ysign;
-        float AbsY;
         foreach (var cardPair in _rankPairedLoadedCards)
         {
             //yStack = Math.Abs(_layoutCardPosition.y);
@@ -139,40 +230,21 @@ public class CardPositioner : MonoBehaviour
             {
                 card.Transform.SetParent(transform, false);
                 card.Transform.localPosition = _layoutCardPosition;
+                //all stacked cards are under table
                 if (needStackCards)
-                {
-                    //Ysign = Math.Sign(_layoutCardPosition.y);
-                    //AbsY = Math.Abs(_layoutCardPosition.y);
-
-                    card.Transform.localPosition = Vector3.zero;
-                }
-                //  yStack += (_ySpacing);
+                    card.Transform.position = Vector3.zero;
                 needStackCards = true;
-                //handling non local player cards 
+                //handling non local player cards
                 if (!_isLocalPlayer)
-                    card.Transform.localRotation = _flipCard; 
+                    card.Transform.localRotation = _flipCard;
             }
-            //regular spacing 
 
+            //regular x spacing
             _layoutCardPosition.x += _xSpacing;
-            //y is a bit cringe to handle 
-            Ysign = Math.Sign(_layoutCardPosition.y);
-            if (Ysign < 0)
-                AbsY = (Math.Abs(_layoutCardPosition.y) - _ySpacingBuffer);
-            else
-                AbsY = _layoutCardPosition.y + _ySpacingBuffer;
-
-            if (AbsY < _ySpacingBuffer)
-                AbsY = 0;
-
-            if (Ysign != 0)
-                AbsY *= Ysign;
-            _layoutCardPosition.y = AbsY;
-
         }
     }
 
-    public void Init(CardPool cardPool,bool islocalPlayer)
+    public void Init(CardPool cardPool, bool islocalPlayer)
     {
         if (cardPool == null)
         {

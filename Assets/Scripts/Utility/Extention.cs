@@ -168,6 +168,7 @@ public static class Extention
                 deck[deckIndex] = BottomHalf[bottomHalfIndex++];
             }
             ++deckIndex;
+            needJump = false;
         } while (deckIndex < deckLength);
     }
     public static bool AddCard(this CardInfo[] array, CardInfo card)

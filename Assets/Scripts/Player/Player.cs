@@ -7,7 +7,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 {
     #region Player fields
 
-    private NetworkRunner _runner;
+    private NetworkRunner _playerRunner;
     private ChangeDetector _changeDetector;
     private State _playerState;
     private PlayerUIController _playerUIControler;
@@ -22,7 +22,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     #region Player Networked Properties
 
     [Networked] public PlayerRef playerRef { get; set; }
-    [Networked] private string _name { get; set; }
+    [Networked] private string _playerName { get; set; }
     [Networked] private string _id { get; set; }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public State PlayerState { get => _playerState; }
     public IPlayerUIControler PlayerUIControler { get => _playerUIControler; }
-    public string Name { get => _name; }
+    public string Name { get => _playerName; }
     public string ID { get => _id; }
     public byte IconID { get => _iconID; }
     public bool IsLocalPlayer { get => Object.HasInputAuthority; }
@@ -81,15 +81,15 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public override void Spawned()
     {
-        _runner = Runner;
+        _playerRunner = Runner;
         _callBackManager = new CallBackManager();
         SetUpPlayerUIControler();
         SetUpPlayerState();
 
         Runner.SetIsSimulated(Object, true);
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        if (_name != string.Empty)
-            gameObject.name = _name + ":" + _id;
+        if (_playerName != string.Empty)
+            gameObject.name = _playerName + ":" + _id;
         //SetUpPlayerBehaviour();
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
@@ -109,7 +109,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         {
             switch (change)
             {
-                case nameof(_name): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName); break;
+                case nameof(_playerName): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName); break;
                 case nameof(_iconID): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon); break;
                 case nameof(_hand): _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards); break;
             }
@@ -192,7 +192,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 #endif
             return;
         }
-        _name = playerName;
+        _playerName = playerName;
     }
 
     public void SetCardCounter(byte cardCounter)
@@ -319,7 +319,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public override string ToString()
     {
-        return $"Name:{_name}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
+        return $"Name:{_playerName}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
     }
 
     #region method wrappers
