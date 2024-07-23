@@ -615,7 +615,7 @@ public class GameManager : NetworkBehaviour
             player.InitPlayer(playerArgs);
 
 #if STARTWITH13CARDS
-            for (int index = 0; index < 12; index++)
+            for (int index = 0; index < 2; index++)
             {
                 player.PlusOneCard();
             }

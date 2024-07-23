@@ -81,6 +81,7 @@ public class CardPositioner : MonoBehaviour
         PresetCardsXPosition();
         PositionCardsOnX();
         PositionCardsOnY();
+        if (_diffusedRankPairedLoadedCards.Count <= 2) return;
         PositionCardsOnZ();
         RotateCardsOnY();
     }

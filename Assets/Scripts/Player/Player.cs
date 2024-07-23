@@ -32,11 +32,11 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     [Networked] private NetworkBool _isOut { get; set; }
     [Networked] private byte _iconID { get; set; }
-
+    private const int MaxCardsInHand = 52;
     /// <summary>
     /// an array of player Card ID's
     /// </summary>
-    [Networked, Capacity(15)]
+    [Networked, Capacity(MaxCardsInHand)]
     private NetworkArray<byte> _hand { get; }
 
     #endregion Player Networked Properties
