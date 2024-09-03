@@ -307,9 +307,10 @@ public class EpicInGameLogicInitiater : MonoBehaviour
     {
         if (_selectedCustomDeckCards.Count < 8) return;
         _CustomDeckModPanel.SetActive(false);
-        InitPlayersUI();
-        _playersPanel.SetActive(true);
-        _startRunners.gameObject.SetActive(true);
+        _gameLogicModPanelSecondPhaze.SetActive(true);
+        //InitPlayersUI();
+        //_playersPanel.SetActive(true);
+        //_startRunners.gameObject.SetActive(true);
     }
     private void InitCustomCombinationPanel()
     {

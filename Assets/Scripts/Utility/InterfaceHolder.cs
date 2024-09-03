@@ -102,7 +102,7 @@ public struct CardInfo : INetworkStruct
     public NetworkBool IsValid;
     public override string ToString()
     {
-        return $"Ivalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
+        return $"Isvalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
     }
 
 }
