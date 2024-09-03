@@ -3,14 +3,15 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WebSocketSharp;
 
 public class LogManagerUIPanel : MonoBehaviour
 {
     [SerializeField] private RectTransform _inScrollLogsHolder;
     [SerializeField] private RectTransform _offScrollLogsHolder;
 
-    [SerializeField] private Sprite _errorSprite;
-    [SerializeField] private Sprite _normalLogSprite;
+    //[SerializeField] private Sprite _errorSprite;
+    //[SerializeField] private Sprite _normalLogSprite;
 
     [SerializeField] private Button _clearLogsUI;
     [SerializeField] private Button _syncLogs;
@@ -87,26 +88,17 @@ public class LogManagerUIPanel : MonoBehaviour
 
         if (LogManager.UILogs.Count > 0)
         {
-            for (int index = 0; index < LogManager.UILogs.Count; index++)
+            
+            for (int index = LogManager.UILogs.Count-1; index >=0 ; index--)
             {
                 var log = LogManager.UILogs[index];
-                DebugLog(log, false);
-                LogManager.UILogs.Remove(log);
-            }
-        }
-
-        if (LogManager.UILogErrors.Count > 0)
-        {
-            for (int index = 0; index < LogManager.UILogErrors.Count; index++)
-            {
-                var log = LogManager.UILogErrors[index];
-                DebugLog(log, true);
-                LogManager.UILogErrors.Remove(log);
+                DebugLog(log.Log,log.LogColor);
+                //LogManager.UILogs.Remove(log);
             }
         }
     }
 
-    private void DebugLog(string message, bool isError)
+    private void DebugLog(string message,Color color)
     {
         //setting up log oustside first
         GameObject _logGO = null;
@@ -130,12 +122,12 @@ public class LogManagerUIPanel : MonoBehaviour
         }
 
         //setting log image indicator
-        Image logImage = _logGO.GetComponent<Image>();
-        logImage.sprite = isError ? _errorSprite : _normalLogSprite;
+        //Image logImage = _logGO.GetComponentInChildren<Image>();
+        //logImage.sprite = isError ? _errorSprite : _normalLogSprite;
 
         //setting the message
         logText.text = message;
-
+        logText.color = color;
         // resizing the log
         ResizeLog(message.Length, logRect);
 
@@ -143,7 +135,7 @@ public class LogManagerUIPanel : MonoBehaviour
         Extention.SetParent(logRect, _inScrollLogsHolder);
 
         // resizing logHolder for scrollabilty
-        ResizeLogHolder(logRect.transform.localPosition.y);
+        //ResizeLogHolder(logRect.transform.localPosition.y);
 
         // cashing Log
         _logsPair.Add(logText, logRect);
@@ -158,19 +150,20 @@ public class LogManagerUIPanel : MonoBehaviour
         logRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
     }
 
-    private void ResizeLogHolder(float logYpos)
-    {
-        float absY = Mathf.Abs(logYpos);
-        if (absY >= _inScrollLogsHolder.rect.height)
-        {
-            _inScrollLogsHolder.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _inScrollLogsHolder.rect.height + logHeight);
-        }
-    }
+    //private void ResizeLogHolder(float logYpos)
+    //{
+    //    float absY = Mathf.Abs(logYpos);
+    //    if (absY >= _inScrollLogsHolder.rect.height)
+    //    {
+    //        _inScrollLogsHolder.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _inScrollLogsHolder.rect.height + logHeight);
+    //    }
+    //}
 
     private void ClearLogsData()
     {
         ////clearing logs data
         LogManager.ClearLogs();
+       
     }
 
     private void ClearLogsUI()

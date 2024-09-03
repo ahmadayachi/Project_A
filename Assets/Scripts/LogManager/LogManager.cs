@@ -29,21 +29,21 @@ public static class LogManager
 
     #region Log to Ui Methods and fields
 
-    public static List<string> UILogs;
-    public static List<string> UILogErrors;
+    public static List<UILogsData> UILogs;
+    //public static List<UILogsData> UILogErrors;
 
     public static void InitUILogData()
     {
         if (UILogs == null)
-            UILogs = new List<string>();
-        if (UILogErrors == null)
-            UILogErrors = new List<string>();
+            UILogs = new List<UILogsData>();
+        //if (UILogErrors == null)
+        //    UILogErrors = new List<UILogsData>();
     }
 
     public static void ClearLogs()
     {
         UILogs.Clear();
-        UILogErrors.Clear();
+        //UILogErrors.Clear();
     }
 
     #endregion Log to Ui Methods and fields
@@ -53,7 +53,11 @@ public static class LogManager
         Debug.LogError(message);
 #if LOGTOUI
         InitUILogData();
-        UILogErrors.Add(message);
+        var logData = new UILogsData();
+        logData.LogColor = Color.red;
+        logData.Log = message;
+        UILogs.Add(logData);
+        //UILogErrors.Add(logData);
 #endif
     }
 
@@ -84,7 +88,10 @@ public static class LogManager
         Debug.Log($"<color=#{ColorString}>" + message + "</color>");
 #if LOGTOUI
         InitUILogData();
-        UILogs.Add(message);
+        var logData = new UILogsData();
+        logData.LogColor = color;
+        logData.Log = message;
+        UILogs.Add(logData);
 #endif
     }
 }

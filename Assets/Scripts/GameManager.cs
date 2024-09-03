@@ -272,9 +272,9 @@ public class GameManager : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-#if Log
-        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
-#endif
+//#if Log
+//        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
+//#endif
         foreach (var change in _changeDetector.DetectChanges(this))
         {
             switch (change)

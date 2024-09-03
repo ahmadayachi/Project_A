@@ -350,3 +350,9 @@ public enum DeckType
     Custom = 69
 }
 #endregion
+
+public struct UILogsData
+{
+    public Color LogColor;
+    public string Log;
+}
