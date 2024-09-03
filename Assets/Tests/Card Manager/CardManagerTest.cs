@@ -80,7 +80,7 @@ public class CardManagerTest : SinglePeerBase
             int predeterminedDeckSize = SuitSize * standartDeckInfo.SuitsNumber;
             int actualDeckSize = CardManager.Deck.ValidCardsCount();
             Assert.AreEqual(predeterminedDeckSize, actualDeckSize);
-            Assert.IsTrue(DeckAirPocketsCheck(CardManager.Deck));
+            Assert.IsTrue(!DeckAirPocketsCheck(CardManager.Deck));
 #if Log
             Debug.Log($" suits Index {SuitIndex}, {LogHeader} Deck Size{actualDeckSize}");
 #endif

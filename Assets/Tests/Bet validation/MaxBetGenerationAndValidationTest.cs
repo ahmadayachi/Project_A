@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.tvOS;
+
 
 public class MaxBetGenerationAndValidationTest : SinglePeerBase
 {

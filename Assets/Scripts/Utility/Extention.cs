@@ -322,7 +322,28 @@ public static class Extention
         }
         return count;
     }
-
+    public static string ArrayOfBytesToString(this NetworkArray<byte> array)
+    {
+        string hand = string.Empty;
+        if (array.IsEmpty()) return hand;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if ((array[index] != 0))
+                hand+= array[index].ToString()+",";
+        }
+        return hand;
+    }
+    public static string ArrayOfCardInfoToString(this CardInfo[] array)
+    {
+        string hand = string.Empty;
+        if (array.IsEmpty()) return hand;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index].IsValid)
+                hand += array[index].ToString() + ",";
+        }
+        return hand;
+    }
     public static bool IsEmpty(this NetworkArray<byte> array)
     {
         return array.ValidCardsCount() == 0;

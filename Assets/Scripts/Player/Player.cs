@@ -2,6 +2,8 @@ using UnityEngine;
 using Fusion;
 using System;
 using System.Collections;
+using static UnityEngine.GraphicsBuffer;
+using UnityEditor;
 
 public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 {
@@ -21,7 +23,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     #region Player Networked Properties
 
-    [Networked] public PlayerRef playerRef { get; set; }
+    [Networked] public PlayerRef playerRef { get; set;}
     [Networked] private string _playerName { get; set; }
     [Networked] private string _id { get; set; }
 
@@ -70,7 +72,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     public NetworkBool IsOut { get => _isOut; }
     public byte CardsToDealCounter { get => _cardToDealCounter; }
     public int HandCount { get => _hand.ValidCardsCount(); }
-    public bool IsHandFull { get => (HandCount == CardsToDealCounter); }
+   public bool IsHandFull { get => (HandCount == CardsToDealCounter); }
 
     #endregion Player Properties
 
@@ -335,4 +337,59 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     }
 
     #endregion method wrappers
+
+
+
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(Player))]
+    public class NetworkPlayerCustomInspector : Editor
+    {
+        private GUIStyle headerStyle;
+        private GUIStyle labelStyle;
+
+        private void OnEnable()
+        {
+            headerStyle = new GUIStyle()
+            {
+                richText = true,
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                normal = new GUIStyleState() { textColor = Color.cyan }
+            };
+
+            labelStyle = new GUIStyle()
+            {
+                richText = true,
+                fontSize = 14,
+                normal = new GUIStyleState() { textColor = Color.white }
+            };
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            Player _this = (Player)target;
+            EditorGUILayout.LabelField("<color=cyan>Player Info</color>", headerStyle);
+            try
+            {
+                GUILayout.Label($"<color=white> Name: {_this.Name}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Player Ref: {_this.playerRef}</color>", labelStyle);
+                GUILayout.Label($"<color=white> ID: {_this.ID}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Is Local Player: {_this.IsLocalPlayer}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Card To Deal Counter: {_this._cardToDealCounter}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Networked Hand Count: {_this._hand.ValidCardsCount()}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ArrayOfBytesToString()}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Cards in Hand: {_this.Hand.ArrayOfCardInfoToString()}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Is Out: {_this.IsOut}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Icon ID: {_this.IconID}</color>", labelStyle);
+            }
+            catch
+            {
+                // Handle exceptions if necessary
+            }
+        }
+    }
+
+#endif
 }

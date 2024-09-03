@@ -1,5 +1,5 @@
 #define AUTOSTARTGAMECONTROL
-#define STARTWITH13CARDS
+//#define STARTWITH13CARDS
 
 using Fusion;
 using System;
