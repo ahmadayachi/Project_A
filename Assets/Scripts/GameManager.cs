@@ -317,7 +317,7 @@ public class GameManager : NetworkBehaviour
     {
         //uploading Deck Info
         UploadDeckInfo();
-        // Create CardManager
+        //Create CardManager
         SetUpCardManager();
         //Initialising players
         InitPlayers();
@@ -793,7 +793,7 @@ public class GameManager : NetworkBehaviour
 
     //TODO : Link with UI(when Doubt scene finsih on Host )
     /// <summary>
-    /// invked by host after Doubt scene
+    /// invoked by host after Doubt scene
     /// </summary>
     private void DoubtOverLogic()
     {
