@@ -2,7 +2,6 @@ using UnityEngine;
 using Fusion;
 using System;
 using System.Collections;
-using static UnityEngine.GraphicsBuffer;
 using UnityEditor;
 
 public class Player : NetworkBehaviour, IPlayer, IAfterSpawned

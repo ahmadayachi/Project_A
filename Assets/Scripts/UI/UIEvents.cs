@@ -65,6 +65,8 @@ public class UIEvents : IUIEvents
 
     #endregion UIEvent
 
+
+    #region Player Placing
     private IEnumerator PlacingPlayersUI()
     {
         //loading player UI Settings
@@ -155,7 +157,6 @@ public class UIEvents : IUIEvents
                 break;
         }
     }
-
     private void PlaceExtraPlayer(List<string> placedIDs, Transform parent, bool Left, Vector3 extraPos)
     {
         foreach (var player in _uiManager.GameManagerUI.Players)
@@ -172,7 +173,6 @@ public class UIEvents : IUIEvents
             }
         }
     }
-
     private void PlaceTwoPlayers(PlayerLayoutScriptable playerUISettings, int PlayersOnLeftPlayersNumber, List<string> placedIDs)
     {
         int sign = 1;
@@ -192,7 +192,6 @@ public class UIEvents : IUIEvents
             }
         }
     }
-
     private void PlacePlayer(List<string> placedIDs, Transform parent)
     {
         foreach (var player in _uiManager.GameManagerUI.Players)
@@ -206,18 +205,17 @@ public class UIEvents : IUIEvents
             }
         }
     }
-
     private void ResetTransform(Transform transform)
     {
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
-
     private IEnumerator GameStartAnimation()
     {
         yield return null;
         //informing server player animation finished
         _uiManager.GameManagerUI.PlayerIsReady();
     }
+    #endregion
 }
