@@ -1,22 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.LowLevel;
 
 public class PlayerUIController : IPlayerUIControler
 {
-    private PlayerUI _playerUI;
     private Player _player;
     private Coroutine _loadingHandCoroutine;
+    public List<byte> SelectedBet = new List<byte>();
 
-    public PlayerUIController(PlayerUI playerUI, Player player )
+    public PlayerUIController(Player player)
     {
-        _playerUI = playerUI;
         _player = player;
     }
-    public void SetUpCardPositionerCardPool(CardPool cardPool)=> _playerUI.CardPositioner.Init(cardPool,_player.IsLocalPlayer);
+
+    public void SetUpCardPositionerCardPool(CardPool cardPool) => _player.PlayerUI.CardPositioner.Init(cardPool, _player.IsLocalPlayer);
+
     public void SetPlayerName()
     {
-        //maybe bypass empty one for resting 
+        //maybe bypass empty one for resting
         if (_player.Name == string.Empty)
         {
 #if Log
@@ -24,8 +26,9 @@ public class PlayerUIController : IPlayerUIControler
 #endif
             return;
         }
-        _playerUI.PlayerName.text = _player.Name;
+        _player.PlayerUI.PlayerName.text = _player.Name;
     }
+
     public void SetPlayerIcon()
     {
         Sprite sprite = AssetLoader.AllIcons[_player.IconID];
@@ -37,9 +40,9 @@ public class PlayerUIController : IPlayerUIControler
             return;
         }
 #if Log
-        LogManager.Log($"{_player.Runner.LocalPlayer} Icon Is Set !",Color.gray,LogManager.ValueInformationLog);
+        LogManager.Log($"{_player.Runner.LocalPlayer} Icon Is Set !", Color.gray, LogManager.ValueInformationLog);
 #endif
-        _playerUI.PlayerIcon.sprite = sprite;
+        _player.PlayerUI.PlayerIcon.sprite = sprite;
     }
 
     public void LoadPlayerCards()
@@ -50,7 +53,7 @@ public class PlayerUIController : IPlayerUIControler
         }
         if (PlayerCanLoadCards())
         {
-            _playerUI.CardPositioner.LoadCards(_player.Hand);
+            _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
             return;
         }
         if (_loadingHandCoroutine != null)
@@ -59,67 +62,109 @@ public class PlayerUIController : IPlayerUIControler
     }
 
     /// <summary>
-    /// starts the player turn timer 
+    /// starts the player turn timer
     /// </summary>
-    public void StartTimer()
+    public void StartTimers()
     {
-
     }
+
     /// <summary>
-    /// stops the player turn timer 
+    /// stops the player turn timer
     /// </summary>
-    public void StopTimer()
+    public void StopTimers()
     {
-
     }
+
     public void ShowBetButton()
     {
-
     }
+
     public void ShowDoubtButton()
     {
-
     }
+
     /// <summary>
-    /// force to just betting 
+    /// force to just betting
     /// </summary>
     public void ShowFirstPlayerUI()
     {
-
     }
+
     /// <summary>
     /// maybe a flame on the betting button, to show that it is the last bet!
     /// </summary>
     public void ShowLastPlayerUI()
     {
-
     }
+
     public void ShowNormalPlayerUI()
     {
-
     }
+
     public void HideBetButton()
     {
-
     }
+
     public void HideDoubtButton()
     {
-
     }
+
     /// <summary>
-    /// hides every possible UI command with its effects 
+    /// hides every possible UI command with its effects
     /// </summary>
-    public void HidePlayerUICommands()
+    public void HidePlayerUI()
     {
-
     }
+
     private IEnumerator WaitHandThenUpdate()
     {
         yield return new WaitUntil(PlayerCanLoadCards);
-        _playerUI.CardPositioner.LoadCards(_player.Hand);
+        _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
     }
+
     private bool PlayerCanLoadCards()
     {
-        return _playerUI.CardPositioner.CardPool != null && _player.IsHandFull;
+        return _player.PlayerUI.CardPositioner.CardPool != null && _player.IsHandFull;
     }
+
+    #region Player Commands Wraping
+
+    private void ConfirmBet()
+    {
+        //if it is this player turn and he is the local player
+        if (_player.PlayerGameManager.IsMyTurn(_player.ID))
+        {
+            //turn off the UI Panel
+
+            //send confirm RPC
+            _player.PlayerGameManager.RPC_ConfirmBet(ProcessSelectedCards(), _player.ID);
+        }
+    }
+
+    private byte[] ProcessSelectedCards()
+    {
+        //checking if the list is Empty
+        if (SelectedBet.IsEmoty())
+        {
+#if Log
+            LogManager.Log(" Confirm Bet Failed! No SelectedBet Found!", Color.red, LogManager.PlayerLog);
+#endif
+            //UI to inform Player here that he Cant Confirm
+            return null;
+        }
+
+        //check for any blanks/Invalid ranks in the selected bet
+        for (int index = 0; index < SelectedBet.Count; index++)
+        {
+            byte bet = SelectedBet[index];
+            if (!Extention.IsAValidCardRank(bet))
+                SelectedBet.Remove(bet);
+        }
+
+        //creating array
+        byte[] ProseceesedBet = SelectedBet.ToByteArray();
+        return ProseceesedBet;
+    }
+
+    #endregion Player Commands Wraping
 }

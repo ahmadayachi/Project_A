@@ -268,7 +268,7 @@ public static class Extention
     {
         return array.ValidCardsCount() == 0;
     }
-
+   
     public static bool ContainsCard(this CardInfo[] array, CardInfo card)
     {
         if (array.IsNotInitialized())
@@ -565,7 +565,20 @@ public static class Extention
     }
 
     #endregion UI
-
+    public static int ValidCardsCount(this List<byte> list)
+    {
+        int count = 0;
+        for (int index = 0; index < list.Count; index++)
+        {
+            if ((list[index] != 0))
+                count++;
+        }
+        return count;
+    }
+    public static bool IsEmoty(this List<byte> list)
+    {
+        return list.ValidCardsCount() == 0;
+    }
     #region byte Array
 
     public static int ValidCardsCount(this byte[] array)

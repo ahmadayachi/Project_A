@@ -13,11 +13,12 @@ public class PlayerState : State
     {
         if (Extention.TryCastToStruct(arg, out PlayerStateArguments PlayerStateArgs))
         {
-            //starting timer
-            _uiControler.StartTimer();
-            //showing Player UI Commands 
+            //showing Player UI Commands/panels 
             if (PlayerStateArgs.IsMyTurn)
-                UnlockPlayerUICommands(PlayerStateArgs.GameState);
+                UnlockPlayerUI(PlayerStateArgs.GameState);
+
+            //starting timers
+            _uiControler.StartTimers();
         }
         else
         {
@@ -28,16 +29,16 @@ public class PlayerState : State
     }
     public override void ForceEnd()
     {
-        _uiControler.StopTimer();
-        _uiControler.HidePlayerUICommands();
+        _uiControler.StopTimers();
+        _uiControler.HidePlayerUI();
     }
-    private void UnlockPlayerUICommands(GameState gameState)
+    private void UnlockPlayerUI(GameState gameState)
     {
         switch (gameState)
         {
             case GameState.FirstPlayerTurn: _uiControler.ShowFirstPlayerUI(); break;
             case GameState.PlayerTurn: _uiControler.ShowNormalPlayerUI(); break;
-            //case GameState.LastPlayerTrun: _uiControler.ShowLastPlayerUI(); break;
+            case GameState.LastPlayerTurn: _uiControler.ShowLastPlayerUI(); break;
         }
     }
 

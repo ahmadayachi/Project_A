@@ -572,7 +572,11 @@ public class GameManager : NetworkBehaviour
         if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
         return LocalPlayer.ID == _currentPlayerID;
     }
-
+    public bool IsMyTurn(string playerID)
+    {
+        if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
+        return playerID == LocalPlayer.ID  && LocalPlayer.ID == _currentPlayerID;
+    }
     private bool AllPlayersReady()
     {
         return _playerReadyList.Count == _playersNumber;
@@ -1314,6 +1318,7 @@ public class GameManager : NetworkBehaviour
         //game state should a player turn states
         if (_playerTimerState == PlayerTimerState.StopTimer)
         {
+            //TODO : check if the current state is a player state 
             _currentState?.ForceEnd();
 #if Log
             LogManager.Log($"Player Timer Stoped!Simulation=> {LocalPlayer}", Color.green, LogManager.ValueInformationLog);

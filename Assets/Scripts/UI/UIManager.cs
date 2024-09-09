@@ -8,7 +8,6 @@ public class UIManager : MonoBehaviour
     public PlayerUIPlacementSceneRefs PlayerUIPlacementSceneRefs { get => _playerUIPlacementSceneRefs; }
     [SerializeField] public Transform CardsHolder;
     private GameManager _gameManager;
-
     //later itll be an Interface
     public GameManager GameManagerUI { get => _gameManager; }
 
