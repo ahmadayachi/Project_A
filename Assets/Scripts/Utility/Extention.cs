@@ -575,7 +575,7 @@ public static class Extention
         }
         return count;
     }
-    public static bool IsEmoty(this List<byte> list)
+    public static bool IsEmpty(this List<byte> list)
     {
         return list.ValidCardsCount() == 0;
     }

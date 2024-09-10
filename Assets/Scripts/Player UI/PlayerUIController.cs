@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.LowLevel;
 
-public class PlayerUIController : IPlayerUIControler
+public class PlayerUIController
 {
     private Player _player;
     private Coroutine _loadingHandCoroutine;
@@ -14,6 +14,9 @@ public class PlayerUIController : IPlayerUIControler
         _player = player;
     }
 
+
+
+    #region Player UI
     public void SetUpCardPositionerCardPool(CardPool cardPool) => _player.PlayerUI.CardPositioner.Init(cardPool, _player.IsLocalPlayer);
 
     public void SetPlayerName()
@@ -60,6 +63,18 @@ public class PlayerUIController : IPlayerUIControler
             _player.StopRoutine(_loadingHandCoroutine);
         _loadingHandCoroutine = _player.Startroutine(WaitHandThenUpdate());
     }
+    private IEnumerator WaitHandThenUpdate()
+    {
+        yield return new WaitUntil(PlayerCanLoadCards);
+        _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
+    }
+
+    private bool PlayerCanLoadCards()
+    {
+        return _player.PlayerUI.CardPositioner.CardPool != null && _player.IsHandFull;
+    }
+    #endregion
+
 
     /// <summary>
     /// starts the player turn timer
@@ -83,24 +98,6 @@ public class PlayerUIController : IPlayerUIControler
     {
     }
 
-    /// <summary>
-    /// force to just betting
-    /// </summary>
-    public void ShowFirstPlayerUI()
-    {
-    }
-
-    /// <summary>
-    /// maybe a flame on the betting button, to show that it is the last bet!
-    /// </summary>
-    public void ShowLastPlayerUI()
-    {
-    }
-
-    public void ShowNormalPlayerUI()
-    {
-    }
-
     public void HideBetButton()
     {
     }
@@ -109,24 +106,37 @@ public class PlayerUIController : IPlayerUIControler
     {
     }
 
+  
+    #region Player Turn UI Panels Management
+    /// <summary>
+    /// force to just betting
+    /// </summary>
+    public void ShowFirstPlayerUI()
+    {
+
+    }
+
+    /// <summary>
+    /// maybe a flame on the betting button, to show that it is the last bet!
+    /// </summary>
+    public void ShowLastPlayerUI()
+    {
+
+    }
+
+    public void ShowNormalPlayerUI()
+    {
+
+    }
+
     /// <summary>
     /// hides every possible UI command with its effects
     /// </summary>
     public void HidePlayerUI()
     {
-    }
 
-    private IEnumerator WaitHandThenUpdate()
-    {
-        yield return new WaitUntil(PlayerCanLoadCards);
-        _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
     }
-
-    private bool PlayerCanLoadCards()
-    {
-        return _player.PlayerUI.CardPositioner.CardPool != null && _player.IsHandFull;
-    }
-
+    #endregion
     #region Player Commands Wraping
 
     private void ConfirmBet()
@@ -134,17 +144,17 @@ public class PlayerUIController : IPlayerUIControler
         //if it is this player turn and he is the local player
         if (_player.PlayerGameManager.IsMyTurn(_player.ID))
         {
-            //turn off the UI Panel
-
             //send confirm RPC
             _player.PlayerGameManager.RPC_ConfirmBet(ProcessSelectedCards(), _player.ID);
         }
+        //turn off the UI Panel
+
     }
 
     private byte[] ProcessSelectedCards()
     {
         //checking if the list is Empty
-        if (SelectedBet.IsEmoty())
+        if (SelectedBet.IsEmpty())
         {
 #if Log
             LogManager.Log(" Confirm Bet Failed! No SelectedBet Found!", Color.red, LogManager.PlayerLog);

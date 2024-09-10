@@ -45,7 +45,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     #region Player Properties
 
     public State PlayerState { get => _playerState; }
-    public IPlayerUIControler PlayerUIControler { get => _playerUIControler; }
+    public PlayerUIController PlayerUIControler { get => _playerUIControler; }
     public string Name { get => _playerName; }
     public string ID { get => _id; }
     public byte IconID { get => _iconID; }

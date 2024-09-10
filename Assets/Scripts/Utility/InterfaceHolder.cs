@@ -1,4 +1,3 @@
-
 using Fusion;
 using System;
 using System.Collections;
@@ -8,47 +7,65 @@ using UnityEngine;
 using UnityEngine.UI;
 
 #region Interfaces
-#region Player stuff 
+
+#region Player stuff
+
 public interface IplayerState
 {
-
 }
-public interface IPlayer:ICardReceiver
+
+public interface IPlayer : ICardReceiver
 {
-    public PlayerRef playerRef {get;}
-    string Name {get;}
+    public PlayerRef playerRef { get; }
+    string Name { get; }
+
     void SetPlayerName(string playerName);
-    string ID {get;}
+
+    string ID { get; }
+
     void SetPlayerID(string playerID);
+
     void PlusOneCard();
+
     void ClearCardsCounter();
-    CardInfo[] Hand { get;}
+
+    CardInfo[] Hand { get; }
+
     void ClearHand();
+
     void SetIsplayerOut(NetworkBool isPlayerOut);
-    State PlayerState { get;}
+
+    State PlayerState { get; }
     byte IconID { get; }
     bool IsLocalPlayer { get; }
-    public NetworkObject NetworkObject {get;}
+    public NetworkObject NetworkObject { get; }
     Transform Transform { get; }
+
     string ToString();
 }
+
 public interface ICardReceiver
 {
     /// <summary>
-    /// if true player cant/wont have cards or play 
+    /// if true player cant/wont have cards or play
     /// </summary>
-    NetworkBool IsOut {get;}
+    NetworkBool IsOut { get; }
+
     /// <summary>
-    /// how much Cards to deal 
+    /// how much Cards to deal
     /// </summary>
-    byte CardsToDealCounter { get;}
+    byte CardsToDealCounter { get; }
+
     bool AddCard(CardInfo card);
 }
-public interface IPlayerUIControler
-{
-    void SetPlayerIcon();
-    void LoadPlayerCards();
-}
+
+//public interface IPlayerUIControler
+//{
+//    void SetPlayerIcon();
+
+//    void LoadPlayerCards();
+//}
+
 [Serializable]
 public struct RunTimePlayerData
 {
@@ -59,40 +76,51 @@ public struct RunTimePlayerData
     public NetworkObject PlayerNetObject;
     public bool AuthorityAssigned;
 }
-#endregion
 
-#region Card stuff  
+#endregion Player stuff
+
+#region Card stuff
+
 public interface ICard : ICardInfo
 {
     CardUI CardUI { get; }
     ICardUIControler CardUIControl { get; }
+
     //void SetRank(byte rank);
     //void SetID(byte id);
     //void SetSuite(byte suite);
     void Enable(CardInfo card);
+
     void Disable();
+
     CardInfo ToCardInfo();
+
     Transform Transform { get; }
+
     string ToString();
 }
+
 public interface ICardInfo
 {
     byte Rank { get; }
     byte ID { get; }
     CardSuit Suit { get; }
 }
+
 public interface ICardUIControler
 {
     void SetCardRankSprite();
+
     void ResetCardRankSprite();
 }
+
 public interface ICardBehaviour
 {
-
 }
+
 //TODO: check why the fuck this still networked struct
 /// <summary>
-/// network ID only 
+/// network ID only
 /// </summary>
 public struct CardInfo : INetworkStruct
 {
@@ -100,12 +128,13 @@ public struct CardInfo : INetworkStruct
     public byte ID;
     public CardSuit Suit;
     public NetworkBool IsValid;
+
     public override string ToString()
     {
         return $"Isvalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
     }
-
 }
+
 [Serializable]
 public enum CardSuit : byte
 {
@@ -115,7 +144,9 @@ public enum CardSuit : byte
     Hearts = 3,
     Clover = 4
 }
-#endregion
+
+#endregion Card stuff
+
 public interface IDealerBehaviour
 {
     List<ICard> DeckOfCards { get; set; }
@@ -123,13 +154,15 @@ public interface IDealerBehaviour
 
 public interface IGameModeBehaviour
 {
-
 }
+
 public interface IState<T> where T : struct
 {
     void Start(T arg);
+
     void ForceEnd();
 }
+
 public interface IValidator
 {
     // Property for the next validator in the chain of responsibility
@@ -138,36 +171,43 @@ public interface IValidator
     // Method to validate Bet
     public bool Validate(ValidatorArguments args);
 }
+
 public interface IUIEvents
 {
     /// <summary>
-    /// something to let players know what are they waiting 
+    /// something to let players know what are they waiting
     /// </summary>
     void OnSetUpStarted();
+
     IEnumerator SetUpUI();
+
     /// <summary>
-    /// some UI animation only when a game starts or smthing 
+    /// some UI animation only when a game starts or smthing
     /// </summary>
     void OnGameStarted();
+
     void OnDealingCards();
+
     void OnDoubting();
+
     void OnRoundOver();
+
     void OnGameOver();
+
     void OnHostMigration();
 }
-#endregion
 
-
-
+#endregion Interfaces
 
 #region State Struct Arguments
+
 public struct DealerStateArguments
 {
     public CardInfo[] DeckToDeal;
     public ICardReceiver[] Players;
     public Action OnDealerStateEnds;
-
 }
+
 public struct PlayerStateArguments
 {
     public GameState GameState;
@@ -179,6 +219,7 @@ public struct PlayerStateArguments
         IsMyTurn = isMyTurn;
     }
 }
+
 public struct DoubtStateArguments
 {
     public List<byte> DealtCards;
@@ -190,8 +231,11 @@ public struct DoubtStateArguments
         Livebet = livebet;
     }
 }
-#endregion
+
+#endregion State Struct Arguments
+
 #region Struct Arguments
+
 public struct DoubtOverUIArguments
 {
     public List<byte> CorrectBetRanks;
@@ -203,6 +247,7 @@ public struct DoubtOverUIArguments
         WrongBetRanks = wrongBetRanks;
     }
 }
+
 public struct CardPoolArguments
 {
     public GameObject CardPrefab;
@@ -210,6 +255,7 @@ public struct CardPoolArguments
     public byte ActivePlayerCount;
     public Transform CardsHolder;
 }
+
 public struct PlayerArguments
 {
     public PlayerRef PlayerRef;
@@ -221,10 +267,12 @@ public struct PlayerArguments
     //public GameManager GameManager;
     public NetworkBool isplayerOut;
 }
+
 public struct ValidatorArguments
 {
     //public bool Chain;
     public byte[] CurrentBet;
+
     public byte[] PreviousBet;
     public byte DealtCardsNumber;
 
@@ -235,15 +283,19 @@ public struct ValidatorArguments
         DealtCardsNumber = dealtCardsNumber;
     }
 }
-#endregion
+
+#endregion Struct Arguments
+
 #region Structs
+
 [Serializable]
-public struct DeckInfo 
+public struct DeckInfo
 {
     public DeckType DeckType;
     public byte SuitsNumber;
     public byte[] CustomSuitRanks;
 }
+
 [Serializable]
 public struct CardUI
 {
@@ -251,12 +303,57 @@ public struct CardUI
     //public SpriteRenderer CardPlate;
     //public SpriteRenderer CardBack;
 }
+
 [Serializable]
 public struct PlayerUI
 {
     public CardPositioner CardPositioner;
     public SpriteRenderer PlayerIcon;
     public TextMeshPro PlayerName;
+}
+
+[Serializable]
+public struct PlayerTurnUI
+{
+    [Header("Parent")]
+    public GameObject PlayerTurnUIManager;
+    [Header("Ultimatum Screen")]
+    public UltimatumScreenUI UltimatumScreenUI;
+    [Header("Betting Screen")]
+    public BettingScreenUI BettingScreenUI;
+}
+[Serializable]
+public struct BettingScreenUI
+{
+    public GameObject BettingScreen;
+    public GameObject FirstBetLauncherText;
+    public GameObject TimerHolder;
+    public Image TimerImage;
+    public Button BackButton;
+    public TextMeshProUGUI PreviousBetSuitScore;
+    public Transform PreviousBetSuitHolder;
+    public TextMeshProUGUI MyBetSuitScore;
+    public Transform MyBetSuitHolder;
+    public Button SuggestBet;
+    public Button MaxBet;
+    public Button ClearBet;
+    public Button Confirm;
+}
+[Serializable]
+public struct UltimatumScreenUI
+{
+    public GameObject UltimatumScreen;
+    public GameObject TimerHolder;
+    public Image TimerImage;
+    public GameObject PreviousBetPlayerDisplay;
+    public Image PreviousBetPlayerIcon;
+    public TextMeshProUGUI PreviousBetPlayerName;
+    public GameObject PreviousBetSuit;
+    public TextMeshProUGUI PreviousBetSuitScore;
+    public Transform PreviousBetSuitHolder;
+    public GameObject ButtonsContainer;
+    public Button BetButton;
+    public Button DoubtButton;
 }
 
 public struct DiffusedRankInfo
@@ -279,7 +376,7 @@ public struct DiffusedRankInfo
 }
 
 [Serializable]
-public struct PlayerUIPlacementSceneRefs 
+public struct PlayerUIPlacementSceneRefs
 {
     [Header("Player POV Placement ")]
     [SerializeField] public Transform PlayerPOV;
@@ -293,10 +390,11 @@ public struct PlayerUIPlacementSceneRefs
     [Header("Players On Front Placement Setting")]
     [SerializeField] public Transform PlayersOnFront;
 }
-#endregion
 
+#endregion Structs
 
 #region enums
+
 public enum SimulationSetUpState
 {
     NoSetUp,
@@ -305,19 +403,23 @@ public enum SimulationSetUpState
     SetUpComplete,
     SetUpCanceled
 }
+
 public enum PlayerTimerState
 {
     NoTimer,
     StartTimer,
     StopTimer
 }
-public enum GameState:byte
+
+public enum GameState : byte
 {
     NoGameState,
+
     /// <summary>
-    /// just chilling, maybe waiting for clients, a host migration happening 
+    /// just chilling, maybe waiting for clients, a host migration happening
     /// </summary>
     SimulationSetUp,
+
     GameStarted,
     Dealing,
     FirstPlayerTurn,
@@ -328,28 +430,33 @@ public enum GameState:byte
     GameOver,
     HostMigration
 }
+
 public enum DoubtState
 {
     NoDoubting,
     WinDoubt,
     LooseDoubt
 }
+
 public enum DeckType
 {
     /// <summary>
-    /// a standart Deck will contain all Ranks from Ace to king 
+    /// a standart Deck will contain all Ranks from Ace to king
     /// </summary>
-    Standard=2,
+    Standard = 2,
+
     /// <summary>
     /// A Belote Deck will Contain Ranks from 7 to Ace excluding these ranks (2,3,4,5,6)
     /// </summary>
     Belote = 7,
+
     /// <summary>
     /// A Custom Deck that Can Have Any Ranks the players Choose with min of 8 Ranks
     /// </summary>
     Custom = 69
 }
-#endregion
+
+#endregion enums
 
 public struct UILogsData
 {

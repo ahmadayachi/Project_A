@@ -211,11 +211,11 @@ public class UIEvents : IUIEvents
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
+    #endregion
     private IEnumerator GameStartAnimation()
     {
         yield return null;
         //informing server player animation finished
         _uiManager.GameManagerUI.PlayerIsReady();
     }
-    #endregion
 }

@@ -12,8 +12,10 @@ public class UIManager : MonoBehaviour
     public GameManager GameManagerUI { get => _gameManager; }
 
     private IUIEvents _uiEvents;
-    public IUIEvents UIEvents { get => _uiEvents; }
+    public IUIEvents UIEvents {get => _uiEvents;}
 
+    [SerializeField] private PlayerTurnUI _playerTurnUI;
+    public PlayerTurnUI PlayerTurnUI { get => _playerTurnUI; }
     public void Init()
     {
         _uiEvents = new UIEvents(this);
