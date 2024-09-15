@@ -109,6 +109,13 @@ public class PlayerUIController
   
     #region Player Turn UI Panels Management
     /// <summary>
+    /// Resets and Hides all PlayerPanels
+    /// </summary>
+    private void ResetPlayerTurnUI()
+    {
+
+    }
+    /// <summary>
     /// force to just betting
     /// </summary>
     public void ShowFirstPlayerUI()

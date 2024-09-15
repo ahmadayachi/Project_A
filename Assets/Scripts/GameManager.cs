@@ -161,7 +161,8 @@ public class GameManager : NetworkBehaviour
 
     #region Simulation Props
 
-    public NetworkRunner GameRunner { get => Runner; }
+    //only set after spawning
+    public NetworkRunner GameRunner;
     public bool IsHost { get => GameRunner.IsServer; }
     public bool IsClient { get => GameRunner.IsClient; }
     public GameMode GameMode { get => GameRunner.GameMode; }
@@ -233,20 +234,24 @@ public class GameManager : NetworkBehaviour
 
     public override void Spawned()
     {
+        //grabing Runner 
+        GameRunner = Runner;
         //injecting UI dependancy
         _uiManager.InjectGameManager(this);
+
+        bool isModeSingle = IsModeSingle();
         //setting UI
-        _uiManager.Init();
+        _uiManager.Init(isModeSingle);
 
         //setting CallBackManager
-        if (GameMode != GameMode.Single)
+        if (!isModeSingle)
         {
 #if Log
-            LogManager.Log($"{Runner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);
+            LogManager.Log($"{GameRunner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);
 #endif
             _callBackManager = new CallBackManager();
 
-            Runner.SetIsSimulated(Object, true);
+            GameRunner.SetIsSimulated(Object, true);
             //change dectector Set up
             _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         }
@@ -303,6 +308,7 @@ public class GameManager : NetworkBehaviour
 
     #region General Logic Swamp
 
+    public bool IsModeSingle() => GameMode == GameMode.Single;
     private bool NeedSimuationSetUp()
     {
         return _gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp;
@@ -397,7 +403,7 @@ public class GameManager : NetworkBehaviour
     private IEnumerator SetUp()
     {
         //some panel that tracks simulation states as a loading screen
-        _uiManager.UIEvents?.OnSetUpStarted();
+        _uiManager.ActiveUIEvents?.OnSetUpStarted();
 
         //Logic Set up
         yield return SimulationLogicSetUp();
@@ -406,7 +412,7 @@ public class GameManager : NetworkBehaviour
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.LogicSetUp);
 
         //UI Set Up
-        yield return _uiManager.UIEvents?.SetUpUI();
+        yield return _uiManager.ActiveUIEvents?.SetUpUI();
 
         yield return new WaitUntil(() => SimulationState == SimulationSetUpState.UISetUp);
 
@@ -1354,12 +1360,12 @@ public class GameManager : NetworkBehaviour
 
     private void HostMigration()
     {
-        _uiManager.UIEvents.OnHostMigration();
+        _uiManager.ActiveUIEvents.OnHostMigration();
     }
 
     private void GameOver()
     {
-        _uiManager.UIEvents.OnGameOver();
+        _uiManager.ActiveUIEvents.OnGameOver();
         //cleaing Cards
         _cardsPool.DestroyAll();
         if (IsHost)
@@ -1371,7 +1377,7 @@ public class GameManager : NetworkBehaviour
     private void RoundOver()
     {
         //regular UI Cleaning Stuff
-        _uiManager.UIEvents.OnRoundOver();
+        _uiManager.ActiveUIEvents.OnRoundOver();
         //TODO : Link with UI
         //cleaing Cards , link to On ROund Over
         _cardsPool.DestroyAll();
@@ -1382,7 +1388,7 @@ public class GameManager : NetworkBehaviour
     private void Doubting()
     {
         //Doubting Scene Or Something
-        _uiManager.UIEvents.OnDoubting();
+        _uiManager.ActiveUIEvents.OnDoubting();
     }
 
     private void StartPlayerTimer()
@@ -1393,7 +1399,7 @@ public class GameManager : NetworkBehaviour
 
     private void Dealing()
     {
-        _uiManager.UIEvents.OnDealingCards();
+        _uiManager.ActiveUIEvents.OnDealingCards();
         if (IsHost)
         {
             DealerStateArguments args = new DealerStateArguments();
@@ -1424,7 +1430,7 @@ public class GameManager : NetworkBehaviour
 
     private void GameStarted()
     {
-        _uiManager.UIEvents.OnGameStarted();
+        _uiManager.ActiveUIEvents.OnGameStarted();
         if (IsHost)
         {
             if (_waitingGameStartedAnimationRoutine != null)

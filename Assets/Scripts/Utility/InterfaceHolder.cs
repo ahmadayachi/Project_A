@@ -180,7 +180,6 @@ public interface IUIEvents
     void OnSetUpStarted();
 
     IEnumerator SetUpUI();
-
     /// <summary>
     /// some UI animation only when a game starts or smthing
     /// </summary>

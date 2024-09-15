@@ -3,71 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-public class UIEvents : IUIEvents
+public abstract class  UIEventsBase : IUIEvents
 {
-    private UIManager _uiManager;
-    private Coroutine _gameStartAnimationRoutine;
+    protected UIManager _uiManager;
+   
+    
+    #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
-
-    public UIEvents(UIManager manager)
-    {
-        _uiManager = manager;
-    }
-
-    #region UIEvent
-
-    public IEnumerator SetUpUI()
-    {
-        yield return PlacingPlayersUI();
-        yield return null;
-        _uiManager.GameManagerUI.SimulationState = SimulationSetUpState.UISetUp;
-#if Log
-        LogManager.Log($" UI is Set Up Runner Player Ref => {_uiManager.GameManagerUI.Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
-#endif
-    }
-
-    public void OnGameStarted()
-    {
-        if (_gameStartAnimationRoutine != null)
-            _uiManager.StopCoroutine(_gameStartAnimationRoutine);
-        _gameStartAnimationRoutine = _uiManager.StartCoroutine(GameStartAnimation());
-    }
-
-    public void OnDealingCards()
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnDoubting()
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnGameOver()
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnHostMigration()
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnRoundOver()
-    {
-        //throw new System.NotImplementedException();
-    }
-
-    public void OnSetUpStarted()
-    {
-        //throw new System.NotImplementedException();
-    }
-
+    #endregion
+   
+    #region Base GameStates CallBacks
+    /// <summary>
+    /// Sets Up the simulation UI
+    /// </summary>
+    /// <returns></returns>
+    public abstract IEnumerator SetUpUI();
+    public abstract void OnGameStarted();
+    public abstract void OnDealingCards();
+    public abstract void OnDoubting();
+    public abstract void OnGameOver();
+    public abstract void OnHostMigration();
+    public abstract void OnRoundOver();
+    public abstract void OnSetUpStarted();
     #endregion UIEvent
 
 
     #region Player Placing
-    private IEnumerator PlacingPlayersUI()
+    protected IEnumerator PlacingPlayersUI()
     {
         //loading player UI Settings
         PlayerLayoutScriptable playerUISettings = null;
@@ -211,11 +173,5 @@ public class UIEvents : IUIEvents
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
-    #endregion
-    private IEnumerator GameStartAnimation()
-    {
-        yield return null;
-        //informing server player animation finished
-        _uiManager.GameManagerUI.PlayerIsReady();
-    }
+    #endregion   
 }
