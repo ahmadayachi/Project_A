@@ -239,12 +239,11 @@ public class GameManager : NetworkBehaviour
         //injecting UI dependancy
         _uiManager.InjectGameManager(this);
 
-        bool isModeSingle = IsModeSingle();
         //setting UI
-        _uiManager.Init(isModeSingle);
+        _uiManager.Init(GameMode);
 
         //setting CallBackManager
-        if (!isModeSingle)
+        if (!IsModeSingle())
         {
 #if Log
             LogManager.Log($"{GameRunner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);

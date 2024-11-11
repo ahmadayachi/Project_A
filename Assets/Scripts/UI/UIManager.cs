@@ -12,18 +12,20 @@ public class UIManager : MonoBehaviour
     //later itll be an Interface
     public GameManager GameManagerUI { get => _gameManager; }
 
-    private IUIEvents _uiEvents;
-    public IUIEvents ActiveUIEvents {get => _uiEvents;}
+    private UIEvents _uiEvents;
+    public UIEvents ActiveUIEvents {get => _uiEvents;}
 
     /// <summary>
     /// All UI Refs/UI Panels that Concerns the PlayerTurn,Doubt,GoverOver Game States 
     /// </summary>
     [SerializeField] private PlayerTurnUI _playerTurnUI;
     public PlayerTurnUI PlayerTurnUI { get => _playerTurnUI; }
-    public void Init(bool singlePlayerMode)
+    public void Init( GameMode mode)
     {
-        //creating needed UI Events
-        _uiEvents = singlePlayerMode?new SinglePlayerUIEvents(this):new MultiPlaterUIEvents(this);
+        var args = new UIEventsArgs();
+        args.GameMode = mode;
+        args.UIManager = this;
+        _uiEvents = new UIEvents(args);
     }
 
     public void InjectGameManager(GameManager gameManager) => _gameManager = gameManager;

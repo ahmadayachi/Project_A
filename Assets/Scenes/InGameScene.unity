@@ -3505,7 +3505,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &574082711
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10832,6 +10832,35 @@ MonoBehaviour:
     PlayersOnRight: {fileID: 1287427611}
     PlayersOnFront: {fileID: 372195452}
   CardsHolder: {fileID: 1173036291}
+  _playerTurnUI:
+    PlayerTurnUIManager: {fileID: 0}
+    UltimatumScreenUI:
+      UltimatumScreen: {fileID: 0}
+      TimerHolder: {fileID: 0}
+      TimerImage: {fileID: 0}
+      PreviousBetPlayerDisplay: {fileID: 0}
+      PreviousBetPlayerIcon: {fileID: 0}
+      PreviousBetPlayerName: {fileID: 0}
+      PreviousBetSuit: {fileID: 0}
+      PreviousBetSuitScore: {fileID: 0}
+      PreviousBetSuitHolder: {fileID: 0}
+      ButtonsContainer: {fileID: 0}
+      BetButton: {fileID: 0}
+      DoubtButton: {fileID: 0}
+    BettingScreenUI:
+      BettingScreen: {fileID: 0}
+      FirstBetLauncherText: {fileID: 0}
+      TimerHolder: {fileID: 0}
+      TimerImage: {fileID: 0}
+      BackButton: {fileID: 0}
+      PreviousBetSuitScore: {fileID: 0}
+      PreviousBetSuitHolder: {fileID: 0}
+      MyBetSuitScore: {fileID: 0}
+      MyBetSuitHolder: {fileID: 0}
+      SuggestBet: {fileID: 0}
+      MaxBet: {fileID: 0}
+      ClearBet: {fileID: 0}
+      Confirm: {fileID: 0}
 --- !u!1 &1851186247
 GameObject:
   m_ObjectHideFlags: 0
@@ -16349,7 +16378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2353472950840883862, guid: 2cbed23927099a14bb55d6fbe7a3d9d7, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9197571002143752898, guid: 2cbed23927099a14bb55d6fbe7a3d9d7, type: 3}
       propertyPath: m_Pivot.x
@@ -18115,7 +18144,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4988935105654847259
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21958,19 +21987,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2133068100641925567, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4458130692942938639, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4458130692942938639, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4458130692942938639, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -17
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6529487604347542288, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_Pivot.x
@@ -22066,11 +22095,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8359474327971406054, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8359474327971406054, guid: 4e3ee1460eb303b45a7ec16a694cd0e6, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -462,3 +462,8 @@ public struct UILogsData
     public Color LogColor;
     public string Log;
 }
+public struct UIEventsArgs
+{
+    public UIManager UIManager;
+    public GameMode GameMode;
+}
