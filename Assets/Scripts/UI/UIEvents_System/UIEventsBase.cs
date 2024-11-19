@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 public abstract class  UIEventsBase : IUIEvents
 {
     protected UIManager _uiManager;
-   
+    private const string Zeros = "0000";
     
     #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
@@ -25,6 +25,9 @@ public abstract class  UIEventsBase : IUIEvents
     public abstract void OnHostMigration();
     public abstract void OnRoundOver();
     public abstract void OnSetUpStarted();
+    public abstract void OnFirstPlayerTurn();
+    public abstract void OnPlayerTurn();
+    public abstract void OnLastPlayerTurn();
     #endregion UIEvent
 
 
@@ -173,5 +176,30 @@ public abstract class  UIEventsBase : IUIEvents
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
-    #endregion   
+    #endregion
+
+    #region PlayerTurn
+    protected virtual void FirstPlayerTurnLayOutSetUp()
+    {
+        var bettingScreen = _uiManager.PlayerTurnUI.BettingScreenUI;
+        
+        //lets not show shet for now 
+        _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(false);
+        bettingScreen.BettingScreen.gameObject.SetActive(false);
+
+        // reseting the score 
+        bettingScreen.MyBetSuitScore.text = Zeros;
+        
+        //hiding the previous player bet 
+        bettingScreen.PreviousBetSuitScore.text = Zeros;
+        bettingScreen.PreviousBetSuitHolder.gameObject.SetActive(false);
+        
+        //show Bet Launcher Outlet 
+        bettingScreen.FirstBetLauncherText.SetActive(true);
+
+        //panel on 
+        bettingScreen.BettingScreen.gameObject.SetActive(true);
+        _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
+    }
+    #endregion
 }

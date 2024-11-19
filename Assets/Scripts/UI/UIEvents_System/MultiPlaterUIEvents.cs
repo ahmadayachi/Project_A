@@ -58,6 +58,20 @@ public class MultiPlaterUIEvents : UIEventsBase
     {
        // throw new System.NotImplementedException();
     }
+    public override void OnFirstPlayerTurn()
+    {
+        FirstPlayerTurnLayOutSetUp();
+    }
+
+    public override void OnPlayerTurn()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnLastPlayerTurn()
+    {
+        throw new System.NotImplementedException();
+    }
     #endregion Base GameStates CallBacks
 
 
@@ -68,6 +82,7 @@ public class MultiPlaterUIEvents : UIEventsBase
         //informing server player animation finished
         _uiManager.GameManagerUI.PlayerIsReady();
     }
+
 
     #endregion
 }

@@ -11,7 +11,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     private NetworkRunner _playerRunner;
     private ChangeDetector _changeDetector;
     private State _playerState;
-    private PlayerUIController _playerUIControler;
+    [SerializeField]private PlayerUIController _playerUIControler;
 
     [SerializeField]
     private PlayerUI _playerUI;
@@ -83,14 +83,12 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     {
         _playerRunner = Runner;
         _callBackManager = new CallBackManager();
-        SetUpPlayerUIControler();
         SetUpPlayerState();
 
         Runner.SetIsSimulated(Object, true);
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         if (_playerName != string.Empty)
             gameObject.name = _playerName + ":" + _id;
-        //SetUpPlayerBehaviour();
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
         _waitSimulationInit = StartCoroutine(WaitSimulation());
@@ -274,12 +272,6 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         //}
     }
 
-    private void SetUpPlayerUIControler()
-    {
-        if (_playerUIControler == null)
-            _playerUIControler = new PlayerUIController( this);
-    }
-
     #endregion Player Set Up Methods
 
     public void ClearHand()
@@ -321,17 +313,6 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     }
 
     #region method wrappers
-
-    public Coroutine Startroutine(IEnumerator coroutin)
-    {
-        return StartCoroutine(coroutin);
-    }
-
-    public void StopRoutine(Coroutine coroutin)
-    {
-        StopCoroutine(coroutin);
-    }
-
     #endregion method wrappers
 
 

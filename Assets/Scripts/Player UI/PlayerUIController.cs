@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.LowLevel;
 
-public class PlayerUIController
+public class PlayerUIController :MonoBehaviour
 {
-    private Player _player;
+    [SerializeField] private Player _player;
     private Coroutine _loadingHandCoroutine;
     public List<byte> SelectedBet = new List<byte>();
-
-    public PlayerUIController(Player player)
+    private void Awake()
     {
-        _player = player;
+        if (_player == null)
+        {
+#if Log
+            LogManager.LogError("Assign the Player Script!");
+#endif
+        }
     }
-
 
 
     #region Player UI
@@ -60,8 +63,8 @@ public class PlayerUIController
             return;
         }
         if (_loadingHandCoroutine != null)
-            _player.StopRoutine(_loadingHandCoroutine);
-        _loadingHandCoroutine = _player.Startroutine(WaitHandThenUpdate());
+            StopCoroutine(_loadingHandCoroutine);
+        _loadingHandCoroutine = StartCoroutine(WaitHandThenUpdate());
     }
     private IEnumerator WaitHandThenUpdate()
     {
@@ -120,7 +123,7 @@ public class PlayerUIController
     /// </summary>
     public void ShowFirstPlayerUI()
     {
-
+        _player.PlayerGameManager.UIManager.ActiveUIEvents.OnFirstPlayerTurn();
     }
 
     /// <summary>

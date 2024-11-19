@@ -181,6 +181,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2099172614401843503}
   - component: {fileID: 8202717803055195448}
+  - component: {fileID: 4437924552859476298}
   - component: {fileID: 6395319450776571910}
   m_Layer: 5
   m_Name: 'Player Prefab  '
@@ -219,10 +220,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25cbb1bbddf1098429d29b0ff0b3dfcc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _playerUIControler: {fileID: 4437924552859476298}
   _playerUI:
     CardPositioner: {fileID: 3655557403803377518}
     PlayerIcon: {fileID: 5255060380250210645}
     PlayerName: {fileID: 3499650339276939373}
+--- !u!114 &4437924552859476298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199332720837305407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986a42b8500c2eb4a809d5f8f4d14563, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _player: {fileID: 8202717803055195448}
+  SelectedBet: 
 --- !u!114 &6395319450776571910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,3 +391,4 @@ MonoBehaviour:
   _zSpacing: -0.004
   _zSpacingFirstBuffer: -0.002
   _zSpacingSecondBuffer: -0.005
+  _yCardRotationBuffer: 2

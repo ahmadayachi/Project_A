@@ -19,6 +19,11 @@ public class SinglePlayerUIEvents : UIEventsBase
         throw new System.NotImplementedException();
     }
 
+    public override void OnFirstPlayerTurn()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public override void OnGameOver()
     {
         throw new System.NotImplementedException();
@@ -30,6 +35,16 @@ public class SinglePlayerUIEvents : UIEventsBase
     }
 
     public override void OnHostMigration()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnLastPlayerTurn()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void OnPlayerTurn()
     {
         throw new System.NotImplementedException();
     }

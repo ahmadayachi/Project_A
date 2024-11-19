@@ -194,6 +194,10 @@ public interface IUIEvents
     void OnGameOver();
 
     void OnHostMigration();
+
+    void OnFirstPlayerTurn();
+    void OnPlayerTurn();
+    void OnLastPlayerTurn();
 }
 
 #endregion Interfaces
@@ -320,6 +324,10 @@ public struct PlayerTurnUI
     public UltimatumScreenUI UltimatumScreenUI;
     [Header("Betting Screen")]
     public BettingScreenUI BettingScreenUI;
+    [Header("Doubt Screen")]
+    public DoubtScreenUI DoubtScreenUI;
+    [Header("Looser Screen")]
+    public LooserScreenUI LooserScreen;
 }
 [Serializable]
 public struct BettingScreenUI
@@ -353,6 +361,35 @@ public struct UltimatumScreenUI
     public GameObject ButtonsContainer;
     public Button BetButton;
     public Button DoubtButton;
+}
+[Serializable]
+public struct DoubtScreenUI
+{
+    public GameObject DoubtScreen;
+    public Transform LeftPlayerDisplayHolder;
+    public Transform RightPlayerDisplayHolder;
+    public DoubtScreenPlayerDisplay LeftPlayerDisplay;
+    public DoubtScreenPlayerDisplay RightPlayerDisplay;
+}
+[Serializable]
+public struct LooserScreenUI
+{
+    public GameObject LooserPanel;
+    public Transform LoosersHolder;
+    public GameObject OutletTextHolder;
+    public TextMeshProUGUI OutletText;
+    public GameObject ButtonsHolder;
+    public Button SpectateButton;
+    public Button ExitButton;
+}
+[Serializable]
+public struct DoubtScreenPlayerDisplay
+{
+    public GameObject DoubtPlayerDisplay;
+    public Image PlayerIcon;
+    public TextMeshProUGUI PlayerName;
+    public GameObject DoubtStateHolder;
+    public TextMeshProUGUI DoubtStateText;
 }
 
 public struct DiffusedRankInfo

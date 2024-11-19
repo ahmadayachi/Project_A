@@ -53,4 +53,18 @@ public class UIEvents
     {
         _uiEvents.OnHostMigration();
     }
+    public void OnFirstPlayerTurn()
+    {
+        _uiEvents.OnFirstPlayerTurn();
+    }
+
+    public void OnPlayerTurn()
+    {
+        _uiEvents.OnPlayerTurn();
+    }
+
+    public void OnLastPlayerTurn()
+    {
+        _uiEvents.OnLastPlayerTurn();
+    }
 }
