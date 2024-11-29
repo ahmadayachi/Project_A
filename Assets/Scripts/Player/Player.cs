@@ -1,8 +1,7 @@
-using UnityEngine;
 using Fusion;
-using System;
 using System.Collections;
 using UnityEditor;
+using UnityEngine;
 
 public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 {
@@ -11,7 +10,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     private NetworkRunner _playerRunner;
     private ChangeDetector _changeDetector;
     private State _playerState;
-    [SerializeField]private PlayerUIController _playerUIControler;
+    [SerializeField] private PlayerUIController _playerUIControler;
 
     [SerializeField]
     private PlayerUI _playerUI;
@@ -22,7 +21,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     #region Player Networked Properties
 
-    [Networked] public PlayerRef playerRef { get; set;}
+    [Networked] public PlayerRef playerRef { get; set; }
     [Networked] private string _playerName { get; set; }
     [Networked] private string _id { get; set; }
 
@@ -70,7 +69,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     public byte CardsToDealCounter { get => _cardToDealCounter; }
     public int HandCount { get => _hand.ValidCardsCount(); }
     public bool IsHandFull { get => (HandCount == CardsToDealCounter); }
-    public GameManager PlayerGameManager { get => _playerGameManager;}
+    public GameManager PlayerGameManager { get => _playerGameManager; }
     public PlayerUI PlayerUI { get => _playerUI; }
     #endregion Player Properties
 
@@ -96,7 +95,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public void AfterSpawned()
     {
-        if(_firstTickSyncRoutine != null)
+        if (_firstTickSyncRoutine != null)
             StopCoroutine(_firstTickSyncRoutine);
         _firstTickSyncRoutine = StartCoroutine(WaitSimulationAndSyncFirstTick());
     }
@@ -312,8 +311,28 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         return $"Name:{_playerName}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
     }
 
-    #region method wrappers
-    #endregion method wrappers
+    #region Player Commands
+    public void ConfirmBet()
+    {
+        //if it is this player turn and he is the local player
+        if (_playerGameManager.IsMyTurn(_id))
+        {
+            //send confirm RPC
+            _playerGameManager.RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id);
+            //turn off the UI Panel
+        }
+
+    }
+    public void DoubtBet()
+    {
+        if (_playerGameManager.IsMyTurn(_id))
+        {
+            //send confirm RPC
+            _playerGameManager.RPC_Doubt(_id);
+            //turn off the UI Panel
+        }
+    }
+    #endregion 
 
 
 

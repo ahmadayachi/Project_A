@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-public abstract class  UIEventsBase : IUIEvents
+public abstract class UIEventsBase : IUIEvents
 {
     protected UIManager _uiManager;
     private const string Zeros = "0000";
-    
+
     #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
     #endregion
-   
+
     #region Base GameStates CallBacks
     /// <summary>
     /// Sets Up the simulation UI
@@ -53,7 +53,7 @@ public abstract class  UIEventsBase : IUIEvents
             }
         }
 #if Log
-        LogManager.Log($"Select Player Placement UI Setting is left{PlayersOnLeftPlayersNumber}/right{PlayersOnRightPlayersNumber}/front{PlayersOnFrontPlayersNumber}",Color.gray,LogManager.ValueInformationLog);
+        LogManager.Log($"Select Player Placement UI Setting is left{PlayersOnLeftPlayersNumber}/right{PlayersOnRightPlayersNumber}/front{PlayersOnFrontPlayersNumber}", Color.gray, LogManager.ValueInformationLog);
 #endif
         yield return null;
         List<string> placedIDs = new List<string>();
@@ -81,7 +81,7 @@ public abstract class  UIEventsBase : IUIEvents
                 {
                     PlacePlayer(placedIDs, _uiManager.PlayerUIPlacementSceneRefs.PlayersOnFront);
                     yield return null;
-                    PlaceTwoPlayers(playerUISettings, PlayersOnFrontPlayersNumber-1, placedIDs);
+                    PlaceTwoPlayers(playerUISettings, PlayersOnFrontPlayersNumber - 1, placedIDs);
                 }
                 break;
         }
@@ -182,24 +182,50 @@ public abstract class  UIEventsBase : IUIEvents
     protected virtual void FirstPlayerTurnLayOutSetUp()
     {
         var bettingScreen = _uiManager.PlayerTurnUI.BettingScreenUI;
-        
+
         //lets not show shet for now 
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(false);
         bettingScreen.BettingScreen.gameObject.SetActive(false);
 
         // reseting the score 
         bettingScreen.MyBetSuitScore.text = Zeros;
-        
+
         //hiding the previous player bet 
         bettingScreen.PreviousBetSuitScore.text = Zeros;
         bettingScreen.PreviousBetSuitHolder.gameObject.SetActive(false);
-        
+
         //show Bet Launcher Outlet 
         bettingScreen.FirstBetLauncherText.SetActive(true);
 
         //panel on 
         bettingScreen.BettingScreen.gameObject.SetActive(true);
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
+    }
+    #endregion
+
+    #region Linking PlayerTurn Panles UI with Logic
+    protected void LinkPlayerTurnUIWithLogic()
+    {
+        //cant grabshet if there is no local Player yet 
+        if (_uiManager.GameManagerUI.LocalPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Linking Player Turn UI Panels with Logic Failed!, Local Player is Null! ");
+#endif
+            return;
+        }
+
+        var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
+        
+        //setting up comfirm Bet Buttton 
+        var confirmButton = _uiManager.PlayerTurnUI.BettingScreenUI.Confirm;
+        confirmButton.onClick.RemoveAllListeners();
+        confirmButton.onClick.AddListener(localPlayer.ConfirmBet);
+
+        //setting up Doubt it Button
+        var doubtItButton = _uiManager.PlayerTurnUI.UltimatumScreenUI.DoubtButton;
+        doubtItButton.onClick.RemoveAllListeners();
+        doubtItButton.onClick.AddListener(localPlayer.DoubtBet);
     }
     #endregion
 }

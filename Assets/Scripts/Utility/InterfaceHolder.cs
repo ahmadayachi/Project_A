@@ -41,6 +41,9 @@ public interface IPlayer : ICardReceiver
     public NetworkObject NetworkObject { get; }
     Transform Transform { get; }
 
+    //player commands 
+    void ConfirmBet();
+    void DoubtBet();
     string ToString();
 }
 
@@ -152,10 +155,18 @@ public interface IDealerBehaviour
     List<ICard> DeckOfCards { get; set; }
 }
 
-public interface IGameModeBehaviour
+public interface IGameMode
 {
+    void ConfirmBet(byte[] bet, string playerID);
+    void DoubtBet(string playerID);
+    void PassTurn();
+    void StartGame();
 }
-
+public struct GameModeARGS
+{
+    public GameMode GameMode;
+    public GameManager GameManager;
+}
 public interface IState<T> where T : struct
 {
     void Start(T arg);

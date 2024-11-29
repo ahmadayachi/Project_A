@@ -11,7 +11,7 @@ using WebSocketSharp;
 
 public class GameManager : NetworkBehaviour
 {
-    //<=======================================================================(Fields and Props)======================================================================>
+    //<=========================(Fields and Props)============================================>
 
     #region dealer
 
@@ -22,7 +22,7 @@ public class GameManager : NetworkBehaviour
     #region betHandler
 
     private BetHandler _betHandler;
-
+    public BetHandler BetHandler { get => _betHandler;}
     #endregion betHandler
 
     #region Card Pool System
@@ -35,7 +35,7 @@ public class GameManager : NetworkBehaviour
     #region Doubt
 
     private Doubt _doubt;
-
+    public Doubt Doubt { get => _doubt;}
     #endregion Doubt
 
     #region UI Manager
@@ -51,6 +51,11 @@ public class GameManager : NetworkBehaviour
     public CallBackManager CallBackManager { get => _callBackManager; }
 
     #endregion Call Back Manager
+
+    #region Game Mode Manager
+    private GameModeManager _gameModeManager;
+    public GameModeManager GameModeManager { get => _gameModeManager; }
+    #endregion
 
     #region Run Time Data
 
@@ -85,26 +90,25 @@ public class GameManager : NetworkBehaviour
 
     #region Player Propertys
 
-    private const byte MaxPlayersNumber = 8;
+    public const byte MaxPlayersNumber = 8;
 
     /// <summary>
     /// Array of  Active Players
     /// </summary>
     [Networked, Capacity(MaxPlayersNumber)]
-    private NetworkArray<NetworkObject> _cloudplayersData { get; }
+    public NetworkArray<NetworkObject> CloudplayersData { get; }
 
     [Networked, Capacity(MaxPlayersNumber - 1)]
-    private NetworkArray<string> _loosersIDs { get; }
-
-    [Networked] private string _winnerID { get; set; }
-    [Networked] private string _currentPlayerID { get; set; }
-    [Networked] private PlayerTimerState _playerTimerState { get; set; }
+    public NetworkArray<string> LoosersIDs { get; }
+    [Networked] public string WinnerID { get; set; }
+    [Networked] public string CurrentPlayerID { get; set; }
+    [Networked] public PlayerTimerState PlayerTimerState { get; set; }
     public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
     private int _playersNumber;
     public int PlayersNumber { get => _playersNumber; }
     public IPlayer[] Players;
-    private int _playerIndex;
+    public int PlayerIndex;
     private List<int> _playerReadyList = new List<int>();
 
     #endregion Player Propertys
@@ -115,16 +119,16 @@ public class GameManager : NetworkBehaviour
     /// Array of the total cards that are dealt to players per Round
     /// </summary>
     [Networked, Capacity(DoubleStandartDeckSize)]
-    private NetworkArray<byte> _dealtCards { get; }
+    public NetworkArray<byte> DealtCards { get; }
 
-    private List<byte> _dealtCardsList = new List<byte>();
+    public List<byte> DealtCardsList = new List<byte>();
 
     #endregion Cards Networked Properties
 
     #region GameState properties
 
     [Networked]
-    public GameState _gameState { get; set; }
+    public GameState GameState { get; set; }
 
     [Networked] private byte _dealtCardsNumber { get; set; }
     public byte DealtCardsNumber { get => _dealtCardsNumber; }
@@ -139,17 +143,16 @@ public class GameManager : NetworkBehaviour
     /// Array of card ranks that the previous player bet on
     /// </summary>
     [Networked, Capacity(DoubleStandartDeckSize)]
-    private NetworkArray<byte> _liveBet { get; }
+    public NetworkArray<byte> LiveBet { get; }
 
-    private List<DiffusedRankInfo> _diffusedBet = new List<DiffusedRankInfo>();
+    public List<DiffusedRankInfo> DiffusedBet = new List<DiffusedRankInfo>();
 
     /// <summary>
     /// Id of the Player who set the Live Bet
     /// </summary>
-    [Networked] private string _liveBetPlayerID { get; set; }
+    [Networked] public string LiveBetPlayerID { get; set; }
 
-    [Networked] private byte _doubtSceneTimer { get; set; }
-    public byte DoubtSceneTimer { get => _doubtSceneTimer; }
+    [Networked] public byte DoubtSceneTimer { get; set; }
 
     #endregion Live Bet Props
 
@@ -183,28 +186,103 @@ public class GameManager : NetworkBehaviour
 
     #endregion Routins
 
-    //<=======================================================================(Methods)======================================================================>
+    //<==================================================================================================>
 
-    #region Dealer Setup
 
-    private void CreateDealer() => _dealer = new Dealer(StartRoutine, StopRoutine);
+    public override void Spawned()
+    {
+        //grabing Runner 
+        GameRunner = Runner;
+        //injecting UI dependancy
+        _uiManager.InjectGameManager(this);
 
-    #endregion Dealer Setup
+        //setting UI
+        _uiManager.Init(GameMode);
 
-    #region Doubt Setup
+        //setting up game mode Manager
+        GameModeManagerSetUp();
 
-    private void CreateDoubt() => _doubt = new Doubt(OnDoubtLogic, StartRoutine, StopRoutine);
+        //setting CallBackManager
+        SetUpCallBackManager();
 
-    #endregion Doubt Setup
+        //cheking if the host need to start the Game
+        if (CanStartGame())
+        {
+#if AUTOSTARTGAMECONTROL
+            if (AutoStartGame)
+#endif
+                HostStartGame();
+        }
+        else
+        //cheking if immidiate simulation set up is needed
+        if (NeedSimuationSetUp())
+        {
+            StartSimulationSetUp();
+        }
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Game Manager spawned", Color.gray, LogManager.ValueInformationLog);
+#endif
+    }
 
-    #region BetHandler Setup
+   
 
-    private void CreateBetHandler() => _betHandler = new BetHandler();
+    public override void FixedUpdateNetwork()
+    {
+//#if Log
+//        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
+//#endif
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            switch (change)
+            {
+                case nameof(GameState): OnGameStateChanged(); break;
+                case nameof(PlayerTimerState): _callBackManager.EnqueueOrExecute(OnPlayerTimerStateChanged); break;
+                case nameof(CurrentPlayerID): _callBackManager.EnqueueOrExecute(OnCurrentPlayerIDChanged); break;
+            }
+        }
+    }
 
-    #endregion BetHandler Setup
+    #region methods to link with UI
 
-    #region Cards Pool Setup
+    public void SetNumberOfPlayers(int numberOfPlayers)
+    {
+        if (numberOfPlayers <= 8 && numberOfPlayers > 0)
+        {
+            _playersNumber = (byte)numberOfPlayers;
+#if Log
+            LogManager.Log($"Player number is Set !, Player Number = {_playersNumber}", Color.green, LogManager.ValueInformationLog);
+#endif
+        }
+    }
 
+    #endregion methods to link with UI
+
+    #region General Logic Swamp
+    /// <summary>
+    /// allocates callbackManager and grabs the change detector
+    /// </summary>
+    private void SetUpCallBackManager()
+    {
+        if (!IsModeSingle())
+        {
+#if Log
+            LogManager.Log($"{GameRunner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);
+#endif
+            _callBackManager = new CallBackManager();
+
+            GameRunner.SetIsSimulated(Object, true);
+            //change dectector Set up
+            _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+        }
+    }
+    private void GameModeManagerSetUp()
+    {
+        var gameModeArgs = new GameModeARGS();
+        gameModeArgs.GameManager = this;
+        gameModeArgs.GameMode = this.GameMode;
+
+        _gameModeManager = new GameModeManager(gameModeArgs);
+    }
     private void CreateCardPool()
     {
         var cardPrefab = AssetLoader.PrefabContainer.CardPrefab;
@@ -229,97 +307,24 @@ public class GameManager : NetworkBehaviour
         poolArgs.CardsHolder = _uiManager.CardsHolder;
         _cardsPool = new CardPool(poolArgs);
     }
-
-    #endregion Cards Pool Setup
-
-    public override void Spawned()
-    {
-        //grabing Runner 
-        GameRunner = Runner;
-        //injecting UI dependancy
-        _uiManager.InjectGameManager(this);
-
-        //setting UI
-        _uiManager.Init(GameMode);
-
-        //setting CallBackManager
-        if (!IsModeSingle())
-        {
-#if Log
-            LogManager.Log($"{GameRunner.LocalPlayer} Callback Manager and Changer detector is Set Up  !", Color.gray, LogManager.ValueInformationLog);
-#endif
-            _callBackManager = new CallBackManager();
-
-            GameRunner.SetIsSimulated(Object, true);
-            //change dectector Set up
-            _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        }
-
-        //cheking if the host need to start the Game
-        if (CanStartGame())
-        {
-#if AUTOSTARTGAMECONTROL
-            if (AutoStartGame)
-#endif
-                HostStartGame();
-        }
-        else
-        //cheking if immidiate simulation set up is needed
-        if (NeedSimuationSetUp())
-        {
-            StartSimulationSetUp();
-        }
-#if Log
-        LogManager.Log($"{Runner.LocalPlayer} Game Manager spawned", Color.gray, LogManager.ValueInformationLog);
-#endif
-    }
-
-    public override void FixedUpdateNetwork()
-    {
-//#if Log
-//        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
-//#endif
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            switch (change)
-            {
-                case nameof(_gameState): OnGameStateChanged(); break;
-                case nameof(_playerTimerState): _callBackManager.EnqueueOrExecute(OnPlayerTimerStateChanged); break;
-                case nameof(_currentPlayerID): _callBackManager.EnqueueOrExecute(OnCurrentPlayerIDChanged); break;
-            }
-        }
-    }
-
-    #region methods to link with UI
-
-    public void SetNumberOfPlayers(int numberOfPlayers)
-    {
-        if (numberOfPlayers <= 8 && numberOfPlayers > 0)
-        {
-            _playersNumber = (byte)numberOfPlayers;
-#if Log
-            LogManager.Log($"Player number is Set !, Player Number = {_playersNumber}", Color.green, LogManager.ValueInformationLog);
-#endif
-        }
-    }
-
-    #endregion methods to link with UI
-
-    #region General Logic Swamp
+    private void CreateBetHandler() => _betHandler = new BetHandler();
+    private void CreateDoubt() => _doubt = new Doubt(OnDoubtLogic, StartRoutine, StopRoutine);
+    private void CreateDealer() => _dealer = new Dealer(StartRoutine, StopRoutine);
 
     public bool IsModeSingle() => GameMode == GameMode.Single;
     private bool NeedSimuationSetUp()
     {
-        return _gameState != GameState.NoGameState && _gameState != GameState.SimulationSetUp;
+        return GameState != GameState.NoGameState && GameState != GameState.SimulationSetUp;
     }
 
     public bool CanStartGame()
     {
-        return IsHost && (_gameState == GameState.NoGameState);
+        return IsHost && (GameState == GameState.NoGameState);
     }
 
     public void HostStartGame()
     {
+        _gameModeManager.StartGame();
         //uploading Deck Info
         UploadDeckInfo();
         //Create CardManager
@@ -330,7 +335,7 @@ public class GameManager : NetworkBehaviour
         SetMaxPlayerCards();
 
         //simulation Prep
-        _gameState = GameState.SimulationSetUp;
+        GameState = GameState.SimulationSetUp;
     }
 
     private IEnumerator WaitSetUp()
@@ -364,7 +369,7 @@ public class GameManager : NetworkBehaviour
         LogManager.Log("All Players GameStarted Animation Exectuted", Color.green, LogManager.ValueInformationLog);
 #endif
         //moving to dealing state
-        _gameState = GameState.Dealing;
+        GameState = GameState.Dealing;
     }
 
     private IEnumerator WaitSetUpThenWaitPlayers()
@@ -383,7 +388,7 @@ public class GameManager : NetworkBehaviour
             LogManager.Log("All Players Simulation is Set Up", Color.green, LogManager.ValueInformationLog);
 #endif
             //Moving tto Game Started Game State
-            _gameState = GameState.GameStarted;
+            GameState = GameState.GameStarted;
         }
         else
         {
@@ -421,7 +426,7 @@ public class GameManager : NetworkBehaviour
 
         _simulationSetUpRoutine = null;
 
-        if (_gameState == GameState.SimulationSetUp)
+        if (GameState == GameState.SimulationSetUp)
             RPC_PlayerReady(LocalPlayer.playerRef.PlayerId);
     }
 
@@ -574,13 +579,13 @@ public class GameManager : NetworkBehaviour
 
     public bool IsMyTurn()
     {
-        if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
-        return LocalPlayer.ID == _currentPlayerID;
+        if (CurrentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
+        return LocalPlayer.ID == CurrentPlayerID;
     }
     public bool IsMyTurn(string playerID)
     {
-        if (_currentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
-        return playerID == LocalPlayer.ID  && LocalPlayer.ID == _currentPlayerID;
+        if (CurrentPlayerID.IsNullOrEmpty() || LocalPlayer == null) return false;
+        return playerID == LocalPlayer.ID  && LocalPlayer.ID == CurrentPlayerID;
     }
     private bool AllPlayersReady()
     {
@@ -643,7 +648,7 @@ public class GameManager : NetworkBehaviour
             SetLocalPlayer(player);
 
             //uploading player netobject on cloud
-            _cloudplayersData.Set(playerIndex, playerObject);
+            CloudplayersData.Set(playerIndex, playerObject);
             //stroing player on local simulation
             Players[playerIndex] = player;
             playerIndex++;
@@ -652,7 +657,7 @@ public class GameManager : NetworkBehaviour
         _runTimeDataHolder.RunTimePlayersData.Clear();
         _runTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
         //setting the first player
-        _currentPlayerID = Players[0].ID;
+        CurrentPlayerID = Players[0].ID;
         CurrentPlayer = Players[0];
     }
 
@@ -688,19 +693,19 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     private void LoadPlayers()
     {
-        if (_cloudplayersData.IsEmpty())
+        if (CloudplayersData.IsEmpty())
         {
 #if Log
             LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {Runner.LocalPlayer} is Canceled", Color.cyan, LogManager.ValueInformationLog);
 #endif
             return;
         }
-        int playersCount = _cloudplayersData.Count();
+        int playersCount = CloudplayersData.Count();
         Players = new IPlayer[playersCount];
         _playersNumber = playersCount;
         int playerIndex = 0;
         //players need to be spawned before Fetching
-        foreach (NetworkObject playerNetObject in _cloudplayersData)
+        foreach (NetworkObject playerNetObject in CloudplayersData)
         {
             if (Extention.IsObjectUsable(playerNetObject))
             {
@@ -810,7 +815,7 @@ public class GameManager : NetworkBehaviour
         PlayerControl();
 
         //Directing Game State
-        _gameState = GameState.RoudOver;
+        GameState = GameState.RoudOver;
     }
 
     private void CaluCulateDoubtSceneTimer()
@@ -837,7 +842,7 @@ public class GameManager : NetworkBehaviour
                     player.ClearHand();
                     player.ClearCardsCounter();
                     player.SetIsplayerOut(true);
-                    _loosersIDs.AddPlayerID(player.ID);
+                    LoosersIDs.AddPlayerID(player.ID);
                 }
             }
         }
@@ -845,7 +850,7 @@ public class GameManager : NetworkBehaviour
 
     private void PunishingDoubtLooser(out string playerToPunishID, out IPlayer playerToPunish)
     {
-        playerToPunishID = (_doubtState == DoubtState.WinDoubt) ? _liveBetPlayerID : _currentPlayerID;
+        playerToPunishID = (_doubtState == DoubtState.WinDoubt) ? LiveBetPlayerID : CurrentPlayerID;
         if (TryFindPlayer(playerToPunishID, out playerToPunish))
         {
             playerToPunish.PlusOneCard();
@@ -861,12 +866,12 @@ public class GameManager : NetworkBehaviour
 
     private void RoundOverVariablesCleaning()
     {
-        _liveBetPlayerID = string.Empty;
-        _liveBet.ClearByteArray();
-        _diffusedBet.Clear();
-        _doubtSceneTimer = 0;
-        _dealtCards.ClearByteArray();
-        _dealtCardsList.Clear();
+        LiveBetPlayerID = string.Empty;
+        LiveBet.ClearByteArray();
+        DiffusedBet.Clear();
+        DoubtSceneTimer = 0;
+        DealtCards.ClearByteArray();
+        DealtCardsList.Clear();
         _dealtCardsNumber = 0;
         //clearing Players Hand
         foreach (var player in Players)
@@ -931,143 +936,13 @@ public class GameManager : NetworkBehaviour
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_ConfirmBet(byte[] bet, string playerID)
     {
-        ConfirmingBet(bet, playerID);
+        _gameModeManager.ConfirmBet(bet, playerID);
     }
-
-    private void ConfirmingBet(byte[] bet, string playerID)
-    {
-        //blocking invalid args
-        if (string.IsNullOrEmpty(playerID) || bet == null)
-        {
-#if Log
-            LogManager.LogError($"Blocking Confirm Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_currentPlayerID}");
-#endif
-            return;
-        }
-        //only current player can confirm bet
-        if (_currentPlayerID != playerID)
-        {
-#if Log
-            LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} is not the Current PLayer!,Current PLayer ID:={_currentPlayerID}", Color.red, LogManager.GameModeLogs);
-#endif
-            return;
-        }
-        //the previous bet should always be sorted
-        byte[] liveBet = _liveBet.ToByteArray();
-        ValidatorArguments betArgs = new ValidatorArguments(bet, liveBet, _dealtCardsNumber);
-        bool isValid = _betHandler.ChainValidateBet(betArgs);
-        //bet has to be valid
-        if (!isValid)
-        {
-#if Log
-            LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} Sent an Invalid Bet!, Bet=:{string.Join(",", liveBet)}", Color.red, LogManager.GameModeLogs);
-#endif
-            return;
-        }
-        //stoping timer
-        _playerTimerState = PlayerTimerState.StopTimer;
-        //making sure the array is sorted before confirming
-        Extention.BetDiffuser(bet, _diffusedBet);
-        byte[] sortedBet = _diffusedBet.ToByteArray();
-        int sortedBetLength = sortedBet.Length;
-        //cleaning Network Array
-        for (int index = 0; index < _liveBet.Length; index++)
-        {
-            _liveBet.Set(index, 0);
-        }
-        //adding Bet
-        for (int index = 0; (index < sortedBetLength); index++)
-        {
-            _liveBet.Set(index, sortedBet[index]);
-        }
-        //setting live bet player id
-        _liveBetPlayerID = playerID;
-        //passing Turn here
-        PassTurn();
-        //generating a Max Bet
-        byte[] MaxBet = BetGenerator.GenerateMaxBet(_dealtCardsNumber);
-        //cheking if the Played Bet is a Max Bet
-        if (MaxBet.AreEqual(sortedBet))
-        {
-            //Directing the Game To an Auto Doubt State
-            _dealtCards.ToByteList(_dealtCardsList);
-            DoubtStateArguments stateArguments = new DoubtStateArguments(_dealtCardsList, sortedBet);
-            ChangeState(_doubt, stateArguments);
-#if Log
-            LogManager.Log($"Auto Doubt is Launched!, Current Player {_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}", Color.blue, LogManager.GameModeLogs);
-#endif
-            return;
-        }
-        //checking if the next Current Player Have to Play a Max Bet
-        byte[] roundedUpBet;
-        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, DealtCardsNumber))
-        {
-            //cheking if the rounded up bet is a max Bet
-            if (MaxBet.AreEqual(roundedUpBet))
-            {
-                //directing Game State to a Last Player Game State
-                _gameState = GameState.LastPlayerTurn;
-                return;
-            }
-        }
-        //abbording everythink if a bet cannot be Rounded Up
-        else
-        {
-#if Log
-            LogManager.LogError($"Failed Confirm Rpc ! Failed Rounding Up Current Bet! CurrentPlayerID is :=>{_currentPlayerID}");
-#endif
-            return;
-        }
-
-        //Directing Game State  to a normal Player turn
-        _gameState = GameState.PlayerTurn;
-    }
-
+    
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_Doubt(string playerID)
     {
-        //blocking invalid args
-        if (string.IsNullOrEmpty(playerID))
-        {
-#if Log
-            LogManager.LogError($"Blocking Doubt Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_currentPlayerID}");
-#endif
-            return;
-        }
-
-        if (_doubt == null)
-        {
-#if Log
-            LogManager.LogError($"Blocking Doubt Rpc ! Doubt State is not Initialized! CurrentPlayerID is :=>{_currentPlayerID}");
-#endif
-            return;
-        }
-
-        //only current player can Doubt
-        if (_currentPlayerID != playerID)
-        {
-#if Log
-            LogManager.Log($"Blocking Doubt Rpc ! player with ID:= {playerID} is not the Current Player!,Current Player ID:={_currentPlayerID}", Color.red, LogManager.GameModeLogs);
-#endif
-            return;
-        }
-        //player cant doubt himself
-        if (_currentPlayerID == _liveBetPlayerID)
-        {
-#if Log
-            LogManager.LogError($"Blocking Doubt Rpc ! player Cant Doubt himself ,Current Player ID:={_currentPlayerID} Live Bet Player ID {_liveBetPlayerID}");
-#endif
-            return;
-        }
-
-        //stoping timer
-        _playerTimerState = PlayerTimerState.StopTimer;
-
-        byte[] liveBet = _liveBet.ToByteArray();
-        _dealtCards.ToByteList(_dealtCardsList);
-        //invoking Doubt State
-        DoubtStateArguments stateArguments = new DoubtStateArguments(_dealtCardsList, liveBet);
-        ChangeState(_doubt, stateArguments);
+        _gameModeManager.DoubtBet(playerID);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -1108,11 +983,11 @@ public class GameManager : NetworkBehaviour
         PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
 
         //setting the Current Player
-        _currentPlayerID = playerToPunishID;
+        CurrentPlayerID = playerToPunishID;
         CurrentPlayer = playerToPunish;
 
         // Updating Clients and Host UI
-        _gameState = GameState.Doubting;
+        GameState = GameState.Doubting;
     }
 
     #endregion Doubting State
@@ -1134,9 +1009,9 @@ public class GameManager : NetworkBehaviour
                 return;
             }
             //setting the Winner ID
-            _winnerID = Winner.ID;
+            WinnerID = Winner.ID;
             //directing Game State and updating clients
-            _gameState = GameState.GameOver;
+            GameState = GameState.GameOver;
             //Maybe game Over stuff here
         }
         else
@@ -1144,7 +1019,7 @@ public class GameManager : NetworkBehaviour
             //clearing
             RoundOverVariablesCleaning();
             //directing game state
-            _gameState = GameState.Dealing;
+            GameState = GameState.Dealing;
         }
     }
 
@@ -1152,7 +1027,7 @@ public class GameManager : NetworkBehaviour
 
     #region state contol methods
 
-    private void ChangeState<T>(State newState, T newStateArgs) where T : struct
+    public void ChangeState<T>(State newState, T newStateArgs) where T : struct
     {
         // froce end current state
         _currentState?.ForceEnd();
@@ -1166,14 +1041,14 @@ public class GameManager : NetworkBehaviour
 
     #region Passing Turn
 
-    private void NextPlayerIndex()
+    public void NextPlayerIndex()
     {
-        _playerIndex = _playerIndex + 1;
-        if (_playerIndex >= Players.Length)
-            _playerIndex = 0;
+        PlayerIndex = PlayerIndex + 1;
+        if (PlayerIndex >= Players.Length)
+            PlayerIndex = 0;
     }
 
-    private bool IsGameOver()
+    public bool IsGameOver()
     {
         if (Players == null || Players.Length == 0) return false;
         int counter = 0;
@@ -1184,66 +1059,6 @@ public class GameManager : NetworkBehaviour
         }
         if (counter == 1) return true;
         return false;
-    }
-
-    private void PassTurn()
-    {
-        //Server Only Bitch
-        if (IsClient) return;
-
-        if (Players.IsNullOrHaveNullElements())
-        {
-#if Log
-            LogManager.LogError("Failed Passing Turn ! Players Array is Null or Have Null Elements");
-#endif
-            return;
-        }
-        if (IsGameOver())
-        {
-#if Log
-            LogManager.Log("Failed Passing Turn ! Game should be Over !", Color.red, LogManager.GameModeLogs);
-#endif
-            return;
-        }
-
-        int currentPlayerIndex = _playerIndex;
-        IPlayer player = null;
-        do
-        {
-            //Moving player Indexer
-            NextPlayerIndex();
-
-            try
-            {
-                player = Players[_playerIndex];
-            }
-            catch (Exception ex)
-            {
-#if Log
-                LogManager.LogError("Failed Passing Turn!" + ex.Message);
-#endif
-                return;
-            }
-        } while (NeedToLookForPlayers(ref currentPlayerIndex, player));
-
-        //final check for player
-        bool loopedArray = currentPlayerIndex == _playerIndex;
-        if (loopedArray || player.IsOut)
-        {
-#if Log
-            LogManager.LogError($"Failed Passing Turn! looped array{loopedArray}/  Player :{player}");
-#endif
-            return;
-        }
-
-        //setting current player
-        CurrentPlayer = player;
-        _currentPlayerID = player.ID;
-        //if singlePlayer invoke shit here
-        if (GameMode == GameMode.Single)
-        {
-            //Idk Ui shit or smth
-        }
     }
 
     private bool TryFindPlayer(string playerID, out IPlayer player)
@@ -1270,35 +1085,35 @@ public class GameManager : NetworkBehaviour
 
     private void OnCurrentPlayerIDChanged()
     {
-        if (_currentPlayerID == string.Empty) return;
+        if (CurrentPlayerID == string.Empty) return;
 
         //if host is updated return
         if (IsHost)
-            if (CurrentPlayer != null && CurrentPlayer.ID == _currentPlayerID) return;
+            if (CurrentPlayer != null && CurrentPlayer.ID == CurrentPlayerID) return;
         //looking for desired payer
         IPlayer newCurrentPlayer = null;
-        if (TryFindPlayer(_currentPlayerID, out newCurrentPlayer))
+        if (TryFindPlayer(CurrentPlayerID, out newCurrentPlayer))
         {
             CurrentPlayer = newCurrentPlayer;
             //should invoke corresponding UI or something
 
             //starting Player State
-            if (_gameState == GameState.PlayerTurn)
+            if (GameState == GameState.PlayerTurn)
                 StartPlayerTimer();
         }
         else
         {
 #if Log
-            LogManager.LogError($"Failed updating Current Player! Cant Find  Player with ID:=> {_currentPlayerID}");
+            LogManager.LogError($"Failed updating Current Player! Cant Find  Player with ID:=> {CurrentPlayerID}");
 #endif
             return;
         }
     }
 
-    private bool NeedToLookForPlayers(ref int CurrentPlayerIndex, IPlayer player)
+    public bool NeedToLookForPlayers(ref int CurrentPlayerIndex, IPlayer player)
     {
         //detecting if I already looped the array
-        if (CurrentPlayerIndex == _playerIndex) return false;
+        if (CurrentPlayerIndex == PlayerIndex) return false;
         // first player is still playing Halt !
         if (!player.IsOut) return false;
         return true;
@@ -1311,7 +1126,7 @@ public class GameManager : NetworkBehaviour
     private void OnPlayerTimerStateChanged()
     {
         //blocking resets
-        if (_playerTimerState == PlayerTimerState.NoTimer) return;
+        if (PlayerTimerState == PlayerTimerState.NoTimer) return;
         //at this time each simulation should Have a Current Player
         if (CurrentPlayer == null)
         {
@@ -1321,7 +1136,7 @@ public class GameManager : NetworkBehaviour
             return;
         }
         //game state should a player turn states
-        if (_playerTimerState == PlayerTimerState.StopTimer)
+        if (PlayerTimerState == PlayerTimerState.StopTimer)
         {
             //TODO : check if the current state is a player state 
             _currentState?.ForceEnd();
@@ -1330,7 +1145,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameState, IsMyTurn());
+        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(GameState, IsMyTurn());
         ChangeState(CurrentPlayer.PlayerState, PlayerStateArgs);
     }
 
@@ -1341,9 +1156,9 @@ public class GameManager : NetworkBehaviour
     private void OnGameStateChanged()
     {
 #if Log
-        LogManager.Log($"{Runner.LocalPlayer} Game State Changed ! gameState={_gameState}", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"{Runner.LocalPlayer} Game State Changed ! gameState={GameState}", Color.gray, LogManager.ValueInformationLog);
 #endif
-        switch (_gameState)
+        switch (GameState)
         {
             case GameState.SimulationSetUp: SimulationPrepGameState(); break;
             case GameState.GameStarted: _callBackManager.EnqueueOrExecute(GameStarted); break;
@@ -1393,7 +1208,7 @@ public class GameManager : NetworkBehaviour
     private void StartPlayerTimer()
     {
         if (IsHost)
-            _playerTimerState = PlayerTimerState.StartTimer;
+            PlayerTimerState = PlayerTimerState.StartTimer;
     }
 
     private void Dealing()
@@ -1412,7 +1227,7 @@ public class GameManager : NetworkBehaviour
     private void OnDealingOver()
     {
         //maybe some other UI Shit here
-        _gameState = GameState.FirstPlayerTurn;
+        GameState = GameState.FirstPlayerTurn;
     }
 
     private void SimulationPrepGameState()

@@ -149,19 +149,9 @@ public class PlayerUIController :MonoBehaviour
     #endregion
     #region Player Commands Wraping
 
-    private void ConfirmBet()
-    {
-        //if it is this player turn and he is the local player
-        if (_player.PlayerGameManager.IsMyTurn(_player.ID))
-        {
-            //send confirm RPC
-            _player.PlayerGameManager.RPC_ConfirmBet(ProcessSelectedCards(), _player.ID);
-        }
-        //turn off the UI Panel
+   
 
-    }
-
-    private byte[] ProcessSelectedCards()
+    public byte[] ProcessSelectedCards()
     {
         //checking if the list is Empty
         if (SelectedBet.IsEmpty())
