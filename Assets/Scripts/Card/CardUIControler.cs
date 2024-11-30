@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CardUIControler : ICardUIControler
+public class CardUIControler 
 {
     Card _card;
     CardUI _cardUI;

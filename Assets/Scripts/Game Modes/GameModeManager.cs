@@ -1,9 +1,6 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-public class GameModeManager 
+public class GameModeManager
 {
     //private GameMode _gameMode;
     private IGameMode _activeGameModeBehaviour;
@@ -15,7 +12,7 @@ public class GameModeManager
         else
             _activeGameModeBehaviour = new OnlineMode(args);
     }
-    
+
     public void ConfirmBet(byte[] bet, string playerID)
     {
         _activeGameModeBehaviour.ConfirmBet(bet, playerID);
@@ -30,6 +27,33 @@ public class GameModeManager
     {
         _activeGameModeBehaviour.StartGame();
     }
-   
+    public void SetGameState(GameState state)
+    {
+        _activeGameModeBehaviour.SetGameState(state);
+    }
+    public void StartSimulationSetUp()
+    {
+        _activeGameModeBehaviour.StartSimulationSetUp();
+    }
+    public bool IsGameOver()
+    {
+        return _activeGameModeBehaviour.IsGameOver();
+    }
+    public void StartPlayerState()
+    {
+        _activeGameModeBehaviour.StartPlayerState();
+    }
+    public void LoadCurrentPlayer()
+    {
+        _activeGameModeBehaviour.LoadCurrentPlayer();
+    }
+    public void DoubtLogic(DoubtState doubtState)
+    {
+        _activeGameModeBehaviour.DoubtLogic(doubtState);
+    }
+    public void DoubtOverLogic()
+    {
+        _activeGameModeBehaviour.DoubtOverLogic();
+    }
 }
 

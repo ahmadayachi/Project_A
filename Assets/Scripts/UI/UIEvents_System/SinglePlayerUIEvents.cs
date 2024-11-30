@@ -34,11 +34,6 @@ public class SinglePlayerUIEvents : UIEventsBase
         throw new System.NotImplementedException();
     }
 
-    public override void OnHostMigration()
-    {
-        throw new System.NotImplementedException();
-    }
-
     public override void OnLastPlayerTurn()
     {
         throw new System.NotImplementedException();

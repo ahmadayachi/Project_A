@@ -36,15 +36,15 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnDoubting()
     {
-        //throw new System.NotImplementedException();
+
+        //after the animation inoking logic
+        if (_uiManager.GameManagerUI.IsHost)
+        {
+            _uiManager.GameManagerUI.GameModeManager.DoubtOverLogic();
+        }
     }
 
     public override void OnGameOver()
-    {
-       // throw new System.NotImplementedException();
-    }
-
-    public override void OnHostMigration()
     {
        // throw new System.NotImplementedException();
     }

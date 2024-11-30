@@ -11,7 +11,7 @@ public class Card : MonoBehaviour, ICard
     [SerializeField] private byte _rank;
     [SerializeField] private byte _id;
     [SerializeField] private CardSuit _suit;
-    private ICardUIControler _cardUIControler;
+    private CardUIControler _cardUIControler;
 
     #endregion Card Fields
 
@@ -21,7 +21,7 @@ public class Card : MonoBehaviour, ICard
     public byte Rank { get => _rank; }
     public byte ID { get => _id; }
     public CardSuit Suit { get => _suit; }
-    public ICardUIControler CardUIControl { get => _cardUIControler; }
+    public CardUIControler CardUIControl { get => _cardUIControler; }
     public Transform Transform { get=>transform; }
 
     #endregion ICard Properties

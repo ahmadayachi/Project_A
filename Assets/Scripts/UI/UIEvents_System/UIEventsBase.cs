@@ -22,7 +22,6 @@ public abstract class UIEventsBase : IUIEvents
     public abstract void OnDealingCards();
     public abstract void OnDoubting();
     public abstract void OnGameOver();
-    public abstract void OnHostMigration();
     public abstract void OnRoundOver();
     public abstract void OnSetUpStarted();
     public abstract void OnFirstPlayerTurn();
@@ -226,6 +225,15 @@ public abstract class UIEventsBase : IUIEvents
         var doubtItButton = _uiManager.PlayerTurnUI.UltimatumScreenUI.DoubtButton;
         doubtItButton.onClick.RemoveAllListeners();
         doubtItButton.onClick.AddListener(localPlayer.DoubtBet);
+
+        //Level Up Bet Button Set Up 
+        var levelUpBetButton = _uiManager.PlayerTurnUI.BettingScreenUI.SuggestBet;
+        levelUpBetButton.onClick.RemoveAllListeners();
+        levelUpBetButton.onClick.AddListener(LevelUpCurrentBet);
+    }
+    private void LevelUpCurrentBet()
+    {
+
     }
     #endregion
 }

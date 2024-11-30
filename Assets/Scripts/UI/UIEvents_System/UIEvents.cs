@@ -49,10 +49,6 @@ public class UIEvents
         _uiEvents.OnGameOver();
     }
 
-    public void OnHostMigration()
-    {
-        _uiEvents.OnHostMigration();
-    }
     public void OnFirstPlayerTurn()
     {
         _uiEvents.OnFirstPlayerTurn();

@@ -87,7 +87,7 @@ public struct RunTimePlayerData
 public interface ICard : ICardInfo
 {
     CardUI CardUI { get; }
-    ICardUIControler CardUIControl { get; }
+    CardUIControler CardUIControl { get; }
 
     //void SetRank(byte rank);
     //void SetID(byte id);
@@ -110,17 +110,18 @@ public interface ICardInfo
     CardSuit Suit { get; }
 }
 
-public interface ICardUIControler
+[System.Serializable]
+public struct DisplayCardUIRefs
 {
-    void SetCardRankSprite();
-
-    void ResetCardRankSprite();
+    public GameObject DisplayCardGameObject;
+    public Image CardPlate;
+    public Image CardPlateHighlight;
+    public GameObject CardCounterGameObject;
+    public Image CardCounter;
+    public Image CardCounterHighlight;
+    public TextMeshProUGUI CardCounterText;
+    public Image CardSuit;
 }
-
-public interface ICardBehaviour
-{
-}
-
 //TODO: check why the fuck this still networked struct
 /// <summary>
 /// network ID only
@@ -161,6 +162,13 @@ public interface IGameMode
     void DoubtBet(string playerID);
     void PassTurn();
     void StartGame();
+    void SetGameState(GameState state);
+    void StartSimulationSetUp();
+    bool IsGameOver();
+    void StartPlayerState();
+    void LoadCurrentPlayer();
+    void DoubtLogic(DoubtState doubtState);
+    void DoubtOverLogic();
 }
 public struct GameModeARGS
 {
@@ -203,9 +211,6 @@ public interface IUIEvents
     void OnRoundOver();
 
     void OnGameOver();
-
-    void OnHostMigration();
-
     void OnFirstPlayerTurn();
     void OnPlayerTurn();
     void OnLastPlayerTurn();
@@ -451,7 +456,7 @@ public enum SimulationSetUpState
     SetUpCanceled
 }
 
-public enum PlayerTimerState
+public enum PlayerTimerStates
 {
     NoTimer,
     StartTimer,
@@ -475,7 +480,7 @@ public enum GameState : byte
     Doubting,
     RoudOver,
     GameOver,
-    HostMigration
+    //HostMigration
 }
 
 public enum DoubtState
