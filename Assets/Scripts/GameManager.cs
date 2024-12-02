@@ -277,6 +277,11 @@ public class GameManager : NetworkBehaviour
         return GameRunner.Spawn(objectRef);
     }
 
+    public T Insttantiate<T>( T objectToInstantiate,Transform Parent=null) where T : Object
+    {
+        return Instantiate(objectToInstantiate, Parent);
+    }
+
     /// <summary>
     /// wrapper for a start coroutine
     /// </summary>

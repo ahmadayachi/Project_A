@@ -17,6 +17,7 @@ public class MultiPlaterUIEvents : UIEventsBase
     {
         yield return PlacingPlayersUI();
         yield return null;
+        yield return SetUpDisplayCards();
         _uiManager.GameManagerUI.SimulationState = SimulationSetUpState.UISetUp;
 #if Log
         LogManager.Log($" UI is Set Up Runner Player Ref => {_uiManager.GameManagerUI.Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);

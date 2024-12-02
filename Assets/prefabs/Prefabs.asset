@@ -17,3 +17,4 @@ MonoBehaviour:
   CardPrefab: {fileID: 2239426072865866237, guid: 258c03e99d080ca4c88e7d99bdb2d42c, type: 3}
   RunnerPrefab: {fileID: 3184919321294230871, guid: fc812d1970a2ecd4ba5d3ea76ab59860, type: 3}
   LogPrefab: {fileID: 6493413077421578651, guid: 66cc5c5661ae0ec40837c3745fd4c057, type: 3}
+  DisplayCardPrefab: {fileID: 2047407236817234325, guid: d3e8bde733c21484a9be7e6faf0c78aa, type: 3}

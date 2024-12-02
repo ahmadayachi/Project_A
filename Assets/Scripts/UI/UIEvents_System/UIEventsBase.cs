@@ -7,7 +7,7 @@ public abstract class UIEventsBase : IUIEvents
 {
     protected UIManager _uiManager;
     private const string Zeros = "0000";
-
+    protected List<DisplayCard> _displayCards;
     #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
     #endregion
@@ -234,6 +234,31 @@ public abstract class UIEventsBase : IUIEvents
     private void LevelUpCurrentBet()
     {
 
+    }
+    protected IEnumerator SetUpDisplayCards()
+    {
+        var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
+        if (localPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Setting up Display Cards Failed!, Local Player Is null");
+#endif
+            yield break;
+        }
+        var displayCardSuit = CardSuit.Spades;
+        var displayCardsParent = _uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitHolder;
+        
+        foreach (var rank in CardManager.SortedRanks)
+        {
+            var displayCard = _uiManager.GameManagerUI.Insttantiate(AssetLoader.PrefabContainer.DisplayCardPrefab,displayCardsParent);
+            displayCard.SetRank(rank);
+            displayCard.SetSuit(displayCardSuit);
+            displayCard.SetIdleState();
+            displayCard.OnCardSelected = localPlayer.PlayerUIControler.AddSelectedRank;
+            displayCard.OnCardDeSelected = localPlayer.PlayerUIControler.RemoveSelectedRank;
+            _displayCards.Add(displayCard);
+            yield return null;
+        }
     }
     #endregion
 }

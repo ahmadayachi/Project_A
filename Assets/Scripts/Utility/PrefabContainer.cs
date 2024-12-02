@@ -12,4 +12,6 @@ public class PrefabContainer : ScriptableObject
     #region Log Manager Prefabs
     public GameObject LogPrefab;
     #endregion
+
+    public DisplayCard DisplayCardPrefab;
 }

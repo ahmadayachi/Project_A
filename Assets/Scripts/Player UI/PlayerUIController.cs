@@ -146,10 +146,26 @@ public class PlayerUIController :MonoBehaviour
     {
 
     }
+
+    public void AddSelectedRank(byte rank)
+    {
+        SelectedBet.Add(rank);
+#if Log
+        LogManager.Log($"{rank} rank is added to selectedBet list!, Selected cards Count=>{SelectedBet.Count}", Color.green, LogManager.ValueInformationLog);
+#endif
+    }
+    public void RemoveSelectedRank(byte rank)
+    {
+        if (SelectedBet.Count <= 0) return; 
+      var removedRanks=  SelectedBet.RemoveAll(r => r == rank);
+#if Log
+        LogManager.Log($"{rank} rank is removed froms selectedBet list!, number of ranks removed =>{removedRanks}", Color.green, LogManager.ValueInformationLog);
+#endif
+    }
     #endregion
     #region Player Commands Wraping
 
-   
+
 
     public byte[] ProcessSelectedCards()
     {

@@ -18,7 +18,10 @@ public interface IPlayer : ICardReceiver
 {
     public PlayerRef playerRef { get; }
     string Name { get; }
-
+    PlayerUIController PlayerUIControler
+    {
+        get;
+    }
     void SetPlayerName(string playerName);
 
     string ID { get; }
@@ -121,6 +124,7 @@ public struct DisplayCardUIRefs
     public Image CardCounterHighlight;
     public TextMeshProUGUI CardCounterText;
     public Image CardSuit;
+    public Button CardButton;
 }
 //TODO: check why the fuck this still networked struct
 /// <summary>

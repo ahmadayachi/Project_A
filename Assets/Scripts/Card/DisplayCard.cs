@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class DisplayCard : MonoBehaviour, ICardInfo
 {
     [SerializeField] private byte _rank;
-    public byte Rank { get => _rank;}
+    public byte Rank { get => _rank; }
 
     [SerializeField] private byte _id;
     public byte ID { get => _id; }
@@ -16,16 +14,84 @@ public class DisplayCard : MonoBehaviour, ICardInfo
 
     [SerializeField] DisplayCardUIRefs _uiRefs;
     public DisplayCardUIRefs UIRefs { get => _uiRefs; }
+
+    public Action<byte> OnCardSelected;
+    public Action<byte> OnCardDeSelected;
+
+    public const string X = "X";
+    private int _cardCounter;
     
-    // Start is called before the first frame update
-    void Start()
+
+    private void Awake()
     {
-        
+        //setting up card Button 
+        SetUpButton();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetRank(byte rank)
     {
-        
+        _rank = rank;
     }
+    public void SetSuit(CardSuit suit)
+    {
+        _suit = suit;
+
+        //grabing the Suit 
+        _uiRefs.CardSuit.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(_rank, _suit);
+    }
+
+    public void SetIdleState()
+    {
+        //hiding the card counter 
+        HideAndResetCardCounter();
+
+        //hiding card Highlight 
+        _uiRefs.CardPlateHighlight.gameObject.SetActive(false);
+
+        OnCardDeSelected?.Invoke(_rank);
+    }
+
+    public void CustomSelectState(int CardNumber)
+    {
+        //setting up the card counter 
+        SetCardCounterNumber(CardNumber);
+
+        //setting up hight light 
+        _uiRefs.CardPlateHighlight.gameObject.SetActive(true);
+
+        OnCardSelected?.Invoke(_rank);
+    }
+    /// <summary>
+    /// idk but thats is the only name i could thing of right now 
+    /// </summary>
+    public void PumpSelect()
+    {
+        if (_cardCounter < CardManager.MaxRankCounter)
+            CustomSelectState(_cardCounter + 1);
+        //reseting if max Pump is Reached
+        else
+            SetIdleState();
+
+    }
+    #region private swamp
+    private void HideAndResetCardCounter()
+    {
+        _uiRefs.CardCounterGameObject.SetActive(false);
+        _uiRefs.CardCounterHighlight.gameObject.SetActive(false);
+        _uiRefs.CardCounterText.text = string.Empty;
+        _cardCounter = 0;
+    }
+    private void SetCardCounterNumber(int number)
+    {
+        _cardCounter = number;
+        _uiRefs.CardCounterText.text = X + number.ToString();
+        _uiRefs.CardCounterHighlight.gameObject.SetActive(true);
+        _uiRefs.CardCounterGameObject.SetActive(true);
+    }
+    private void SetUpButton()
+    {
+        _uiRefs.CardButton.onClick.RemoveAllListeners();
+        _uiRefs.CardButton.onClick.AddListener(PumpSelect);
+    }
+    #endregion
 }
