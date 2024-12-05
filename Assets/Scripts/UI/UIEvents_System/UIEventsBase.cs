@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -27,6 +28,7 @@ public abstract class UIEventsBase : IUIEvents
     public abstract void OnFirstPlayerTurn();
     public abstract void OnPlayerTurn();
     public abstract void OnLastPlayerTurn();
+
     #endregion UIEvent
 
 
@@ -203,7 +205,7 @@ public abstract class UIEventsBase : IUIEvents
     #endregion
 
     #region Linking PlayerTurn Panles UI with Logic
-    protected void LinkPlayerTurnUIWithLogic()
+    protected IEnumerator LinkPlayerTurnUIWithLogic()
     {
         //cant grabshet if there is no local Player yet 
         if (_uiManager.GameManagerUI.LocalPlayer == null)
@@ -211,29 +213,119 @@ public abstract class UIEventsBase : IUIEvents
 #if Log
             LogManager.LogError("Linking Player Turn UI Panels with Logic Failed!, Local Player is Null! ");
 #endif
-            return;
+            yield break;
         }
 
         var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
-        
-        //setting up comfirm Bet Buttton 
-        var confirmButton = _uiManager.PlayerTurnUI.BettingScreenUI.Confirm;
-        confirmButton.onClick.RemoveAllListeners();
-        confirmButton.onClick.AddListener(localPlayer.ConfirmBet);
 
-        //setting up Doubt it Button
+        //setting up ultimatum screen Doubt it Button
         var doubtItButton = _uiManager.PlayerTurnUI.UltimatumScreenUI.DoubtButton;
         doubtItButton.onClick.RemoveAllListeners();
         doubtItButton.onClick.AddListener(localPlayer.DoubtBet);
 
-        //Level Up Bet Button Set Up 
+        //setting up ultimatum screen Bet Button 
+        var betButton = _uiManager.PlayerTurnUI.UltimatumScreenUI.BetButton;
+        betButton.onClick.RemoveAllListeners();
+        betButton.onClick.AddListener(BettingScreenOn);
+
+        //setting up  betting screen comfirm Bet Buttton 
+        var confirmButton = _uiManager.PlayerTurnUI.BettingScreenUI.Confirm;
+        confirmButton.onClick.RemoveAllListeners();
+        confirmButton.onClick.AddListener(localPlayer.ConfirmBet);
+
+        // setting betting screen Clear Bet Button 
+        var clearBetButton = _uiManager.PlayerTurnUI.BettingScreenUI.ClearBet;
+        clearBetButton.onClick.RemoveAllListeners();
+        clearBetButton.onClick.AddListener(ClearSelectedBet);
+
+        // betting screen Level Up Bet Button Set Up 
         var levelUpBetButton = _uiManager.PlayerTurnUI.BettingScreenUI.SuggestBet;
         levelUpBetButton.onClick.RemoveAllListeners();
         levelUpBetButton.onClick.AddListener(LevelUpCurrentBet);
-    }
-    private void LevelUpCurrentBet()
-    {
 
+        // betting screen MaxBet Button Set Up 
+        var MaxBetButton = _uiManager.PlayerTurnUI.BettingScreenUI.MaxBet;
+        MaxBetButton.onClick.RemoveAllListeners();
+        MaxBetButton.onClick.AddListener(MaxBet);
+
+        // betting screen back button set up 
+        var backButton = _uiManager.PlayerTurnUI.BettingScreenUI.BackButton;
+        backButton.onClick.RemoveAllListeners();
+        backButton.onClick.AddListener(BettingScreenBackButton);
+
+        // looser screen spectate button set up 
+        var spectateButton = _uiManager.PlayerTurnUI.LooserScreen.SpectateButton;
+        spectateButton.onClick.RemoveAllListeners();
+        spectateButton.onClick.AddListener(Spectate);
+    }
+    protected virtual void MaxBet()
+    {
+        var maxBet = BetGenerator.GenerateMaxBet(_uiManager.GameManagerUI.DealtCardsNumber);
+        if (maxBet != null)
+        {
+            var diffusedMaxBet = new List<DiffusedRankInfo>();
+            Extention.BetDiffuser(maxBet, diffusedMaxBet);
+            UpdateDisplayCards(diffusedMaxBet);
+        }
+    }
+    protected virtual void LevelUpCurrentBet()
+    {
+        var roundedCurrentBet = _uiManager.GameManagerUI.GameModeManager.RoundUpCurrentBet();
+        if (roundedCurrentBet != null)
+        {
+            UpdateDisplayCards(roundedCurrentBet);
+        }
+    }
+    protected void UpdateBetScore(TextMeshProUGUI score, List<DiffusedRankInfo> bet)
+    {
+        score.text = bet.DifusedBetToBruteValue().ToString();
+    }
+    protected void ClearSelectedBet()
+    {
+        var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
+        if (localPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Clearing Bet Failed!, Local Player Is null");
+#endif
+            return;
+        }
+        // clearing selected bet data
+        localPlayer.PlayerUIControler.SelectedBet.Clear();
+
+        //reseting display cards 
+        foreach (var displayCard in _displayCards)
+        {
+            displayCard.SetIdleState();
+        }
+
+        //reseting bet score 
+        _uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitScore.text = Zeros;
+    }
+    #endregion
+
+
+    #region Display Cards
+    private void UpdateDisplayCards(List<DiffusedRankInfo> bet)
+    {
+        //making sure there is no selected cards 
+        ClearSelectedBet();
+
+        //presenting rounded bet with display cards 
+        foreach (var rank in bet)
+        {
+            foreach (var displayCard in _displayCards)
+            {
+                if (rank.Rank == displayCard.Rank)
+                {
+                    displayCard.CustomSelectState(rank.CardsCount);
+                    break;
+                }
+            }
+        }
+
+        //updating betting score 
+        UpdateBetScore(_uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitScore, bet);
     }
     protected IEnumerator SetUpDisplayCards()
     {
@@ -247,18 +339,83 @@ public abstract class UIEventsBase : IUIEvents
         }
         var displayCardSuit = CardSuit.Spades;
         var displayCardsParent = _uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitHolder;
-        
+
         foreach (var rank in CardManager.SortedRanks)
         {
-            var displayCard = _uiManager.GameManagerUI.Insttantiate(AssetLoader.PrefabContainer.DisplayCardPrefab,displayCardsParent);
+            var displayCard = _uiManager.GameManagerUI.Insttantiate(AssetLoader.PrefabContainer.DisplayCardPrefab, displayCardsParent);
             displayCard.SetRank(rank);
             displayCard.SetSuit(displayCardSuit);
             displayCard.SetIdleState();
-            displayCard.OnCardSelected = localPlayer.PlayerUIControler.AddSelectedRank;
-            displayCard.OnCardDeSelected = localPlayer.PlayerUIControler.RemoveSelectedRank;
+            displayCard.OnCardSelected = OnCardSelected;
+            displayCard.OnCardDeSelected = OnCardDeSelected;
             _displayCards.Add(displayCard);
             yield return null;
         }
     }
+    protected virtual void OnCardSelected(byte rank)
+    {
+        UpdateCardSelection(rank, true);
+    }
+
+    protected virtual void OnCardDeSelected(byte rank)
+    {
+        UpdateCardSelection(rank, false);
+    }
+
+    protected void UpdateCardSelection(byte rank, bool isSelected)
+    {
+        var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
+        if (localPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Setting up Display Cards Failed!, Local Player Is null");
+#endif
+            return;
+        }
+        if (isSelected)
+        {
+            localPlayer.PlayerUIControler.AddSelectedRank(rank);
+        }
+        else
+        {
+            localPlayer.PlayerUIControler.RemoveSelectedRank(rank);
+        }
+
+        var betArray = localPlayer.PlayerUIControler.SelectedBet.ToByteArray();
+        var diffusedBet = new List<DiffusedRankInfo>();
+        Extention.BetDiffuser(betArray, diffusedBet);
+        UpdateBetScore(_uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitScore, diffusedBet);
+    }
     #endregion
+    protected void BettingScreenOn()
+    {
+        ClearSelectedBet();
+        _uiManager.PlayerTurnUI.BettingScreenUI.BettingScreen.SetActive(true);
+    }
+    protected void BettingScreenOff()
+    {
+        ClearSelectedBet();
+        _uiManager.PlayerTurnUI.BettingScreenUI.BettingScreen.SetActive(false);
+
+    }
+    protected void BettingScreenBackButton()
+    {
+        //restting and turning off betting screen 
+        BettingScreenOff();
+
+        //opening ultimatum screen 
+        _uiManager.PlayerTurnUI.UltimatumScreenUI.UltimatumScreen.SetActive(true);
+    }
+    protected void Spectate()
+    {
+        //togling loosers holder
+        var loosersholder = _uiManager.PlayerTurnUI.LooserScreen.LoosersHolder.gameObject;
+        loosersholder.SetActive(!loosersholder.activeSelf);
+
+        //togling back ground 
+        var backGround = _uiManager.PlayerTurnUI.BackGround;
+        backGround.SetActive(!backGround.activeSelf);
+    }
+
+
 }

@@ -262,7 +262,7 @@ public class OnlineMode : GameModeBase
             case GameState.FirstPlayerTurn:
             case GameState.LastPlayerTurn: _gameManager.CallBackManager.EnqueueOrExecute(StartPlayerTimer); break;
         }
-    } 
+    }
     public override void StartPlayerState()
     {
         //blocking resets
@@ -341,6 +341,27 @@ public class OnlineMode : GameModeBase
 
         // Updating Clients and Host UI
         _gameManager.State = GameState.Doubting;
+    }
+    public override List<DiffusedRankInfo> RoundUpCurrentBet()
+    {
+        var diffusedBet = new List<DiffusedRankInfo>();
+        byte[] currentBet = _gameManager.LiveBet.ToArray();
+        Extention.BetDiffuser(currentBet, diffusedBet);
+        byte[] sortedBet = _gameManager.DiffusedBet.ToByteArray();
+        byte[] roundedUpBet;
+
+        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber))
+        {
+            Extention.BetDiffuser(roundedUpBet, diffusedBet);
+        }
+        else
+        {
+#if Log
+            LogManager.Log($"{_gameManager.LocalPlayer} Failed Rounding Up Bet=>{currentBet}!", Color.yellow, LogManager.GameModeLogs);
+#endif
+            return null;
+        }
+        return diffusedBet;
     }
 
     #region gameStates 
@@ -446,7 +467,7 @@ public class OnlineMode : GameModeBase
         _gameManager.UIManager.ActiveUIEvents.OnGameOver();
         //cleaing Cards
         _gameManager.CardPool.DestroyAll();
-        
+
         if (_gameManager.IsHost)
         {
             RoundOverVariablesCleaning();
@@ -455,7 +476,7 @@ public class OnlineMode : GameModeBase
     protected override void StartPlayerTimer()
     {
         if (_gameManager.IsHost)
-            _gameManager.PlayerTimerState= PlayerTimerStates.StartTimer;
+            _gameManager.PlayerTimerState = PlayerTimerStates.StartTimer;
     }
     protected override void PlayerControl()
     {
@@ -582,7 +603,7 @@ public class OnlineMode : GameModeBase
 #endif
             return;
         }
-       
+
         //just making sure
         _gameManager.RunTimeDataHolder.RunTimePlayersData.Clear();
 
@@ -905,5 +926,6 @@ public class OnlineMode : GameModeBase
         _gameManager.CurrentPlayerID = _gameManager.Players[0].ID;
         _gameManager.CurrentPlayer = _gameManager.Players[0];
     }
+
     #endregion
 }

@@ -44,6 +44,11 @@ public class OfflineMode : GameModeBase
         throw new System.NotImplementedException();
     }
 
+    public override List<DiffusedRankInfo> RoundUpCurrentBet()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public override void SetGameState(GameState state)
     {
         throw new System.NotImplementedException();

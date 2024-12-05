@@ -42,8 +42,8 @@ public class BruteValueBetValidator : ValidatorBase, IValidator
             Extention.BetDiffuserAlpha(args.PreviousBet, _previousBetPair, 0);
 
             //converting bets to brute value which consists of the true (value of rank +1) * (rank counter)
-            int currentBetBruteValue = DiffusedDeckToBruteValue(_currentBetPair);
-            int previousBetBruteValue = DiffusedDeckToBruteValue(_previousBetPair);
+            int currentBetBruteValue = DiffusedBetToBruteValue(_currentBetPair);
+            int previousBetBruteValue = DiffusedBetToBruteValue(_previousBetPair);
             //current Bet Brute Value should be Higher then Previous Bet
             if (currentBetBruteValue <= previousBetBruteValue)
             {

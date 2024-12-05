@@ -82,7 +82,7 @@ public static class Extention
 
     public static bool IsAValidCardRank(byte rank)
     {
-        if(rank<=0||rank>13)return false;
+        if (rank <= 0 || rank > 13) return false;
         return true;
     }
 
@@ -268,7 +268,7 @@ public static class Extention
     {
         return array.ValidCardsCount() == 0;
     }
-   
+
     public static bool ContainsCard(this CardInfo[] array, CardInfo card)
     {
         if (array.IsNotInitialized())
@@ -329,7 +329,7 @@ public static class Extention
         for (int index = 0; index < array.Length; index++)
         {
             if ((array[index] != 0))
-                hand+= array[index].ToString()+",";
+                hand += array[index].ToString() + ",";
         }
         return hand;
     }
@@ -535,7 +535,7 @@ public static class Extention
 
         return false;
     }
-    
+
     #endregion Networked Card Array extentions
 
     #region UI
@@ -635,7 +635,23 @@ public static class Extention
         }
         return TryGetRankBruteValueAlpha(array, Rank, ++Index, out Value);
     }
+    public static int DifusedBetToBruteValue(this List<DiffusedRankInfo> bet)
+    {
+        int bruteValue = 0;
 
+        foreach (var rank in bet)
+        {
+            bruteValue += (rank.RankBruteValue + 1) * (rank.CardsCount == CardManager.MaxRankCounter ? (rank.CardsCount * ValidatorBase.LockedRankBruteValueBuffer) : rank.CardsCount);
+        }
+
+        if (bruteValue == 0)
+        {
+#if Log
+            LogManager.LogError($"Diffused Deck Brute Value Cant Be 0!");
+#endif
+        }
+        return bruteValue;
+    }
     public static bool TryRoundUpRank(this byte[] sortedRanks, byte rank, out byte roundedUpRank)
     {
         roundedUpRank = 0;

@@ -1,11 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MultiPlaterUIEvents : UIEventsBase
 {
     private Coroutine _gameStartAnimationRoutine;
-    public MultiPlaterUIEvents(UIManager manager) 
+    public MultiPlaterUIEvents(UIManager manager)
     {
         _uiManager = manager;
     }
@@ -18,6 +17,9 @@ public class MultiPlaterUIEvents : UIEventsBase
         yield return PlacingPlayersUI();
         yield return null;
         yield return SetUpDisplayCards();
+        yield return null;
+        yield return LinkPlayerTurnUIWithLogic();
+
         _uiManager.GameManagerUI.SimulationState = SimulationSetUpState.UISetUp;
 #if Log
         LogManager.Log($" UI is Set Up Runner Player Ref => {_uiManager.GameManagerUI.Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
@@ -32,7 +34,7 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnDealingCards()
     {
-       // throw new System.NotImplementedException();
+        // throw new System.NotImplementedException();
     }
 
     public override void OnDoubting()
@@ -47,17 +49,17 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnGameOver()
     {
-       // throw new System.NotImplementedException();
+        // throw new System.NotImplementedException();
     }
 
     public override void OnRoundOver()
     {
-       // throw new System.NotImplementedException();
+        // throw new System.NotImplementedException();
     }
 
     public override void OnSetUpStarted()
     {
-       // throw new System.NotImplementedException();
+        // throw new System.NotImplementedException();
     }
     public override void OnFirstPlayerTurn()
     {
@@ -83,6 +85,7 @@ public class MultiPlaterUIEvents : UIEventsBase
         //informing server player animation finished
         _uiManager.GameManagerUI.PlayerIsReady();
     }
+
 
 
     #endregion

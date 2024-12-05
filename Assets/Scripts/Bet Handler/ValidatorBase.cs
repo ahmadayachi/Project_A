@@ -21,7 +21,7 @@ public abstract class ValidatorBase
     #endregion Log stuff
 
 #endif
-    private const int LockedRankBruteValueBuffer = 69;
+    public const int LockedRankBruteValueBuffer = 69;
     protected bool ValidBetArgs(ValidatorArguments arguments)
     {
         return ((!arguments.CurrentBet.IsNullOrEmpty()) && (arguments.PreviousBet != null));
@@ -128,7 +128,7 @@ public abstract class ValidatorBase
         return false;
     }
 
-    protected int DiffusedDeckToBruteValue(Dictionary<byte, byte> diffusedDeck)
+    protected int DiffusedBetToBruteValue(Dictionary<byte, byte> diffusedDeck)
     {
         int bruteValue = 0;
         int rankValue = 0;

@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections.Generic;
 
 public class GameModeManager
 {
@@ -54,6 +55,11 @@ public class GameModeManager
     public void DoubtOverLogic()
     {
         _activeGameModeBehaviour.DoubtOverLogic();
+    }
+
+    public List<DiffusedRankInfo> RoundUpCurrentBet()
+    {
+        return _activeGameModeBehaviour.RoundUpCurrentBet();
     }
 }
 

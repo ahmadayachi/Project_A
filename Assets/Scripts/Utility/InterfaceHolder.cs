@@ -173,6 +173,7 @@ public interface IGameMode
     void LoadCurrentPlayer();
     void DoubtLogic(DoubtState doubtState);
     void DoubtOverLogic();
+    List<DiffusedRankInfo> RoundUpCurrentBet();
 }
 public struct GameModeARGS
 {
@@ -340,6 +341,8 @@ public struct PlayerTurnUI
 {
     [Header("Parent")]
     public GameObject PlayerTurnUIManager;
+    [Header("BackGround")]
+    public GameObject BackGround;
     [Header("Ultimatum Screen")]
     public UltimatumScreenUI UltimatumScreenUI;
     [Header("Betting Screen")]

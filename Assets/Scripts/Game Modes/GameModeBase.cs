@@ -18,6 +18,7 @@ public abstract class GameModeBase : IGameMode
     public abstract void LoadCurrentPlayer();
     public abstract void DoubtLogic(DoubtState doubtState);
     public abstract void DoubtOverLogic();
+    public abstract List<DiffusedRankInfo> RoundUpCurrentBet();
     
     protected abstract void SimulationPrepGameState();
     protected abstract void GameStarted();
