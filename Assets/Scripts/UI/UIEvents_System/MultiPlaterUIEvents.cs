@@ -16,7 +16,8 @@ public class MultiPlaterUIEvents : UIEventsBase
     {
         yield return PlacingPlayersUI();
         yield return null;
-        yield return SetUpDisplayCards();
+        yield return SetUpMyDisplayCards();
+        yield return SetUpPreviousPlayerDisplayCards();
         yield return null;
         yield return LinkPlayerTurnUIWithLogic();
 

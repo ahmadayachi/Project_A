@@ -32,6 +32,12 @@ public class DisplayCard : MonoBehaviour, ICardInfo
     {
         _rank = rank;
     }
+
+    public void SetHighlighColor(Color color)
+    {
+        _uiRefs.CardPlateHighlight.color = color;
+        _uiRefs.CardCounterHighlight.color = color;
+    }
     public void SetSuit(CardSuit suit)
     {
         _suit = suit;
@@ -39,7 +45,10 @@ public class DisplayCard : MonoBehaviour, ICardInfo
         //grabing the Suit 
         _uiRefs.CardSuit.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(_rank, _suit);
     }
-
+    public void DisbaleButton()
+    {
+        _uiRefs.CardButton.enabled = false;
+    }
     public void SetIdleState()
     {
         //hiding the card counter 
