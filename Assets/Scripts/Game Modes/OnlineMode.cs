@@ -91,6 +91,9 @@ public class OnlineMode : GameModeBase
             //cheking if the rounded up bet is a max Bet
             if (MaxBet.AreEqual(roundedUpBet))
             {
+#if Log
+                LogManager.Log($" changing Game State to Last Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
+#endif
                 //directing Game State to a Last Player Game State
                 _gameManager.State = GameState.LastPlayerTurn;
                 return;
@@ -105,8 +108,12 @@ public class OnlineMode : GameModeBase
             return;
         }
 
+#if Log
+        LogManager.Log($" changing Game State to Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
+#endif
         //Directing Game State  to a normal Player turn
         _gameManager.State = GameState.PlayerTurn;
+
     }
     public override void DoubtBet(string playerID)
     {
@@ -157,7 +164,13 @@ public class OnlineMode : GameModeBase
     public override void PassTurn()
     {
         //Server Only Bitch
-        if (_gameManager.IsClient) return;
+        if (_gameManager.IsClient)
+        {
+#if Log
+            LogManager.Log($"Ignoring Passing Turn ! this is a Client!{_gameManager.LocalPlayer}", Color.yellow, LogManager.GameModeLogs);
+#endif
+            return;
+        }
 
         if (_gameManager.Players.IsNullOrHaveNullElements())
         {
@@ -206,6 +219,9 @@ public class OnlineMode : GameModeBase
         }
 
         //setting current player
+#if Log
+        LogManager.Log($"Turn Passed! current player is {player} ", Color.green, LogManager.GameModeLogs);
+#endif
         _gameManager.CurrentPlayer = player;
         _gameManager.CurrentPlayerID = player.ID;
 
@@ -285,6 +301,10 @@ public class OnlineMode : GameModeBase
 #endif
             return;
         }
+
+#if Log
+        LogManager.Log($"Starting Player State! Current player state! {_gameManager.CurrentPlayer}//Simulation=> {_gameManager.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
+#endif
         PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameManager.State, _gameManager.IsMyTurn());
         _gameManager.ChangeState(_gameManager.CurrentPlayer.PlayerState, PlayerStateArgs);
     }
@@ -294,7 +314,18 @@ public class OnlineMode : GameModeBase
 
         //if host is updated return
         if (_gameManager.IsHost)
-            if (_gameManager.CurrentPlayer != null && _gameManager.CurrentPlayer.ID == _gameManager.CurrentPlayerID) return;
+        {
+            if (_gameManager.CurrentPlayer != null && _gameManager.CurrentPlayer.ID == _gameManager.CurrentPlayerID)
+            {
+#if Log
+                LogManager.Log("Loading Current Player is Skipped !, Host is Already Updated", Color.grey, LogManager.ValueInformationLog);
+#endif
+                ////starting Player State
+                //if (_gameManager.State == GameState.PlayerTurn)
+                //    StartPlayerTimer();
+                return;
+            }
+        }
         //looking for desired payer
         IPlayer newCurrentPlayer = null;
         if (TryFindPlayer(_gameManager.CurrentPlayerID, out newCurrentPlayer))
@@ -302,9 +333,9 @@ public class OnlineMode : GameModeBase
             _gameManager.CurrentPlayer = newCurrentPlayer;
             //should invoke corresponding UI or something
 
-            //starting Player State
-            if (_gameManager.State == GameState.PlayerTurn)
-                StartPlayerTimer();
+            ////starting Player State
+            //if (_gameManager.State == GameState.PlayerTurn)
+            //    StartPlayerTimer();
         }
         else
         {
@@ -346,11 +377,17 @@ public class OnlineMode : GameModeBase
     {
         var diffusedBet = new List<DiffusedRankInfo>();
         byte[] currentBet = _gameManager.LiveBet.ToArray();
-        Extention.BetDiffuser(currentBet, diffusedBet);
-        byte[] sortedBet = _gameManager.DiffusedBet.ToByteArray();
+
+        //making sure bet is sorted 
+        if (!currentBet.IsEmpty())
+        {
+            Extention.BetDiffuser(currentBet, diffusedBet);
+            currentBet = diffusedBet.ToByteArray();
+        }
+
         byte[] roundedUpBet;
 
-        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber))
+        if (BetGenerator.TryRoundUpBet(currentBet, out roundedUpBet, _gameManager.DealtCardsNumber))
         {
             Extention.BetDiffuser(roundedUpBet, diffusedBet);
         }
@@ -401,6 +438,7 @@ public class OnlineMode : GameModeBase
     protected override void OnDealingOver()
     {
         //maybe some other UI Shit here
+        _gameManager.DealtCardsNumber = DealtCardsCounter();
         _gameManager.State = GameState.FirstPlayerTurn;
     }
     protected override void Doubting()

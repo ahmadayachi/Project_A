@@ -131,12 +131,12 @@ public class PlayerUIController :MonoBehaviour
     /// </summary>
     public void ShowLastPlayerUI()
     {
-
+        _player.PlayerGameManager.UIManager.ActiveUIEvents.OnLastPlayerTurn();
     }
 
     public void ShowNormalPlayerUI()
     {
-
+        _player.PlayerGameManager.UIManager.ActiveUIEvents.OnPlayerTurn();
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class PlayerUIController :MonoBehaviour
     /// </summary>
     public void HidePlayerUI()
     {
-
+        _player.PlayerGameManager.UIManager.ActiveUIEvents.PlayerTurnUIOff();
     }
 
     public void AddSelectedRank(byte rank)

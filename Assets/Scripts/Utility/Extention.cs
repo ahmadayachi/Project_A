@@ -647,7 +647,7 @@ public static class Extention
         if (bruteValue == 0)
         {
 #if Log
-            LogManager.LogError($"Diffused Deck Brute Value Cant Be 0!");
+            LogManager.Log($"Diffused Deck Brute Value is 0!",Color.yellow,LogManager.ValueInformationLog);
 #endif
         }
         return bruteValue;

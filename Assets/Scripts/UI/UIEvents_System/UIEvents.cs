@@ -63,4 +63,8 @@ public class UIEvents
     {
         _uiEvents.OnLastPlayerTurn();
     }
+    public void PlayerTurnUIOff()
+    {
+        _uiEvents.PlayerTurnUIOff();
+    }
 }

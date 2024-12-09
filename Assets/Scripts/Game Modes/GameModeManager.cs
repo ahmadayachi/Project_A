@@ -61,5 +61,10 @@ public class GameModeManager
     {
         return _activeGameModeBehaviour.RoundUpCurrentBet();
     }
+
+    public bool TryFindPlayer(string playerID, out IPlayer player)
+    {
+        return _activeGameModeBehaviour.TryFindPlayer(playerID, out player);
+    }
 }
 

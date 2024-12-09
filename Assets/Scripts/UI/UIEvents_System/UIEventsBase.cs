@@ -7,9 +7,12 @@ using UnityEngine.AddressableAssets;
 public abstract class UIEventsBase : IUIEvents
 {
     protected UIManager _uiManager;
-    private const string Zeros = "0000";
-    protected List<DisplayCard> _myDisplayCards;
-    protected List<DisplayCard> _previousPlayerDisplayCards;
+    public const string Zeros = "0000";
+    public const string Winner = "Winner";
+    public const string Looser = "Looser";
+    protected List<DisplayCard> _myDisplayCards= new List<DisplayCard>();
+    protected List<DisplayCard> _previousPlayerDisplayCards = new List<DisplayCard>();
+    protected Coroutine _doubtSceneRoutine;
     #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
     #endregion
@@ -202,12 +205,15 @@ public abstract class UIEventsBase : IUIEvents
         //show Bet Launcher Outlet 
         bettingScreen.FirstBetLauncherText.SetActive(true);
 
+        //making sure that the level up button is on 
+        ToggleLevelUpButton(true);
+
         //panel on 
         bettingScreen.BettingScreen.gameObject.SetActive(true);
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
     }
 
-    protected virtual void PlayerTurn()
+    protected virtual void PlayerTurnLayOutSetUp()
     {
         //force reseting ui panels 
         ResetPlayerTurnUIPanels(true);
@@ -237,7 +243,24 @@ public abstract class UIEventsBase : IUIEvents
 
         //ultimatum screen on 
         ultimatumScreenUI.UltimatumScreen.gameObject.SetActive(true);
+        _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
+
+        //making sure that the level up button is on 
+        ToggleLevelUpButton(true);
     }
+    protected virtual void LastPlayerUIPanelsLayOutSetUp()
+    {
+        //it is basicly an inhansed player turn 
+        PlayerTurnLayOutSetUp();
+
+        //turing off few Button from Betting screen 
+        ToggleLevelUpButton(false);
+
+        //maybe in future add some effects here 
+
+    }
+
+    protected void ToggleLevelUpButton(bool toggle) => _uiManager.PlayerTurnUI.BettingScreenUI.SuggestBet.gameObject.SetActive(toggle);
     public virtual void ResetPlayerTurnUIPanels(bool isNotALooser)
     {
         //betting screen off
@@ -421,8 +444,13 @@ public abstract class UIEventsBase : IUIEvents
         //turning on the betting screen
         bettingScreen.BettingScreen.SetActive(true);
     }
-    #endregion
+    protected void BettingScreenOff()
+    {
+        ClearMySelectedBet();
+        _uiManager.PlayerTurnUI.BettingScreenUI.BettingScreen.SetActive(false);
 
+    }
+    #endregion
 
     #region Prevous Display Cards
     protected IEnumerator SetUpPreviousPlayerDisplayCards()
@@ -560,11 +588,58 @@ public abstract class UIEventsBase : IUIEvents
     }
     #endregion
 
-    protected void BettingScreenOff()
+    #region Doubting
+
+    protected virtual void DoubtScreenSetUp()
     {
-        ClearMySelectedBet();
-        _uiManager.PlayerTurnUI.BettingScreenUI.BettingScreen.SetActive(false);
+        var doubtScreen = _uiManager.PlayerTurnUI.DoubtScreenUI;
+        var localPlayer = _uiManager.GameManagerUI.LocalPlayer;
+        if (localPlayer == null)
+        {
+#if Log
+            LogManager.LogError("Setting up Doubt Screen Failed!, Local Player Is null");
+#endif
+            return;
+        }
+        ResetPlayerTurnUIPanels(!localPlayer.IsOut);
+
+        //setting player icons and names  
+        var currentPlayerIconID = _uiManager.GameManagerUI.CurrentPlayer.IconID;
+        doubtScreen.RightPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[currentPlayerIconID];
+        doubtScreen.RightPlayerDisplay.PlayerName.text = _uiManager.GameManagerUI.CurrentPlayer.Name;
+        doubtScreen.RightPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState == DoubtState.WinDoubt ? Winner : Looser;
+        //grabing previous player 
+        IPlayer previousPlayer;
+        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID, out previousPlayer))
+        {
+            var previousPlayerIconID = previousPlayer.IconID;
+            doubtScreen.LeftPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[previousPlayerIconID];
+            doubtScreen.LeftPlayerDisplay.PlayerName.text = previousPlayer.Name;
+            doubtScreen.LeftPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState == DoubtState.WinDoubt ? Looser : Winner;
+        }
+        else
+        {
+#if Log
+            LogManager.LogError("Setting up Doubt Screen Failed !, Failed Finding Previous Player");
+#endif
+            return;
+        }
+        //panel on 
+        _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
 
     }
-    
+    protected virtual IEnumerator DoubtScene()
+    {
+        DoubtScreenSetUp();
+        //waiting animation
+        yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer);
+      
+        //after the animation inoking logic
+        if (_uiManager.GameManagerUI.IsHost)
+        {
+            _uiManager.GameManagerUI.GameModeManager.DoubtOverLogic();
+        }
+    }
+    #endregion
+
 }

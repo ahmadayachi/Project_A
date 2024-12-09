@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
+
 
 public abstract class GameModeBase : IGameMode
 {
@@ -20,19 +19,7 @@ public abstract class GameModeBase : IGameMode
     public abstract void DoubtOverLogic();
     public abstract List<DiffusedRankInfo> RoundUpCurrentBet();
     
-    protected abstract void SimulationPrepGameState();
-    protected abstract void GameStarted();
-    protected abstract void Dealing();
-    protected abstract void Doubting();
-    protected abstract void RoundOver();
-    protected abstract void OnRoundIsOverLogic();
-    protected abstract void RoundOverVariablesCleaning();
-    protected abstract void OnDealingOver();
-    protected abstract void GameOver();
-    protected abstract void StartPlayerTimer();
-    protected abstract void PlayerControl();
-
-    protected virtual bool TryFindPlayer(string playerID, out IPlayer player)
+    public virtual bool TryFindPlayer(string playerID, out IPlayer player)
     {
         player = null;
         if (string.IsNullOrEmpty(playerID)) return false;
@@ -53,6 +40,19 @@ public abstract class GameModeBase : IGameMode
         }
         return false;
     }
+
+    protected abstract void SimulationPrepGameState();
+    protected abstract void GameStarted();
+    protected abstract void Dealing();
+    protected abstract void Doubting();
+    protected abstract void RoundOver();
+    protected abstract void OnRoundIsOverLogic();
+    protected abstract void RoundOverVariablesCleaning();
+    protected abstract void OnDealingOver();
+    protected abstract void GameOver();
+    protected abstract void StartPlayerTimer();
+    protected abstract void PlayerControl();
+
     protected virtual void NextPlayerIndex()
     {
         _gameManager.PlayerIndex = _gameManager.PlayerIndex + 1;
@@ -70,6 +70,8 @@ public abstract class GameModeBase : IGameMode
     protected virtual void CaluCulateDoubtSceneTimer()
     {
         //TODO: Calculate Doubt Scene Timer Based On UI Needs
+        //Currently its a fixed time 
+        _gameManager.DoubtSceneTimer = 3;
     }
     protected virtual void PunishingDoubtLooser(out string playerToPunishID, out IPlayer playerToPunish)
     {
@@ -86,5 +88,13 @@ public abstract class GameModeBase : IGameMode
             return;
         }
     }
-
+    protected virtual byte DealtCardsCounter()
+    {
+        byte dealtCards = 0;
+        foreach (var player in _gameManager.Players)
+        {
+            dealtCards += player.CardsToDealCounter;
+        }
+        return dealtCards;
+    }
 }

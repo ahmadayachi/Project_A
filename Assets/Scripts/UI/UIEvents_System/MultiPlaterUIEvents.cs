@@ -40,13 +40,12 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnDoubting()
     {
-
-        //after the animation inoking logic
-        if (_uiManager.GameManagerUI.IsHost)
-        {
-            _uiManager.GameManagerUI.GameModeManager.DoubtOverLogic();
-        }
+        if (_doubtSceneRoutine != null)
+            _uiManager.StopCoroutine(_doubtSceneRoutine);
+        _doubtSceneRoutine = _uiManager.StartCoroutine(DoubtScene());
     }
+
+   
 
     public override void OnGameOver()
     {
@@ -55,7 +54,9 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnRoundOver()
     {
-        // throw new System.NotImplementedException();
+        //some indicator that round ended and a new round is startting 
+        
+        PlayerTurnUIOff();
     }
 
     public override void OnSetUpStarted()
@@ -69,12 +70,12 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnPlayerTurn()
     {
-        throw new System.NotImplementedException();
+        PlayerTurnLayOutSetUp();
     }
 
     public override void OnLastPlayerTurn()
     {
-        throw new System.NotImplementedException();
+        LastPlayerUIPanelsLayOutSetUp();
     }
     #endregion Base GameStates CallBacks
 

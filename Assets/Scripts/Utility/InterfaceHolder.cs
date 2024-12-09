@@ -174,6 +174,7 @@ public interface IGameMode
     void DoubtLogic(DoubtState doubtState);
     void DoubtOverLogic();
     List<DiffusedRankInfo> RoundUpCurrentBet();
+    bool TryFindPlayer(string playerID, out IPlayer player);
 }
 public struct GameModeARGS
 {
@@ -219,6 +220,7 @@ public interface IUIEvents
     void OnFirstPlayerTurn();
     void OnPlayerTurn();
     void OnLastPlayerTurn();
+    void PlayerTurnUIOff();
 }
 
 #endregion Interfaces

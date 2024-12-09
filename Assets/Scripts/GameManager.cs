@@ -235,7 +235,7 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
-
+   
     #region methods to link with UI
 
     public void SetNumberOfPlayers(int numberOfPlayers)
@@ -399,18 +399,6 @@ public class GameManager : NetworkBehaviour
 
     #region Player Commands  RPC Methods
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_ConfirmBet(byte[] bet, string playerID)
-    {
-        _gameModeManager.ConfirmBet(bet, playerID);
-    }
-
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_Doubt(string playerID)
-    {
-        _gameModeManager.DoubtBet(playerID);
-    }
-
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_PlayerReady(int playerRefID)
     {
@@ -459,7 +447,9 @@ public class GameManager : NetworkBehaviour
     }
     private void OnPlayerTimerStateChanged()
     {
-
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Player Timer State Changed ! PlayerTimerState={PlayerTimerState}", Color.gray, LogManager.ValueInformationLog);
+#endif
         _gameModeManager.StartPlayerState();
     }
     private void OnGameStateChanged()

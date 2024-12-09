@@ -317,9 +317,18 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         //if it is this player turn and he is the local player
         if (_playerGameManager.IsMyTurn(_id))
         {
+#if Log
+            LogManager.Log($"Sending Confirm RPC !, Player=>{this}", Color.grey, LogManager.ValueInformationLog);
+#endif
             //send confirm RPC
-            _playerGameManager.RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id);
+            RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id);
             //turn off the UI Panel
+        }
+        else
+        {
+#if Log
+            LogManager.Log($"Confirm Ignored !, it is not this player's Turn ! Player=>{this}", Color.yellow);
+#endif
         }
 
     }
@@ -328,9 +337,21 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         if (_playerGameManager.IsMyTurn(_id))
         {
             //send confirm RPC
-            _playerGameManager.RPC_Doubt(_id);
+            RPC_Doubt(_id);
             //turn off the UI Panel
         }
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_ConfirmBet(byte[] bet, string playerID)
+    {
+        _playerGameManager.GameModeManager.ConfirmBet(bet, playerID);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_Doubt(string playerID)
+    {
+        _playerGameManager.GameModeManager.DoubtBet(playerID);
     }
     #endregion 
 
