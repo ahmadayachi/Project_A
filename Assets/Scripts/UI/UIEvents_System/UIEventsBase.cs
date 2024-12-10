@@ -200,7 +200,11 @@ public abstract class UIEventsBase : IUIEvents
 
         //hiding the previous player bet 
         bettingScreen.PreviousBetSuitScore.text = Zeros;
+        bettingScreen.PreviousBetSuitScore.gameObject.SetActive(false);
         bettingScreen.PreviousBetSuitHolder.gameObject.SetActive(false);
+
+        //hiding Back Button 
+        bettingScreen.BackButton.gameObject.SetActive(false);
 
         //show Bet Launcher Outlet 
         bettingScreen.FirstBetLauncherText.SetActive(true);

@@ -220,8 +220,9 @@ public class GameManager : NetworkBehaviour
 
 
 
-    public override void FixedUpdateNetwork()
+    public override void Render()
     {
+    
         //#if Log
         //        LogManager.Log($"{Runner.LocalPlayer} Fixed Update Network from Game Manager   !", Color.gray, LogManager.ValueInformationLog);
         //#endif
@@ -304,6 +305,10 @@ public class GameManager : NetworkBehaviour
     #endregion Mono Method Wrappers
 
     #region General Logic Swamp
+    public void SetPlayerTimerState(PlayerTimerStates state)
+    {
+        PlayerTimerState = state;
+    }
     /// <summary>
     /// allocates callbackManager and grabs the change detector
     /// </summary>
@@ -443,6 +448,9 @@ public class GameManager : NetworkBehaviour
     }
     private void OnCurrentPlayerIDChanged()
     {
+#if Log
+        LogManager.Log($"{Runner.LocalPlayer} Current Player ID Changed ! Current Player ID={CurrentPlayerID}", Color.gray, LogManager.ValueInformationLog);
+#endif
         _gameModeManager.LoadCurrentPlayer();
     }
     private void OnPlayerTimerStateChanged()

@@ -467,9 +467,9 @@ public enum SimulationSetUpState
 
 public enum PlayerTimerStates
 {
-    NoTimer,
-    StartTimer,
-    StopTimer
+    NoTimer=0,
+    StartTimer=1,
+    StopTimer=-1
 }
 
 public enum GameState : byte
