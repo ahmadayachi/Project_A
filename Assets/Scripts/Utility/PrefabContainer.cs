@@ -1,4 +1,5 @@
 using Fusion;
+using Unity.Netcode;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "PrefabContainer")]
@@ -14,4 +15,7 @@ public class PrefabContainer : ScriptableObject
     #endregion
 
     public DisplayCard DisplayCardPrefab;
+
+    public NetworkManager SteamNetworkManager;
+    public NetworkManager LocalNetworkManager;
 }

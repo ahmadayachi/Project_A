@@ -195,7 +195,7 @@ public class GameManager : NetworkBehaviour
 
         //setting up game mode Manager
         GameModeManagerSetUp();
-
+        
         //setting CallBackManager
         SetUpCallBackManager();
 

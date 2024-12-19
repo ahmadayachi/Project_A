@@ -1,6 +1,7 @@
 using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -15,6 +16,7 @@ public class GameNetworkManager : MonoBehaviour
 
     public List<Lobby> Lobbies { get; private set; } = new List<Lobby>(capacity: 100);
 
+    public Action<ulong> OnHostLobbyCreated;
     private void Awake()
     {
         if (Instance == null)
@@ -146,7 +148,7 @@ public class GameNetworkManager : MonoBehaviour
         Debug.Log($"Id: {id}");
         Debug.Log($"IsSame: {isSame}", this);
 
-        StartClient(id);
+        //StartClient(id);
     }
 
     private void OnLobbyInvite(Friend friend, Lobby lobby) => Debug.Log($"You got a invite from {friend.Name}", this);
@@ -162,7 +164,7 @@ public class GameNetworkManager : MonoBehaviour
         if (NetworkManager.Singleton.IsHost)
             return;
 
-        StartClient(lobby.Owner.Id);
+        //StartClient(lobby.Owner.Id);
     }
 
     private void OnLobbyCreated(Result result, Lobby lobby)
@@ -176,7 +178,7 @@ public class GameNetworkManager : MonoBehaviour
         lobby.SetFriendsOnly(); // Set to friends only!
         lobby.SetData("name", "Random Cool Lobby");
         lobby.SetJoinable(true);
-
+        OnHostLobbyCreated?.Invoke(lobby.Owner.Id);
         Debug.Log("Lobby has been created!");
     }
 
