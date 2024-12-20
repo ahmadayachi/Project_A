@@ -10,7 +10,7 @@ using UnityEngine;
 public class SteamNetworkManager : MonoBehaviour
 {
     public Lobby? CurrentLobby { get; private set; } 
-    //public List<Lobby> Lobbies { get; private set;}
+    public List<Lobby> Lobbies { get; private set;}
 
     private FacepunchTransport _facePunchTransport;
     /// <summary>
@@ -22,7 +22,7 @@ public class SteamNetworkManager : MonoBehaviour
 
     private void Start()
     {
-        _facePunchTransport = NetworkManager.Singleton.GetComponent<FacepunchTransport>();
+        _facePunchTransport = GetComponent<FacepunchTransport>();
 
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;

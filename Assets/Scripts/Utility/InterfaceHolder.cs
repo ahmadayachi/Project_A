@@ -529,3 +529,66 @@ public struct UIEventsArgs
     public UIManager UIManager;
     public GameMode GameMode;
 }
+
+[Serializable]
+public struct MainPanelsUIRefs
+{
+    /// <summary>
+    /// Parent to All Main Panels
+    /// </summary>
+    public GameObject MainPanelsGO;
+
+    public GameObject ButtonsHolder;
+    public Button CreateLobbyButton;
+    public Button JoinLobbyButton;
+
+    [Header("Create Lobby Panel")]
+    public CreateLobbyUIRefs CreateLobbyUIRefs;
+
+    [Header("Join Lobby Panel")]
+    public JoinLobbyPanelUIRefs JoinLobbyPanelUIRefs;
+
+    [Header("Join Private Lobby Panel")]
+    public JoinPrivateLobbyPanelUIRefs JoinPrivateLobbyPanelUIRefs;
+
+    [Header(" Join Public Lobby Panel")]
+    public PublicLobbysUIRefs PublicLobbysUIRefs;
+}
+
+[Serializable]
+public struct CreateLobbyUIRefs
+{
+    public GameObject CreateLobbyPanel;
+    public TMP_InputField LobbyName;
+    public TMP_Dropdown LobbyPrivacy;
+    public Button CreateButton;
+    public Button BackButton;
+}
+
+[Serializable]
+public struct JoinLobbyPanelUIRefs
+{
+    public GameObject JoinLobbyPanel;
+    public Button JoinPrivateLobbyButton;
+    public Button PublicLobbysButton;
+    public Button BackButton;
+}
+
+[Serializable]
+public struct PublicLobbysUIRefs
+{
+    public GameObject PublicLobbysPanel;
+    public GameObject PublicLobbysScrollGO;
+    public Transform PublicLobbysHolders;
+    public Button RefreshLobbysButton;
+    public Button BackButton;
+}
+
+[Serializable]
+public struct JoinPrivateLobbyPanelUIRefs
+{
+    public GameObject JoinPrivateLobbyPanel;
+    public TMP_InputField LobbyCode;
+    public Button JoinButton;
+    public Button BackButton;
+}
