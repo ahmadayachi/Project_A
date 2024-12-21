@@ -7,4 +7,5 @@ public class RunTimeDataHolder : ScriptableObject
 {
     public List<RunTimePlayerData> RunTimePlayersData = new List<RunTimePlayerData>();
     public DeckInfo DeckInfo;
+    public LobbyData LobbySettings;
 }

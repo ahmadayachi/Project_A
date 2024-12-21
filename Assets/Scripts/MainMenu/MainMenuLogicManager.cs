@@ -1,16 +1,32 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class MainMenuLogicManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void StartHost()
     {
-        
-    }
+        if (AuthenticationManager.Instance.SteamAuthentication)
+        {
+            SteamNetworkManager steamManager = NetworkManager.Singleton.GetComponent<SteamNetworkManager>();
+            if (steamManager != null) 
+            {
+                steamManager.StartHost();
+            }
+            else
+            {
+#if Log
+                LogManager.LogError("NetworkManager does not have a SteamNetworkManager component!");
+#endif
+            }
+        }
+        else
+        {
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        }
     }
+}
+public struct StartHostARGS
+{
+    public string SessionName;
+    public bool IsPrivate;
 }

@@ -1,23 +1,21 @@
 using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
 public class SteamNetworkManager : MonoBehaviour
 {
-    public Lobby? CurrentLobby { get; private set; } 
-    public List<Lobby> Lobbies { get; private set;}
+    public Lobby? CurrentLobby { get; private set; }
+    public List<Lobby> Lobbies { get; private set; }
 
     private FacepunchTransport _facePunchTransport;
     /// <summary>
     /// default lobby max members
     /// </summary>
     private int _lobbyMaxMenbers = 8;
-    public int LobbyMaxMembers { get=>_lobbyMaxMenbers; set { _lobbyMaxMenbers = value; } }
+    public int LobbyMaxMembers { get => _lobbyMaxMenbers; set { _lobbyMaxMenbers = value; } }
 
 
     private void Start()
@@ -173,13 +171,40 @@ public class SteamNetworkManager : MonoBehaviour
             return;
         }
 
-        lobby.SetFriendsOnly(); // Set to friends only!
-        lobby.SetData("name", "Random Cool Lobby");
-        lobby.SetJoinable(true);
-        Debug.Log("Lobby has been created!");
+        var lobbyData = AssetLoader.RunTimeDataHolder.LobbySettings;
+        if (lobbyData.IsValid)
+        {
+            lobby.SetData("name", lobbyData.LobbyName);
+
+            if (lobbyData.IsPrivate)
+                lobby.SetPrivate();
+            else
+                lobby.SetPublic();
+
+            lobby.SetJoinable(true);
+
+#if Log
+            LogManager.Log("Lobby has been created!", UnityEngine.Color.green, LogManager.ValueInformationLog);
+#endif
+        }
+        else
+        {
+#if Log
+            LogManager.LogError("Failed Setting Up Lobby! LobbySettings is Not Valid !");
+#endif
+        }
     }
 
+    //public void SetLobbyData(Lobby lobby)
+    //{
+    //    lobby.SetData("name", "Random Cool Lobby");
+    //    lobby.SetData("maxPlayers", "10"); // Maximum number of players
+    //    lobby.SetData("gameMode", "Deathmatch"); // Game mode
+    //    lobby.SetData("map", "Arena"); // Map name
+    //    lobby.SetData("region", "Europe"); // Region
+    //    lobby.SetData("passwordProtected", "false"); 
+    //}
     #endregion
 
-   
+
 }

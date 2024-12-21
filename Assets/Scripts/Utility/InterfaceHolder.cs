@@ -592,3 +592,17 @@ public struct JoinPrivateLobbyPanelUIRefs
     public Button JoinButton;
     public Button BackButton;
 }
+
+public struct LobbyData
+{
+    public string LobbyName;
+    public bool IsPrivate;
+    public bool IsValid;
+
+    public LobbyData(string lobbyName, bool isPrivate)
+    {
+        LobbyName = lobbyName;
+        IsPrivate = isPrivate;
+        IsValid = true;
+    }
+}

@@ -8,8 +8,8 @@ public class AuthenticationManager : MonoBehaviour
    
     [Header("Use steam to Authenticate")]
     [SerializeField]
-    private bool _steam;
-    public bool Steam { get => _steam; }
+    private bool _steamAuthentication;
+    public bool SteamAuthentication { get => _steamAuthentication; }
 
     private void Awake()
     {
@@ -18,7 +18,7 @@ public class AuthenticationManager : MonoBehaviour
 #if PRODUCTIONBUILD
         SetupSteamAuthentication();
 #else
-        if (_steam)
+        if (_steamAuthentication)
             SetupSteamAuthentication();
         else
             SetUpLocalAuthentication();
@@ -26,6 +26,7 @@ public class AuthenticationManager : MonoBehaviour
     }
     private void SetupSteamAuthentication()
     {
+        //facepunch transport will log in auto
         NetworkManager netManager = Instantiate(AssetLoader.PrefabContainer.SteamNetworkManager);
 
     }
