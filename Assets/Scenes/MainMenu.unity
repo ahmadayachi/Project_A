@@ -256,7 +256,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &152434103
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2038,7 +2038,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b82994d39edc60b4abf30871c8fc7816, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _steam: 0
+  _steamAuthentication: 1
 --- !u!4 &676859373
 Transform:
   m_ObjectHideFlags: 0
@@ -2127,9 +2127,9 @@ RectTransform:
   - {fileID: 196341367}
   m_Father: {fileID: 152434103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 480, y: -151.39}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &691779858
@@ -2959,9 +2959,9 @@ RectTransform:
   - {fileID: 598767559}
   m_Father: {fileID: 152434103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1440, y: -151.39}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &838710464
@@ -3602,6 +3602,7 @@ MonoBehaviour:
       PublicLobbysHolders: {fileID: 308952959}
       RefreshLobbysButton: {fileID: 1940459507}
       BackButton: {fileID: 1328796927}
+  _mainLogicManager: {fileID: 871460565}
 --- !u!4 &1213460946
 Transform:
   m_ObjectHideFlags: 0

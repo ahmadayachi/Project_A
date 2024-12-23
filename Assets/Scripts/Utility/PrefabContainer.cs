@@ -18,4 +18,5 @@ public class PrefabContainer : ScriptableObject
 
     public NetworkManager SteamNetworkManager;
     public NetworkManager LocalNetworkManager;
+    public GameObject PublicSteamLobbyPrefab;
 }

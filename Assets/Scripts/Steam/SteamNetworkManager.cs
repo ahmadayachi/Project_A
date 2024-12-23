@@ -2,6 +2,7 @@ using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -98,32 +99,33 @@ public class SteamNetworkManager : MonoBehaviour
     #endregion
 
 
-    //public async Task<bool> RefreshLobbies(int maxResults = 20)
-    //{
-    //    try
-    //    {
-    //        Lobbies.Clear();
+    public async Task<bool> RefreshLobbies(int maxResults = 20)
+    {
+        try
+        {
+            Lobbies.Clear();
 
-    //        var lobbies = await SteamMatchmaking.LobbyList
-    //                .FilterDistanceClose()
-    //        .WithMaxResults(maxResults)
-    //        .RequestAsync();
+            var lobbies = await SteamMatchmaking.LobbyList
+                    .FilterDistanceClose()
+            .WithMaxResults(maxResults)
+            .RequestAsync();
 
-    //        if (lobbies != null)
-    //        {
-    //            for (int i = 0; i < lobbies.Length; i++)
-    //                Lobbies.Add(lobbies[i]);
-    //        }
+            if (lobbies != null)
+            {
+                for (int i = 0; i < lobbies.Length; i++)
+                    Lobbies.Add(lobbies[i]);
+            }
 
-    //        return true;
-    //    }
-    //    catch (System.Exception ex)
-    //    {
-    //        Debug.Log("Error fetching lobbies", this);
-    //        Debug.LogException(ex, this);
-    //        return false;
-    //    }
-    //}
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+#if Log
+            LogManager.LogError($"Error fetching lobbies ! ,=>{this}");
+#endif
+            return false;
+        }
+    }
 
     //private Steamworks.ServerList.Internet GetInternetRequest()
     //{

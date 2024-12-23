@@ -26,7 +26,7 @@ public class AuthenticationManager : MonoBehaviour
     }
     private void SetupSteamAuthentication()
     {
-        //facepunch transport will log in auto
+        //facepunch transport will log in auto`
         NetworkManager netManager = Instantiate(AssetLoader.PrefabContainer.SteamNetworkManager);
 
     }
