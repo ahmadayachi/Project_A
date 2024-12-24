@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SteamNetworkManager : MonoBehaviour
 {
     public Lobby? CurrentLobby { get; private set; }
-    public List<Lobby> Lobbies { get; private set; }
+    public List<Lobby> Lobbies = new List<Lobby>();
 
     private FacepunchTransport _facePunchTransport;
     /// <summary>
@@ -17,7 +18,7 @@ public class SteamNetworkManager : MonoBehaviour
     /// </summary>
     private int _lobbyMaxMenbers = 8;
     public int LobbyMaxMembers { get => _lobbyMaxMenbers; set { _lobbyMaxMenbers = value; } }
-
+    public const string SteamLobbyMap = "BathaM9atra";
 
     private void Start()
     {
@@ -47,44 +48,45 @@ public class SteamNetworkManager : MonoBehaviour
 
 
     #region Network Callbacks
-
-    //private void ClientConnected(ulong clientId) => Debug.Log($"I'm connected, clientId={clientId}");
-
-    //private void ClientDisconnected(ulong clientId)
-    //{
-    //    Debug.Log($"I'm disconnected, clientId={clientId}");
-
-    //    NetworkManager.Singleton.OnClientDisconnectCallback -= ClientDisconnected;
-    //    NetworkManager.Singleton.OnClientConnectedCallback -= ClientConnected;
-    //}
-
-    //private void OnServerStarted() { }
-
-    //private void OnClientConnectedCallback(ulong clientId) => Debug.Log($"Client connected, clientId={clientId}", this);
-
-    //private void OnClientDisconnectCallback(ulong clientId) => Debug.Log($"Client disconnected, clientId={clientId}", this);
     public async void StartHost()
     {
-        //NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
-        //NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
-        //NetworkManager.Singleton.OnServerStarted += OnServerStarted;
-
-        NetworkManager.Singleton.StartHost();
-
-        CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(LobbyMaxMembers);
+        if (NetworkManager.Singleton.StartHost())
+        {
+            CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(LobbyMaxMembers);
+            string sceneName = "Lobby";
+            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+#if Log
+            LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Host is starting a Session!", UnityEngine.Color.green);
+#endif
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"[{nameof(MainMenuLogicManager)}] - Host Failed Creating a Session!");
+#endif
+        }
     }
 
     public void StartClient(SteamId id)
     {
-        //NetworkManager.Singleton.OnClientConnectedCallback += ClientConnected;
-        //NetworkManager.Singleton.OnClientDisconnectCallback += ClientDisconnected;
-
         _facePunchTransport.targetSteamId = id;
-
-        Debug.Log($"Joining room hosted by {_facePunchTransport.targetSteamId}", this);
+#if Log
+        LogManager.Log($"[{nameof(SteamNetworkManager)}] - Attempting to joing Game ,Host ID=> {_facePunchTransport.targetSteamId}", UnityEngine.Color.grey);
+#endif
 
         if (NetworkManager.Singleton.StartClient())
-            Debug.Log("Client has joined!", this);
+        {
+
+#if Log
+            LogManager.Log($"[{nameof(SteamNetworkManager)}] - Client started succesfully", UnityEngine.Color.green);
+#endif
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"[{nameof(SteamNetworkManager)}] - Client failed starting !");
+#endif
+        }
     }
 
     public void Disconnect()
@@ -106,7 +108,7 @@ public class SteamNetworkManager : MonoBehaviour
             Lobbies.Clear();
 
             var lobbies = await SteamMatchmaking.LobbyList
-                    .FilterDistanceClose()
+                    .FilterDistanceClose().WithKeyValue("map", SteamLobbyMap)
             .WithMaxResults(maxResults)
             .RequestAsync();
 
@@ -121,47 +123,44 @@ public class SteamNetworkManager : MonoBehaviour
         catch (System.Exception ex)
         {
 #if Log
-            LogManager.LogError($"Error fetching lobbies ! ,=>{this}");
+            LogManager.LogError($"Error fetching lobbies ! ,=>{ex.Message}");
 #endif
             return false;
         }
     }
-
-    //private Steamworks.ServerList.Internet GetInternetRequest()
-    //{
-    //    var request = new Steamworks.ServerList.Internet();
-    //    //request.AddFilter("secure", "1");
-    //    //request.AddFilter("and", "1");
-    //    //request.AddFilter("gametype", "1");
-    //    return request;
-    //}
-
     #region Steam Callbacks
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId id)
     {
-        bool isSame = lobby.Owner.Id.Equals(id);
-
-        Debug.Log($"Owner: {lobby.Owner}");
-        Debug.Log($"Id: {id}");
-        Debug.Log($"IsSame: {isSame}", this);
-
-        //StartClient(id);
+        StartClient(id);
     }
 
-    private void OnLobbyInvite(Friend friend, Lobby lobby) => Debug.Log($"You got a invite from {friend.Name}", this);
+    private void OnLobbyInvite(Friend friend, Lobby lobby)
+    {
+#if Log
+        LogManager.Log($"[{nameof(SteamNetworkManager)}] - You got a invite from {friend.Name}", UnityEngine.Color.magenta);
+#endif
+    }
 
-    private void OnLobbyMemberLeave(Lobby lobby, Friend friend) { }
+    private void OnLobbyMemberLeave(Lobby lobby, Friend friend)
+    {
+#if Log
+        LogManager.Log($"[{nameof(SteamNetworkManager)}] - {friend.Name} Left Lobby", UnityEngine.Color.magenta);
+#endif
+    }
 
-    private void OnLobbyMemberJoined(Lobby lobby, Friend friend) { }
+    private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
+    {
+#if Log
+        LogManager.Log($"[{nameof(SteamNetworkManager)}] - {friend.Name} Joined Lobby", UnityEngine.Color.magenta);
+#endif
+    }
 
     private void OnLobbyEntered(Lobby lobby)
     {
-        Debug.Log($"You have entered in lobby, clientId={NetworkManager.Singleton.LocalClientId}", this);
-
-        if (NetworkManager.Singleton.IsHost)
-            return;
-
+#if Log
+        Debug.Log($"[{nameof(SteamNetworkManager)}] - You have entered in lobby, clientId={NetworkManager.Singleton.LocalClientId}", this);
+#endif
         //StartClient(lobby.Owner.Id);
     }
 
@@ -169,7 +168,7 @@ public class SteamNetworkManager : MonoBehaviour
     {
         if (result != Result.OK)
         {
-            Debug.LogError($"Lobby couldn't be created!, {result}", this);
+            Debug.LogError($"[{nameof(SteamNetworkManager)}] - Lobby couldn't be created!, {result}", this);
             return;
         }
 
@@ -177,6 +176,7 @@ public class SteamNetworkManager : MonoBehaviour
         if (lobbyData.IsValid)
         {
             lobby.SetData("name", lobbyData.LobbyName);
+            lobby.SetData("map", SteamLobbyMap);
 
             if (lobbyData.IsPrivate)
                 lobby.SetPrivate();
@@ -186,13 +186,13 @@ public class SteamNetworkManager : MonoBehaviour
             lobby.SetJoinable(true);
 
 #if Log
-            LogManager.Log("Lobby has been created!", UnityEngine.Color.green, LogManager.ValueInformationLog);
+            LogManager.Log($"[{nameof(SteamNetworkManager)}] - Lobby has been created!", UnityEngine.Color.green, LogManager.ValueInformationLog);
 #endif
         }
         else
         {
 #if Log
-            LogManager.LogError("Failed Setting Up Lobby! LobbySettings is Not Valid !");
+            LogManager.LogError($"[{nameof(SteamNetworkManager)}] - Failed Setting Up Lobby! LobbySettings is Not Valid !");
 #endif
         }
     }

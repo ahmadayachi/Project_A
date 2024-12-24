@@ -1,4 +1,3 @@
-using Steamworks.Data;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -21,7 +20,9 @@ public class MainMenuUIManager : MonoBehaviour
         SetUpMainPanelButtons();
         SetUpCreateLobby();
         SetUpJoinLobbyPanel();
-        JoinPublicLobbyPanel();
+        if (AuthenticationManager.Instance.SteamAuthentication)
+            SetUpJoinPublicLobbyPanel();
+        SetUpJoinPrivateLobbyPanel();
     }
 
     #region MainPanel
@@ -79,23 +80,28 @@ public class MainMenuUIManager : MonoBehaviour
         //grabing lobbys name 
         var lobbyName = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyName.text;
 
-        if (string.IsNullOrEmpty(lobbyName))
+        if (AuthenticationManager.Instance.SteamAuthentication)
         {
-#if Log
-            LogManager.Log("Create Lobby failed !, Lobby Name is empty!", UnityEngine.Color.red, LogManager.ValueInformationLog);
-#endif
-            return;
-        }
-        else
-        {
-            //crashing Lobby data 
-            int privateIndex = 1;
-            bool isPrivate = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyPrivacy.value == privateIndex;
-            var lobbyData = new LobbyData(lobbyName, isPrivate);
 
-            //starting a session 
-            _mainLogicManager.StartHost();
+            if (string.IsNullOrEmpty(lobbyName))
+            {
+#if Log
+                LogManager.Log("Create Lobby failed !, Lobby Name is empty!", UnityEngine.Color.red, LogManager.ValueInformationLog);
+#endif
+                return;
+            }
+            else
+            {
+                //crashing Lobby data 
+                int privateIndex = 1;
+                bool isPrivate = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyPrivacy.value == privateIndex;
+                var lobbyData = new LobbyData(lobbyName, isPrivate);
+
+            }
         }
+        //starting a session 
+        _mainLogicManager.StartHost();
+
     }
     private void CreateLobbyBackButton()
     {
@@ -109,9 +115,15 @@ public class MainMenuUIManager : MonoBehaviour
     {
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinPrivateLobbyButton.onClick.RemoveAllListeners();
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinPrivateLobbyButton.onClick.AddListener(JoinPrivateButton);
-
-        _mainPanelsUIRefs.JoinLobbyPanelUIRefs.PublicLobbysButton.onClick.RemoveAllListeners();
-        _mainPanelsUIRefs.JoinLobbyPanelUIRefs.PublicLobbysButton.onClick.AddListener(JoinPublicLobbyButton);
+        if (AuthenticationManager.Instance.SteamAuthentication)
+        {
+            _mainPanelsUIRefs.JoinLobbyPanelUIRefs.PublicLobbysButton.onClick.RemoveAllListeners();
+            _mainPanelsUIRefs.JoinLobbyPanelUIRefs.PublicLobbysButton.onClick.AddListener(JoinPublicLobbyButton);
+        }
+        else
+        {
+            _mainPanelsUIRefs.JoinLobbyPanelUIRefs.PublicLobbysButton.gameObject.SetActive(false);
+        }
 
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.BackButton.onClick.RemoveAllListeners();
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.BackButton.onClick.AddListener(JoinLobbyBackButton);
@@ -127,26 +139,26 @@ public class MainMenuUIManager : MonoBehaviour
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinLobbyPanel.SetActive(false);
         _mainPanelsUIRefs.PublicLobbysUIRefs.PublicLobbysPanel.SetActive(true);
         //refresh public lobbys here 
-       
-
         RefreshLobbys();
     }
 
 
-    private void RefreshLobbys()
+    private async void RefreshLobbys()
     {
-        var lobbys = _mainLogicManager.LoadSteamPublicLobbys();
+        var lobbys = await _mainLogicManager.LoadSteamPublicLobbys();
 
-        if (lobbys == null)
-        {
-            return;
-        }
-        else if (lobbys.Count <= 0)
+        if (lobbys == null || lobbys.Count <= 0)
         {
 #if Log
-            LogManager.Log("No Lobbys Found!", UnityEngine.Color.yellow);
+            LogManager.Log($"[{nameof(MainMenuUIManager)}] - No Lobbys Found!", UnityEngine.Color.yellow);
 #endif
+            return;
         }
+
+#if Log
+        LogManager.Log($"[{nameof(MainMenuUIManager)}] - Lobbys Loaded Count=> {lobbys.Count}", UnityEngine.Color.green);
+
+#endif
         ResetLobbysGO();
         foreach (var lobby in lobbys)
         {
@@ -155,13 +167,14 @@ public class MainMenuUIManager : MonoBehaviour
                 lobbyGO = _emptyLobbysGO.Dequeue();
             else
                 lobbyGO = Instantiate(AssetLoader.PrefabContainer.PublicSteamLobbyPrefab, _mainPanelsUIRefs.PublicLobbysUIRefs.PublicLobbysHolders);
-            var lobbyName = lobbyGO.GetComponent<TextMeshProUGUI>();
+            var lobbyName = lobbyGO.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+
             lobbyName.text = lobby.GetData("name");
-            var lobbyButton = lobbyGO.GetComponent<Button>();
+            var lobbyButton = lobbyGO.GetComponentInChildren<Button>();
             lobbyButton.onClick.RemoveAllListeners();
             lobbyButton.onClick.AddListener(() =>
             {
-                _mainLogicManager.StartSteamClient(lobby.Owner.Id);
+                _mainLogicManager.StartClient(lobby.Owner.Id);
             });
             _lobbysGO.Add(lobbyGO);
         }
@@ -191,7 +204,7 @@ public class MainMenuUIManager : MonoBehaviour
     #endregion
 
     #region Join Public Lobby
-    private void JoinPublicLobbyPanel()
+    private void SetUpJoinPublicLobbyPanel()
     {
         _mainPanelsUIRefs.PublicLobbysUIRefs.RefreshLobbysButton.onClick.RemoveAllListeners();
         _mainPanelsUIRefs.PublicLobbysUIRefs.RefreshLobbysButton.onClick.AddListener(RefreshLobbys);
@@ -202,6 +215,62 @@ public class MainMenuUIManager : MonoBehaviour
     private void PublicLobbysBackButton()
     {
         _mainPanelsUIRefs.PublicLobbysUIRefs.PublicLobbysPanel.SetActive(false);
+        _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinLobbyPanel.SetActive(true);
+    }
+    #endregion
+
+    #region Join Private Lobby Panel
+    private void SetUpJoinPrivateLobbyPanel()
+    {
+        //setting up the joing Button 
+        _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.JoinButton.onClick.RemoveAllListeners();
+        _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.JoinButton.onClick.AddListener(PrivateJoinButton);
+
+        //setting up Back Button 
+        _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.BackButton.onClick.RemoveAllListeners();
+        _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.BackButton.onClick.AddListener(JoinPrivateBackButton);
+    }
+    private void PrivateJoinButton()
+    {
+        if (AuthenticationManager.Instance.SteamAuthentication)
+        {
+            //if no code input return 
+            if (string.IsNullOrEmpty(_mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.LobbyCode.text))
+            {
+#if Log
+                LogManager.Log($"[{nameof(MainMenuUIManager)}] - Lobby Code is Empty!", UnityEngine.Color.yellow);
+#endif
+                return;
+            }
+            //code must be a ulong 
+            if (ulong.TryParse(_mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.LobbyCode.text, out ulong code))
+            {
+                _mainLogicManager.StartClient(code);
+
+#if Log
+                LogManager.Log($"[{nameof(MainMenuUIManager)}] - Client is Starting", UnityEngine.Color.grey);
+
+#endif
+            }
+            else
+            {
+#if Log
+                LogManager.Log($"[{nameof(MainMenuUIManager)}] - Failed Parsing Lobby Code!", UnityEngine.Color.yellow);
+#endif
+            }
+        }
+        else
+        {
+            _mainLogicManager.StartClient();
+#if Log
+            LogManager.Log($"[{nameof(MainMenuUIManager)}] - Client is Starting", UnityEngine.Color.grey);
+
+#endif
+        }
+    }
+    private void JoinPrivateBackButton()
+    {
+        _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.JoinPrivateLobbyPanel.SetActive(false);
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinLobbyPanel.SetActive(true);
     }
     #endregion
