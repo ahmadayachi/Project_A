@@ -92,11 +92,11 @@ public class MainMenuUIManager : MonoBehaviour
             }
             else
             {
-                //crashing Lobby data 
+                //cashing Lobby data 
                 int privateIndex = 1;
                 bool isPrivate = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyPrivacy.value == privateIndex;
                 var lobbyData = new LobbyData(lobbyName, isPrivate);
-
+                AssetLoader.RunTimeDataHolder.LobbySettings = lobbyData;
             }
         }
         //starting a session 

@@ -15,7 +15,6 @@ public class LobbyManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-
         sessionID.OnValueChanged += OnSessionIDChanged;
         if (IsHost)
         {
@@ -23,6 +22,11 @@ public class LobbyManager : NetworkBehaviour
             {
                 sessionID.Value = SteamClient.SteamId.ToString();
             }
+        }
+        else
+        {
+            //grabing first tick for client 
+            _lobbyUIRefs.LobbyID.text = sessionID.ToString();
         }
 
         _lobbyUIRefs.CoppyButton.onClick.AddListener(CopyToClipboard);
