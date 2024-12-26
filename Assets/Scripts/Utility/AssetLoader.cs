@@ -55,7 +55,7 @@ public static class AssetLoader
         get
         {
             if (_runTimeDataHolder == null)
-                LoadCardContainer();
+                LoadRunTimeDataHolder();
             return _runTimeDataHolder;
         }
     }

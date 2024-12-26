@@ -8,34 +8,6 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuLogicManager : MonoBehaviour
 {
-    private void Start()
-    {
-        NetworkManager.Singleton.OnConnectionEvent += OnConnectionEvent;
-    }
-
-    private void OnConnectionEvent(NetworkManager arg1, ConnectionEventData arg2)
-    {
-#if Log
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - is a Host=> {arg1.IsHost}!", UnityEngine.Color.green);
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Event Type: {arg2.EventType}", UnityEngine.Color.green);
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Client ID: {arg2.ClientId}", UnityEngine.Color.green);
-
-        if (arg2.PeerClientIds.IsCreated && arg2.PeerClientIds.Length > 0)
-        {
-            string peerClientIds = string.Join(", ", arg2.PeerClientIds);
-            LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Peer Client IDs: {peerClientIds}", UnityEngine.Color.green);
-        }
-#endif
-    }
-
-
-
-    private void OnDisable()
-    {
-        NetworkManager.Singleton.OnConnectionEvent -= OnConnectionEvent;
-
-    }
-
     #region Netcode Wrapping 
     public void StartHost()
     {

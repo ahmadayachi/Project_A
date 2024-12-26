@@ -80,24 +80,20 @@ public class MainMenuUIManager : MonoBehaviour
         //grabing lobbys name 
         var lobbyName = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyName.text;
 
-        if (AuthenticationManager.Instance.SteamAuthentication)
+        if (string.IsNullOrEmpty(lobbyName))
         {
-
-            if (string.IsNullOrEmpty(lobbyName))
-            {
 #if Log
-                LogManager.Log("Create Lobby failed !, Lobby Name is empty!", UnityEngine.Color.red, LogManager.ValueInformationLog);
+            LogManager.Log("Create Lobby failed !, Lobby Name is empty!", UnityEngine.Color.red, LogManager.ValueInformationLog);
 #endif
-                return;
-            }
-            else
-            {
-                //cashing Lobby data 
-                int privateIndex = 1;
-                bool isPrivate = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyPrivacy.value == privateIndex;
-                var lobbyData = new LobbyData(lobbyName, isPrivate);
-                AssetLoader.RunTimeDataHolder.LobbySettings = lobbyData;
-            }
+            return;
+        }
+        else
+        {
+            //cashing Lobby data 
+            int privateIndex = 1;
+            bool isPrivate = _mainPanelsUIRefs.CreateLobbyUIRefs.LobbyPrivacy.value == privateIndex;
+            var lobbyData = new LobbyData(lobbyName, isPrivate);
+            AssetLoader.RunTimeDataHolder.LobbySettings = lobbyData;
         }
         //starting a session 
         _mainLogicManager.StartHost();

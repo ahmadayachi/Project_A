@@ -2445,7 +2445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b82994d39edc60b4abf30871c8fc7816, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _steamAuthentication: 1
+  _steamAuthentication: 0
 --- !u!4 &676859373
 Transform:
   m_ObjectHideFlags: 0
