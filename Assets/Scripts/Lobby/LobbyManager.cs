@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -20,7 +21,8 @@ public class LobbyManager : NetworkBehaviour
     private NetworkVariable<FixedString64Bytes> LobbyName = new NetworkVariable<FixedString64Bytes>();
     private NetworkVariable<FixedString64Bytes> LobbyID = new NetworkVariable<FixedString64Bytes>();
 
-    private List<NetworkObject> lobbyPlayersNetObjects = new List<NetworkObject>();
+    private List<NetworkObject> _lobbyPlayersNetObjects = new List<NetworkObject>();
+    private LobbyPlayer _localLobbyPlayer;
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -61,7 +63,97 @@ public class LobbyManager : NetworkBehaviour
     #region Logic
     public void StartGame()
     {
+        if (SetUpPlayersData())
+        {
+            string sceneName = "InGameScene";
+            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+#if Log
+            LogManager.Log($"[{nameof(LobbyManager)}] - Host is starting a Game!", UnityEngine.Color.green);
+#endif
+        }
+    }
+    private void OnIsReadyChangedCallBack(bool isReady)
+    {
+        if (isReady)
+            _lobbyUIRefs.StartButtonText.text = IsReady;
+        else
+            _lobbyUIRefs.StartButtonText.text = NotReady;
+    }
+    private bool SetUpPlayersData()
+    {
+        if (_lobbyPlayersNetObjects.Count < 2)
+        {
+#if Log
+            LogManager.Log($"[{nameof(LobbyManager)}] - Need More Players To start the Game! ", UnityEngine.Color.yellow, LogManager.ValueInformationLog);
+#endif
+            return false;
+        }
 
+        foreach (var item in _lobbyPlayersNetObjects)
+        {
+            var player = item.GetComponent<LobbyPlayer>();
+
+            if (!PlayerIsValid(player))
+            {
+                return false;
+            }
+
+            //player data set up
+            var runtimeData = new RunTimePlayerData();
+            var playerData = new PlayerData();
+            playerData.Name = player.Name.Value.ToString();
+            playerData.ID = player.ID.Value.ToString();
+            playerData.IconID = player.IconID.Value;
+            runtimeData.PlayerData = playerData;
+
+            AssetLoader.RunTimeDataHolder.RunTimePlayersData.Add(runtimeData);
+
+        }
+
+        return true;
+    }
+    private bool PlayerIsValid(LobbyPlayer player)
+    {
+        if (player == null)
+        {
+#if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Player object does not have a LobbyPlayer Component!");
+#endif
+            return false;
+        }
+
+        if (player.IsReady.Value != true)
+        {
+#if Log
+            LogManager.Log($"[{nameof(LobbyManager)}] - {player.Name.ToString()} ID=>{player.ID.ToString()} is not ready!", UnityEngine.Color.yellow, LogManager.ValueInformationLog);
+#endif
+            return false;
+        }
+
+        if (player.IconID.Value == 0)
+        {
+#if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player Icon ID is 0!");
+#endif
+            return false;
+        }
+
+        if (player.Name.Value.Equals(default(FixedString32Bytes)))
+        {
+#if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player Name is empty!");
+#endif
+            return false;
+        }
+
+        if (player.ID.Value.Equals(default(FixedString64Bytes)))
+        {
+#if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player ID is empty!");
+#endif
+            return false;
+        }
+        return true;
     }
     private void SpawnLobbyPlayer(ulong ClientID)
     {
@@ -69,11 +161,11 @@ public class LobbyManager : NetworkBehaviour
         var lobbyPlayerNetObject = lobbbyPlayerGO.GetComponent<NetworkObject>();
         lobbyPlayerNetObject.SpawnAsPlayerObject(ClientID, true);
         lobbyPlayerNetObject.transform.SetParent(_lobbyUIRefs.LobbyPlayersHolder, false);
-        lobbyPlayersNetObjects.Add(lobbyPlayerNetObject);
+        _lobbyPlayersNetObjects.Add(lobbyPlayerNetObject);
     }
     private void DespawnLobbyPlayer(ulong ClientID)
     {
-        var lobbyPlayer = lobbyPlayersNetObjects.Find(x => x.OwnerClientId == ClientID);
+        var lobbyPlayer = _lobbyPlayersNetObjects.Find(x => x.OwnerClientId == ClientID);
         lobbyPlayer.Despawn();
     }
     private void SetUpSingleton()
@@ -120,14 +212,14 @@ public class LobbyManager : NetworkBehaviour
     private void OnConnectionEvent(NetworkManager arg1, ConnectionEventData arg2)
     {
 #if Log
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - is a Host=> {arg1.IsHost}!", UnityEngine.Color.green);
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Event Type: {arg2.EventType}", UnityEngine.Color.green);
-        LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Client ID: {arg2.ClientId}", UnityEngine.Color.green);
+        LogManager.Log($"[{nameof(LobbyManager)}] - is a Host=> {arg1.IsHost}!", UnityEngine.Color.green);
+        LogManager.Log($"[{nameof(LobbyManager)}] - Event Type: {arg2.EventType}", UnityEngine.Color.green);
+        LogManager.Log($"[{nameof(LobbyManager)}] - Client ID: {arg2.ClientId}", UnityEngine.Color.green);
 
         if (arg2.PeerClientIds.IsCreated && arg2.PeerClientIds.Length > 0)
         {
             string peerClientIds = string.Join(", ", arg2.PeerClientIds);
-            LogManager.Log($"[{nameof(MainMenuLogicManager)}] - Peer Client IDs: {peerClientIds}", UnityEngine.Color.green);
+            LogManager.Log($"[{nameof(LobbyManager)}] - Peer Client IDs: {peerClientIds}", UnityEngine.Color.green);
         }
 #endif
 

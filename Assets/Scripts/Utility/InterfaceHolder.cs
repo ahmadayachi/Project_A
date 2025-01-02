@@ -75,6 +75,8 @@ public interface ICardReceiver
 [Serializable]
 public struct RunTimePlayerData
 {
+    public PlayerData PlayerData;
+
     public PlayerRef PlayerRef;
     public string PlayerName;
     public string PlayerID;

@@ -27,3 +27,7 @@ MonoBehaviour:
     DeckType: 7
     SuitsNumber: 2
     CustomSuitRanks: 
+  LocalPlayerInfo:
+    Name: Kakawiya
+    ID: 
+    IconID: 0
