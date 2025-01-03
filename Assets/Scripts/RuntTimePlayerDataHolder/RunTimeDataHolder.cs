@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "RunTimeDataHolder ")]
@@ -14,7 +12,7 @@ public class RunTimeDataHolder : ScriptableObject
 [System.Serializable]
 public struct PlayerData
 {
-    public FixedString32Bytes Name { get; set; }
-    public FixedString64Bytes ID { get; set; }
+    public string Name;
+    public string ID;
     public int IconID;
 }

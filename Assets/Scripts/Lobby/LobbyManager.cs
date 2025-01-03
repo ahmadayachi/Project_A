@@ -11,7 +11,6 @@ using UnityEngine.UI;
 
 public class LobbyManager : NetworkBehaviour
 {
-    public static LobbyManager Instance;
     public const string IsReady = "IsReady";
     public const string NotReady = "Not Ready";
     public const string Start = "Start";
@@ -26,7 +25,6 @@ public class LobbyManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        SetUpSingleton();
         LobbyName.OnValueChanged += OnLobbyNameChanged;
         LobbyID.OnValueChanged += OnLobbyIDChanged;
 
@@ -58,9 +56,24 @@ public class LobbyManager : NetworkBehaviour
         if (NetworkManager.Singleton != null)
             NetworkManager.Singleton.OnConnectionEvent -= OnConnectionEvent;
 
+        if (_localLobbyPlayer != null)
+            _localLobbyPlayer.OnIsReady -= OnIsReadyChangedCallBack;
+
     }
 
     #region Logic
+    public void SetUpLocalPlayer(LobbyPlayer player)
+    {
+        _localLobbyPlayer = player;
+        _localLobbyPlayer.OnIsReady += OnIsReadyChangedCallBack;
+
+        _lobbyUIRefs.StartButton.onClick.RemoveAllListeners();
+
+        if (IsHost)
+            _lobbyUIRefs.StartButton.onClick.AddListener(StartGame);
+        else
+            _lobbyUIRefs.StartButton.onClick.AddListener(_localLobbyPlayer.IsReadyRpc);
+    }
     public void StartGame()
     {
         if (SetUpPlayersData())
@@ -125,7 +138,7 @@ public class LobbyManager : NetworkBehaviour
         if (player.IsReady.Value != true)
         {
 #if Log
-            LogManager.Log($"[{nameof(LobbyManager)}] - {player.Name.ToString()} ID=>{player.ID.ToString()} is not ready!", UnityEngine.Color.yellow, LogManager.ValueInformationLog);
+            LogManager.Log($"[{nameof(LobbyManager)}] - Player=>{player} is not ready!", UnityEngine.Color.yellow, LogManager.ValueInformationLog);
 #endif
             return false;
         }
@@ -133,7 +146,7 @@ public class LobbyManager : NetworkBehaviour
         if (player.IconID.Value == 0)
         {
 #if Log
-            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player Icon ID is 0!");
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Player=>{player} Failed Setting up Player Data!,Lobby Player Icon ID is 0!");
 #endif
             return false;
         }
@@ -141,7 +154,7 @@ public class LobbyManager : NetworkBehaviour
         if (player.Name.Value.Equals(default(FixedString32Bytes)))
         {
 #if Log
-            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player Name is empty!");
+            LogManager.LogError($"[{nameof(LobbyManager)}] -  Player=>{player} Failed Setting up Player Data!,Lobby Player Name is empty! Player=>{player}");
 #endif
             return false;
         }
@@ -149,7 +162,7 @@ public class LobbyManager : NetworkBehaviour
         if (player.ID.Value.Equals(default(FixedString64Bytes)))
         {
 #if Log
-            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Setting up Player Data!,Lobby Player ID is empty!");
+            LogManager.LogError($"[{nameof(LobbyManager)}] -  Player=>{player} Failed Setting up Player Data!,Lobby Player ID is empty!");
 #endif
             return false;
         }
@@ -168,33 +181,15 @@ public class LobbyManager : NetworkBehaviour
         var lobbyPlayer = _lobbyPlayersNetObjects.Find(x => x.OwnerClientId == ClientID);
         lobbyPlayer.Despawn();
     }
-    private void SetUpSingleton()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
     #endregion
 
     #region Lobby UI  
     public void InitStartButtonUI()
     {
         if (IsHost)
-        {
             _lobbyUIRefs.StartButtonText.text = Start;
-            _lobbyUIRefs.StartButton.enabled = false;
-        }
         else
-        {
             _lobbyUIRefs.StartButtonText.text = NotReady;
-            _lobbyUIRefs.StartButton.enabled = true;
-        }
     }
     public void SetUpClientIsReadyButton(UnityAction rpc)
     {
@@ -208,7 +203,6 @@ public class LobbyManager : NetworkBehaviour
     #endregion
 
     #region netcode Call Backs
-
     private void OnConnectionEvent(NetworkManager arg1, ConnectionEventData arg2)
     {
 #if Log
@@ -234,7 +228,6 @@ public class LobbyManager : NetworkBehaviour
     {
         _lobbyUIRefs.LobbyName.text = newValue.ToString();
     }
-
     private void OnLobbyIDChanged(FixedString64Bytes oldID, FixedString64Bytes newID)
     {
         _lobbyUIRefs.LobbyID.text = newID.ToString();

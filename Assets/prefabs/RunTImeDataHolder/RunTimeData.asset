@@ -13,12 +13,20 @@ MonoBehaviour:
   m_Name: RunTimeData
   m_EditorClassIdentifier: 
   RunTimePlayersData:
-  - PlayerName: Player1
+  - PlayerData:
+      Name: 
+      ID: 
+      IconID: 0
+    PlayerName: Player1
     PlayerID: d3ccdc86-4a24-4ccc-a469-bebf20d18181
     IconIndex: 7
     PlayerNetObject: {fileID: 0}
     AuthorityAssigned: 1
-  - PlayerName: Player2
+  - PlayerData:
+      Name: 
+      ID: 
+      IconID: 0
+    PlayerName: Player2
     PlayerID: 6998abb0-eff9-4162-8e9b-c958e784d47d
     IconIndex: 4
     PlayerNetObject: {fileID: 0}
@@ -28,6 +36,6 @@ MonoBehaviour:
     SuitsNumber: 2
     CustomSuitRanks: 
   LocalPlayerInfo:
-    Name: Kakawiya
-    ID: 
+    Name: Player
+    ID: 087ca8ea-a0e3-40cb-aba2-626cca4e086b
     IconID: 0

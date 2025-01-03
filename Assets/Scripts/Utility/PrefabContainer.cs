@@ -20,4 +20,5 @@ public class PrefabContainer : ScriptableObject
     public NetworkManager LocalNetworkManager;
     public GameObject PublicSteamLobbyPrefab;
     public GameObject LobbyPlayerPrefab;
+    public ProfileIcon ProfileIconPrefab;
 }

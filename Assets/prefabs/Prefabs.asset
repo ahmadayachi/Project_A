@@ -22,3 +22,4 @@ MonoBehaviour:
   LocalNetworkManager: {fileID: 5499371874730083060, guid: 9f803cc7dcac06447a626212ad7a56b6, type: 3}
   PublicSteamLobbyPrefab: {fileID: 188815484911116110, guid: 5a8eb105ebcfd9b46aa1bf28b0074462, type: 3}
   LobbyPlayerPrefab: {fileID: 8800153567558148587, guid: f54181e9ee712a943a37e45eec87c72c, type: 3}
+  ProfileIconPrefab: {fileID: 2856001526782714434, guid: 8a6ae72431cc9d142a0cda687016c0b0, type: 3}

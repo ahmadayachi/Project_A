@@ -1,8 +1,8 @@
-using Steamworks;
 using System;
 using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,16 +24,33 @@ public class LobbyPlayer : NetworkBehaviour
         IconID.OnValueChanged += OnIconIDValueChanged;
         ID.OnValueChanged += OnIDValueChanged;
         IsReady.OnValueChanged += OnIsReadyValueChanged;
+        LookForLobby();
         Init();
     }
 
+    private void LookForLobby()
+    {
+        if (IsLocalPlayer)
+        {
+            var lobby = FindFirstObjectByType<LobbyManager>();
+            if (lobby == null)
+            {
+#if Log
+                LogManager.LogError($"[{nameof(LobbyPlayer)}] - Failed to Find A Lobby Manager Class !");
+#endif
+                return;
+            }
+
+            lobby.SetUpLocalPlayer(this);
+        }
+    }
     private void OnIsReadyValueChanged(bool previousValue, bool newValue)
     {
-        if (IsOwner)
+        if (IsLocalPlayer && IsClient)
         {
             OnIsReady?.Invoke(newValue);
 #if Log
-            LogManager.Log($"{Name.Value.ToString()}, ID=>({ID.Value.ToString()}) Is Ready =>[{newValue}]", UnityEngine.Color.green, LogManager.ValueInformationLog);
+            LogManager.Log($"[{nameof(LobbyPlayer)}] - {Name.Value.ToString()}, ID=>({ID.Value.ToString()}) Is Ready =>[{newValue}]", UnityEngine.Color.green, LogManager.ValueInformationLog);
 #endif
         }
     }
@@ -42,7 +59,7 @@ public class LobbyPlayer : NetworkBehaviour
     {
 
 #if Log
-        LogManager.Log($"{Name.Value.ToString()} ID is Set !, ID=>({ID.Value.ToString()})", UnityEngine.Color.green, LogManager.ValueInformationLog);
+        LogManager.Log($"[{nameof(LobbyPlayer)}] - {Name.Value.ToString()} ID is Set !, ID=>({ID.Value.ToString()})", UnityEngine.Color.green, LogManager.ValueInformationLog);
 #endif
     }
 
@@ -62,30 +79,27 @@ public class LobbyPlayer : NetworkBehaviour
         Name.Value = playerName;
         ID.Value = playerID;
         IconID.Value = iconID;
+        //setting the isready deaulfting to false at first 
+        //if it is the hosts player setting it to true
+        IsReady.Value = IsLocalPlayer ? true : false;
 #if Log
-        LogManager.Log($"setting Player Info, playerName=>{playerName.ToString()} / playerID{playerID.ToString()}/iconID=>{iconID}", UnityEngine.Color.green, LogManager.ValueInformationLog);
+        LogManager.Log($"[{nameof(LobbyPlayer)}] - setting Player Info, playerName=>{playerName.ToString()} / playerID{playerID.ToString()}/iconID=>{iconID}", UnityEngine.Color.green, LogManager.ValueInformationLog);
 #endif
     }
-
+    [Rpc(SendTo.Server)]
+    public void IsReadyRpc()
+    {
+        //toggling the is ready status 
+        IsReady.Value = !IsReady.Value;
+    }
     private void Init()
     {
         //if it is the owner , he sends his info 
-        if (IsOwner)
+        if (IsLocalPlayer)
         {
-            FixedString32Bytes playerName = string.Empty;
-            FixedString64Bytes playerID = string.Empty;
-            //grabbing player Name and ID from steam
-            if (AuthenticationManager.Instance.SteamAuthentication)
-            {
-                playerName = SteamClient.Name;
-                playerID = SteamClient.SteamId.ToString();
-            }
-            else
-            {
-                //grabing from scriptable object
-                playerName = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name;
-                playerID = Guid.NewGuid().ToString();
-            }
+            FixedString32Bytes playerName = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name;
+            FixedString64Bytes playerID = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.ID;
+            byte IconD = (byte)AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconID;
 
             InitPlayerRpc(playerName, playerID, (byte)UnityEngine.Random.Range(1, 9));
         }
@@ -93,16 +107,13 @@ public class LobbyPlayer : NetworkBehaviour
         else
         {
             if (!Name.Value.Equals(default(FixedString32Bytes)))
-            {
                 _uiRefs.Name.text = Name.Value.ToString();
-            }
 
             if (IconID.Value != 0)
-            {
                 _uiRefs.Icon.sprite = AssetLoader.AllIcons[IconID.Value];
-            }
         }
     }
+    public override string ToString() { return $"LobbyPlayer:\n" + $"Name: {Name.Value}\n" + $"ID: {ID.Value}\n" + $"IconID: {IconID.Value}\n" + $"IsReady: {IsReady.Value}"; }
 
 }
 [System.Serializable]
@@ -111,3 +122,48 @@ public struct LobbyPlayerUI
     public Image Icon;
     public TextMeshProUGUI Name;
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(LobbyPlayer))]
+public class LobbyPlayerCustomInspector : Editor
+{
+    private GUIStyle headerStyle;
+    private GUIStyle labelStyle;
+
+    private void OnEnable()
+    {
+        headerStyle = new GUIStyle()
+        {
+            richText = true,
+            fontSize = 16,
+            fontStyle = FontStyle.Bold,
+            normal = new GUIStyleState() { textColor = Color.cyan }
+        };
+
+        labelStyle = new GUIStyle()
+        {
+            richText = true,
+            fontSize = 14,
+            normal = new GUIStyleState() { textColor = Color.white }
+        };
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        LobbyPlayer _this = (LobbyPlayer)target;
+        EditorGUILayout.LabelField("<color=cyan>Lobby Player Info</color>", headerStyle);
+        try
+        {
+            GUILayout.Label($"<color=white> Name: {_this.Name.Value}</color>", labelStyle);
+            GUILayout.Label($"<color=white> ID: {_this.ID.Value}</color>", labelStyle);
+            GUILayout.Label($"<color=white> Icon ID: {_this.IconID.Value}</color>", labelStyle);
+            GUILayout.Label($"<color=white> Is Ready: {_this.IsReady.Value}</color>", labelStyle);
+        }
+        catch
+        {
+            // Handle exceptions if necessary
+        }
+    }
+}
+#endif
