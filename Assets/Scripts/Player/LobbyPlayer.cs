@@ -101,7 +101,7 @@ public class LobbyPlayer : NetworkBehaviour
             FixedString64Bytes playerID = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.ID;
             byte IconD = (byte)AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconID;
 
-            InitPlayerRpc(playerName, playerID, (byte)UnityEngine.Random.Range(1, 9));
+            InitPlayerRpc(playerName, playerID, IconD);
         }
         //else syncing the first tick if it exists 
         else

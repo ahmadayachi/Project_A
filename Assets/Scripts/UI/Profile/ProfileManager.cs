@@ -46,6 +46,8 @@ public class ProfileManager : MonoBehaviour
         }
         AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name = playerName;
         AssetLoader.RunTimeDataHolder.LocalPlayerInfo.ID = playerID;
+        //loading player name to UI
+        _uiRefs.PlayerName.text = playerName;
     }
     private void LoadIcon()
     {
@@ -60,6 +62,7 @@ public class ProfileManager : MonoBehaviour
     }
     private void SetUpIcons()
     {
+        _allIcons.Clear();
         for (int index = 0; index < AssetLoader.AllIcons.Count; index++)
         {
             var icon = AssetLoader.AllIcons[index];
@@ -68,6 +71,7 @@ public class ProfileManager : MonoBehaviour
             profileIcon.SetIcon(icon);
             profileIcon.OnIconClicked += OnIconClicked;
             profileIcon.ToggleIconHighlight(false);
+            _allIcons.Add(profileIcon);
         }
     }
     private void OnIconClicked(int ID)
