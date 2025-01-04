@@ -539,11 +539,11 @@ public struct MainPanelsUIRefs
     /// Parent to All Main Panels
     /// </summary>
     public GameObject MainPanelsGO;
-
     public GameObject ButtonsHolder;
     public Button CreateLobbyButton;
     public Button JoinLobbyButton;
-
+    public Button ProfileButton;
+   
     [Header("Create Lobby Panel")]
     public CreateLobbyUIRefs CreateLobbyUIRefs;
 
@@ -555,6 +555,9 @@ public struct MainPanelsUIRefs
 
     [Header(" Join Public Lobby Panel")]
     public PublicLobbysUIRefs PublicLobbysUIRefs;
+
+    [Header("Profile Panel")]
+    public ProfilePanelUIRefs ProfilePanelUIRefs;
 }
 
 [Serializable]
@@ -584,6 +587,12 @@ public struct PublicLobbysUIRefs
     public Transform PublicLobbysHolders;
     public Button RefreshLobbysButton;
     public Button BackButton;
+}
+[Serializable]
+public struct ProfilePanelUIRefs
+{
+    public GameObject ProfilePanel;
+    public Button ProfileCloseButton;
 }
 
 [Serializable]

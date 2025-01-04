@@ -23,6 +23,7 @@ public class MainMenuUIManager : MonoBehaviour
         if (AuthenticationManager.Instance.SteamAuthentication)
             SetUpJoinPublicLobbyPanel();
         SetUpJoinPrivateLobbyPanel();
+        SetUpProfilePanel();
     }
 
     #region MainPanel
@@ -46,6 +47,14 @@ public class MainMenuUIManager : MonoBehaviour
             _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinLobbyPanel.SetActive(true);
         });
 
+        _mainPanelsUIRefs.ProfileButton.onClick.RemoveAllListeners();
+        _mainPanelsUIRefs.ProfileButton.onClick.AddListener(() =>
+        {
+            _mainPanelsUIRefs.ButtonsHolder.gameObject.SetActive(false);
+
+            //profile panel On 
+            _mainPanelsUIRefs.ProfilePanelUIRefs.ProfilePanel.SetActive(true);
+        });
     }
     #endregion
 
@@ -268,6 +277,20 @@ public class MainMenuUIManager : MonoBehaviour
     {
         _mainPanelsUIRefs.JoinPrivateLobbyPanelUIRefs.JoinPrivateLobbyPanel.SetActive(false);
         _mainPanelsUIRefs.JoinLobbyPanelUIRefs.JoinLobbyPanel.SetActive(true);
+    }
+    #endregion
+
+    #region Profile Panel
+    private void SetUpProfilePanel()
+    {
+        //setting up close Button 
+        _mainPanelsUIRefs.ProfilePanelUIRefs.ProfileCloseButton.onClick.RemoveAllListeners();
+        _mainPanelsUIRefs.ProfilePanelUIRefs.ProfileCloseButton.onClick.AddListener(
+            () =>
+            {
+                _mainPanelsUIRefs.ProfilePanelUIRefs.ProfilePanel.SetActive(false);
+                _mainPanelsUIRefs.ButtonsHolder.SetActive(true);
+            });
     }
     #endregion
 }

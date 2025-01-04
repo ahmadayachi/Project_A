@@ -17,7 +17,6 @@ public class ProfileManager : MonoBehaviour
         SetUpIcons();
         LoadPlayerData();
         LoadIcon();
-        _uiRefs.CloseButton.onClick.RemoveAllListeners();
         _uiRefs.CloseButton.onClick.AddListener(OnCloseProfilePanelClicked);
     }
 
@@ -93,7 +92,6 @@ public class ProfileManager : MonoBehaviour
     private void OnCloseProfilePanelClicked()
     {
         SavePlayerName();
-        _uiRefs.ProfilePanel.gameObject.SetActive(false);
     }
 }
 [Serializable]
