@@ -341,7 +341,7 @@ public abstract class UIEventsBase : IUIEvents
     }
     protected virtual void MaxBet()
     {
-        var maxBet = BetGenerator.GenerateMaxBet(_uiManager.GameManagerUI.DealtCardsNumber);
+        var maxBet = BetGenerator.GenerateMaxBet(_uiManager.GameManagerUI.DealtCardsNumber.Value);
         if (maxBet != null)
         {
             var diffusedMaxBet = new List<DiffusedRankInfo>();
@@ -611,15 +611,16 @@ public abstract class UIEventsBase : IUIEvents
         var currentPlayerIconID = _uiManager.GameManagerUI.CurrentPlayer.IconID;
         doubtScreen.RightPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[currentPlayerIconID];
         doubtScreen.RightPlayerDisplay.PlayerName.text = _uiManager.GameManagerUI.CurrentPlayer.Name;
-        doubtScreen.RightPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState == DoubtState.WinDoubt ? Winner : Looser;
+        doubtScreen.RightPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState.Value == DoubtState.WinDoubt ? Winner : Looser;
         //grabing previous player 
         IPlayer previousPlayer;
-        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID, out previousPlayer))
+        //TODO:Remove the cast
+        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID.Value.ToString(), out previousPlayer))
         {
             var previousPlayerIconID = previousPlayer.IconID;
             doubtScreen.LeftPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[previousPlayerIconID];
             doubtScreen.LeftPlayerDisplay.PlayerName.text = previousPlayer.Name;
-            doubtScreen.LeftPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState == DoubtState.WinDoubt ? Looser : Winner;
+            doubtScreen.LeftPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState.Value == DoubtState.WinDoubt ? Looser : Winner;
         }
         else
         {
@@ -636,7 +637,7 @@ public abstract class UIEventsBase : IUIEvents
     {
         DoubtScreenSetUp();
         //waiting animation
-        yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer);
+        yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer.Value);
       
         //after the animation inoking logic
         if (_uiManager.GameManagerUI.IsHost)

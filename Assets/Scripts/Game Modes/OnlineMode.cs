@@ -762,7 +762,7 @@ public class OnlineMode : GameModeBase
     private void LoadDeckInfo()
     {
         _gameManager.RunTimeDataHolder.DeckInfo = new DeckInfo();
-        _gameManager.RunTimeDataHolder.DeckInfo.DeckType = _gameManager.DeckType;
+        _gameManager.RunTimeDataHolder.DeckInfo.DeckType = _gameManager.DeckType.Value;
         _gameManager.RunTimeDataHolder.DeckInfo.SuitsNumber = _gameManager.SuitsNumber;
         if (_gameManager.DeckType == DeckType.Custom)
         {

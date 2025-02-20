@@ -146,7 +146,7 @@ public class LobbyManager : NetworkBehaviour
         if (player.IconID.Value == 0)
         {
 #if Log
-            LogManager.LogError($"[{nameof(LobbyManager)}] - Player=>{player} Failed Setting up Player Data!,Lobby Player Icon ID is 0!");
+            LogManager.LogError($"[{nameof(LobbyManager)}] -  Failed Setting up Player Data!,Lobby Player Icon ID is 0!Player=>{player}");
 #endif
             return false;
         }

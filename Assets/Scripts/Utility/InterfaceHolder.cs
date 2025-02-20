@@ -518,7 +518,37 @@ public enum DeckType
     /// </summary>
     Custom = 69
 }
-
+public enum GameMode
+{
+    //
+    // Summary:
+    //     Single Player Mode: it works very similar to Fusion.GameMode.Host Mode, but don't
+    //     accept any connections.
+    Single = 1,
+    //
+    // Summary:
+    //     Shared Mode: starts a Game Client, which will connect to a Game Server running
+    //     in the Photon Cloud using the Fusion Plugin.
+    Shared,
+    //
+    // Summary:
+    //     Server Mode: starts a Dedicated Game Server with no local player.
+    Server,
+    //
+    // Summary:
+    //     Host Mode: starts a Game Server and allows a local player.
+    Host,
+    //
+    // Summary:
+    //     Client Mode: starts a Game Client, which will connect to a peer in either Fusion.GameMode.Server
+    //     or Fusion.GameMode.Host Modes.
+    Client,
+    //
+    // Summary:
+    //     Automatically start as Host or Client. The first peer to connect to a room will
+    //     be started as a Host, all others will connect as clients.
+    AutoHostOrClient
+}
 #endregion enums
 
 public struct UILogsData
