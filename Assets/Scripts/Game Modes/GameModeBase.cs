@@ -71,11 +71,11 @@ public abstract class GameModeBase : IGameMode
     {
         //TODO: Calculate Doubt Scene Timer Based On UI Needs
         //Currently its a fixed time 
-        _gameManager.DoubtSceneTimer = 3;
+        _gameManager.DoubtSceneTimer.Value = 3;
     }
     protected virtual void PunishingDoubtLooser(out string playerToPunishID, out IPlayer playerToPunish)
     {
-        playerToPunishID = (_gameManager.DoubtState == DoubtState.WinDoubt) ? _gameManager.LiveBetPlayerID : _gameManager.CurrentPlayerID;
+        playerToPunishID = (_gameManager.DoubtState.Value == DoubtState.WinDoubt) ? _gameManager.LiveBetPlayerID.Value.ToString() : _gameManager.CurrentPlayerID.Value.ToString();
         if (TryFindPlayer(playerToPunishID, out playerToPunish))
         {
             playerToPunish.PlusOneCard();

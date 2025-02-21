@@ -14,5 +14,6 @@ public struct PlayerData
 {
     public string Name;
     public string ID;
+    public ulong ClientID;
     public int IconID;
 }

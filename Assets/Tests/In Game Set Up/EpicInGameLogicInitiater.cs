@@ -427,7 +427,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             playerData.PlayerName = playerName;
             playerData.PlayerID = GenerateUniqueID();
             playerData.IconIndex = playerUi.IconIndex;
-            playerData.PlayerNetObject = null;
+            playerData.PlayerNetObjectRef = null;
             playerData.AuthorityAssigned = false;
             playerIndex++;
             _playersData.Add(playerData);
@@ -586,7 +586,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
                     newData.PlayerName = oldData.PlayerName;
                     newData.PlayerID = oldData.PlayerID;
                     newData.IconIndex = oldData.IconIndex;
-                    newData.PlayerNetObject = null;
+                    newData.PlayerNetObjectRef = null;
                     newData.AuthorityAssigned = false;
                     _dataHolder.RunTimePlayersData[index] = newData;
                 }
@@ -758,7 +758,7 @@ public class EpicInGameLogicInitiater : MonoBehaviour
             playerData.PlayerID = Guid.NewGuid().ToString();
             playerIndex++;
             playerData.AuthorityAssigned = false;
-            playerData.PlayerNetObject = null;
+            playerData.PlayerNetObjectRef = null;
             playerData.IconIndex = 0;
             _dataHolder.RunTimePlayersData.Add(playerData);
         }

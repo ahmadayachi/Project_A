@@ -1,10 +1,11 @@
-using Fusion;
+//using Fusion;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 #region Interfaces
 
@@ -16,7 +17,8 @@ public interface IplayerState
 
 public interface IPlayer : ICardReceiver
 {
-    public PlayerRef playerRef { get; }
+    //public PlayerRef playerRef { get; }
+    ulong ClientID { get; }
     string Name { get; }
     PlayerUIController PlayerUIControler
     {
@@ -36,12 +38,12 @@ public interface IPlayer : ICardReceiver
 
     void ClearHand();
 
-    void SetIsplayerOut(NetworkBool isPlayerOut);
+    void SetIsplayerOut(bool isPlayerOut);
 
     State PlayerState { get; }
     byte IconID { get; }
-    bool IsLocalPlayer { get; }
-    public NetworkObject NetworkObject { get; }
+    bool IsTheLocalPlayer { get; }
+    public NetworkObject PlayerNetworkObject { get; }
     Transform Transform { get; }
 
     //player commands 
@@ -55,7 +57,7 @@ public interface ICardReceiver
     /// <summary>
     /// if true player cant/wont have cards or play
     /// </summary>
-    NetworkBool IsOut { get; }
+    bool IsOut { get; }
 
     /// <summary>
     /// how much Cards to deal
@@ -75,13 +77,14 @@ public interface ICardReceiver
 [Serializable]
 public struct RunTimePlayerData
 {
+    //Todo: check if this is needed
     public PlayerData PlayerData;
 
-    public PlayerRef PlayerRef;
+    //public PlayerRef PlayerRef;
     public string PlayerName;
     public string PlayerID;
     public int IconIndex;
-    public NetworkObject PlayerNetObject;
+    public NetworkObjectReference PlayerNetObjectRef;
     public bool AuthorityAssigned;
 }
 
@@ -132,12 +135,24 @@ public struct DisplayCardUIRefs
 /// <summary>
 /// network ID only
 /// </summary>
-public struct CardInfo : INetworkStruct
+//public struct CardInfo : INetworkStruct
+//{
+//    public byte Rank;
+//    public byte ID;
+//    public CardSuit Suit;
+//    public NetworkBool IsValid;
+
+//    public override string ToString()
+//    {
+//        return $"Isvalid {IsValid} ID: {ID}, Rank: {Rank}, Suit: {Suit}";
+//    }
+//}
+public struct CardInfo 
 {
     public byte Rank;
     public byte ID;
     public CardSuit Suit;
-    public NetworkBool IsValid;
+    public bool IsValid;
 
     public override string ToString()
     {
@@ -286,14 +301,14 @@ public struct CardPoolArguments
 
 public struct PlayerArguments
 {
-    public PlayerRef PlayerRef;
+    //public PlayerRef PlayerRef;
     public string Name;
     public string ID;
     public byte IconID;
-
+    public ulong ClientID;
     //public byte CardCounter;
     //public GameManager GameManager;
-    public NetworkBool isplayerOut;
+    public bool isplayerOut;
 }
 
 public struct ValidatorArguments

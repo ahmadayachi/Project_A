@@ -1,9 +1,11 @@
 //#define STARTWITH13CARDS
-using Fusion;
+//using Fusion;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class OnlineMode : GameModeBase
@@ -39,7 +41,7 @@ public class OnlineMode : GameModeBase
         }
 
         //only current player can Doubt
-        if (_gameManager.CurrentPlayerID != playerID)
+        if (_gameManager.CurrentPlayerID.Value != playerID)
         {
 #if Log
             LogManager.Log($"Blocking Doubt Rpc ! player with ID:= {playerID} is not the Current Player!,Current Player ID:={_gameManager.CurrentPlayerID}", Color.red, LogManager.GameModeLogs);
@@ -57,11 +59,11 @@ public class OnlineMode : GameModeBase
         }
 
         //stoping timer
-        _gameManager.PlayerTimerState = PlayerTimerStates.StopTimer;
+        _gameManager.PlayerTimerState.Value = PlayerTimerStates.StopTimer;
 
         //invoking Doubt State
         byte[] liveBet = _gameManager.LiveBet.ToByteArray();
-        _gameManager.DealtCards.ToByteList(_gameManager.DealtCardsList);
+        _gameManager.DealtCardsList = _gameManager.DealtCards.ToByteList();
         DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, liveBet);
         _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
     }
@@ -127,7 +129,7 @@ public class OnlineMode : GameModeBase
         LogManager.Log($"Turn Passed! current player is {player} ", Color.green, LogManager.GameModeLogs);
 #endif
         _gameManager.CurrentPlayer = player;
-        _gameManager.CurrentPlayerID = player.ID;
+        _gameManager.CurrentPlayerID.Value = player.ID;
 
         //if singlePlayer invoke shit here
         //if (_gameManager.GameMode == GameMode.Single)
@@ -149,7 +151,7 @@ public class OnlineMode : GameModeBase
         SetMaxPlayerCards();
 
         //simulation Prep
-        _gameManager.State = GameState.SimulationSetUp;
+        _gameManager.State.Value = GameState.SimulationSetUp;
     }
     public override void StartSimulationSetUp()
     {
@@ -186,7 +188,7 @@ public class OnlineMode : GameModeBase
     public override void StartPlayerState()
     {
         //blocking resets
-        if (_gameManager.PlayerTimerState == PlayerTimerStates.NoTimer) return;
+        if (_gameManager.PlayerTimerState.Value == PlayerTimerStates.NoTimer) return;
         //at this time each simulation should Have a Current Player
         if (_gameManager.CurrentPlayer == null)
         {
@@ -196,7 +198,7 @@ public class OnlineMode : GameModeBase
             return;
         }
         //game state should a player turn states
-        if (_gameManager.PlayerTimerState == PlayerTimerStates.StopTimer)
+        if (_gameManager.PlayerTimerState.Value == PlayerTimerStates.StopTimer)
         {
             //TODO : check if the current state is a player state 
             _gameManager.CurrentState?.ForceEnd();
@@ -209,30 +211,30 @@ public class OnlineMode : GameModeBase
 #if Log
         LogManager.Log($"Starting Player State! Current player state! {_gameManager.CurrentPlayer}//Simulation=> {_gameManager.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
 #endif
-        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameManager.State, _gameManager.IsMyTurn());
+        PlayerStateArguments PlayerStateArgs = new PlayerStateArguments(_gameManager.State.Value, _gameManager.IsMyTurn());
         _gameManager.ChangeState(_gameManager.CurrentPlayer.PlayerState, PlayerStateArgs);
     }
     public override void LoadCurrentPlayer()
     {
-        if (_gameManager.CurrentPlayerID == string.Empty) return;
+        if (_gameManager.CurrentPlayerID.Value == string.Empty) return;
 
         //if host is updated return
         if (_gameManager.IsHost)
         {
-            if (_gameManager.CurrentPlayer != null && _gameManager.CurrentPlayer.ID == _gameManager.CurrentPlayerID)
+            if (_gameManager.CurrentPlayer != null && _gameManager.CurrentPlayer.ID == _gameManager.CurrentPlayerID.Value)
             {
 #if Log
                 LogManager.Log("Loading Current Player is Skipped !, Host is Already Updated", Color.grey, LogManager.ValueInformationLog);
 #endif
                 //starting Player State
-                if (_gameManager.State == GameState.PlayerTurn)
+                if (_gameManager.State.Value == GameState.PlayerTurn)
                     StartPlayerTimer();
                 return;
             }
         }
         //looking for desired payer
         IPlayer newCurrentPlayer = null;
-        if (TryFindPlayer(_gameManager.CurrentPlayerID, out newCurrentPlayer))
+        if (TryFindPlayer(_gameManager.CurrentPlayerID.Value.ToString(), out newCurrentPlayer))
         {
 #if Log
             LogManager.Log($"Loading Current Player={newCurrentPlayer}!// Simulatio=>{_gameManager.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
@@ -241,7 +243,7 @@ public class OnlineMode : GameModeBase
             //should invoke corresponding UI or something
 
             //starting Player State
-            if (_gameManager.State == GameState.PlayerTurn)
+            if (_gameManager.State.Value == GameState.PlayerTurn)
                 StartPlayerTimer();
         }
         else
@@ -258,12 +260,12 @@ public class OnlineMode : GameModeBase
         PlayerControl();
 
         //Directing Game State
-        _gameManager.State = GameState.RoudOver;
+        _gameManager.State.Value = GameState.RoudOver;
     }
     public override void DoubtLogic(DoubtState doubtState)
     {
         //updating the DoubtState , removeable maybe needed for ui
-        _gameManager.DoubtState = doubtState;
+        _gameManager.DoubtState.Value = doubtState;
 
         // Calculate and Set Doubt Scene Time
         CaluCulateDoubtSceneTimer();
@@ -274,16 +276,16 @@ public class OnlineMode : GameModeBase
         PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
 
         //setting the Current Player
-        _gameManager.CurrentPlayerID = playerToPunishID;
+        _gameManager.CurrentPlayerID.Value = new FixedString64Bytes(playerToPunishID);
         _gameManager.CurrentPlayer = playerToPunish;
 
         // Updating Clients and Host UI
-        _gameManager.State = GameState.Doubting;
+        _gameManager.State.Value = GameState.Doubting;
     }
     public override List<DiffusedRankInfo> RoundUpCurrentBet()
     {
         var diffusedBet = new List<DiffusedRankInfo>();
-        byte[] currentBet = _gameManager.LiveBet.ToArray();
+        byte[] currentBet = _gameManager.LiveBet.ToByteArray();
 
         //making sure bet is sorted 
         if (!currentBet.IsEmpty())
@@ -294,7 +296,7 @@ public class OnlineMode : GameModeBase
 
         byte[] roundedUpBet;
 
-        if (BetGenerator.TryRoundUpBet(currentBet, out roundedUpBet, _gameManager.DealtCardsNumber))
+        if (BetGenerator.TryRoundUpBet(currentBet, out roundedUpBet,(byte) _gameManager.DealtCardsNumber.Value))
         {
             Extention.BetDiffuser(roundedUpBet, diffusedBet);
         }
@@ -345,8 +347,8 @@ public class OnlineMode : GameModeBase
     protected override void OnDealingOver()
     {
         //maybe some other UI Shit here
-        _gameManager.DealtCardsNumber = DealtCardsCounter();
-        _gameManager.State = GameState.FirstPlayerTurn;
+        _gameManager.DealtCardsNumber.Value = DealtCardsCounter();
+        _gameManager.State.Value = GameState.FirstPlayerTurn;
     }
     protected override void Doubting()
     {
@@ -378,9 +380,9 @@ public class OnlineMode : GameModeBase
                 return;
             }
             //setting the Winner ID
-            _gameManager.WinnerID = Winner.ID;
+            _gameManager.WinnerID.Value = new FixedString64Bytes( Winner.ID);
             //directing Game State and updating clients
-            _gameManager.State = GameState.GameOver;
+            _gameManager.State.Value = GameState.GameOver;
             //Maybe game Over stuff here
         }
         else
@@ -388,24 +390,24 @@ public class OnlineMode : GameModeBase
             //clearing
             RoundOverVariablesCleaning();
             //directing game state
-            _gameManager.State = GameState.Dealing;
+            _gameManager.State.Value = GameState.Dealing;
         }
     }
     protected override void RoundOverVariablesCleaning()
     {
-        _gameManager.LiveBetPlayerID = string.Empty;
-        _gameManager.LiveBet.ClearByteArray();
+        _gameManager.LiveBetPlayerID.Value = string.Empty;
+        _gameManager.LiveBet.Clear();
         _gameManager.DiffusedBet.Clear();
-        _gameManager.DoubtSceneTimer = 0;
-        _gameManager.DealtCards.ClearByteArray();
+        _gameManager.DoubtSceneTimer.Value = 0;
+        _gameManager.DealtCards.Clear();
         _gameManager.DealtCardsList.Clear();
-        _gameManager.DealtCardsNumber = 0;
+        _gameManager.DealtCardsNumber.Value = 0;
         //clearing Players Hand
         foreach (var player in _gameManager.Players)
         {
             player.ClearHand();
         }
-        _gameManager.DoubtState = DoubtState.NoDoubting;
+        _gameManager.DoubtState.Value = DoubtState.NoDoubting;
     }
     protected override void GameOver()
     {
@@ -435,7 +437,7 @@ public class OnlineMode : GameModeBase
         //if a player cards to deal counter > max cards Count he should be out
         foreach (var player in _gameManager.Players)
         {
-            if (player.CardsToDealCounter > _gameManager.MaxPlayerCards)
+            if (player.CardsToDealCounter > _gameManager.MaxPlayerCards.Value)
             {
                 if (!player.IsOut)
                 {
@@ -463,13 +465,13 @@ public class OnlineMode : GameModeBase
         //passing Turn here
         PassTurn();
         //generating a Max Bet
-        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber);
+        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber.Value);
 
         //cheking if the Played Bet is a Max Bet
         if (MaxBet.AreEqual(sortedBet))
         {
             //Directing the Game To an Auto Doubt State
-            _gameManager.DealtCards.ToByteList(_gameManager.DealtCardsList);
+            _gameManager.DealtCardsList = _gameManager.DealtCards.ToByteList();
             DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, sortedBet);
 
             _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
@@ -481,7 +483,7 @@ public class OnlineMode : GameModeBase
 
         //checking if the next Current Player Have to Play a Max Bet
         byte[] roundedUpBet;
-        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber))
+        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber.Value))
         {
             //cheking if the rounded up bet is a max Bet
             if (MaxBet.AreEqual(roundedUpBet))
@@ -490,7 +492,7 @@ public class OnlineMode : GameModeBase
                 LogManager.Log($" changing Game State to Last Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
 #endif
                 //directing Game State to a Last Player Game State
-                _gameManager.State = GameState.LastPlayerTurn;
+                _gameManager.State.Value = GameState.LastPlayerTurn;
                 yield break;
             }
         }
@@ -506,7 +508,7 @@ public class OnlineMode : GameModeBase
         LogManager.Log($" changing Game State to Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
 #endif
         //Directing Game State  to a normal Player turn
-        _gameManager.State = GameState.PlayerTurn;
+        _gameManager.State.Value = GameState.PlayerTurn;
     }
 
     private byte[] SetLiveBet(byte[] bet, string playerID)
@@ -517,29 +519,29 @@ public class OnlineMode : GameModeBase
         int sortedBetLength = sortedBet.Length;
 
         //cleaning Network Array      
-        _gameManager.LiveBet.ClearByteArray();
+        _gameManager.LiveBet.Clear();
 
         //adding Bet
         for (int index = 0; (index < sortedBetLength); index++)
         {
-            _gameManager.LiveBet.Set(index, sortedBet[index]);
+            _gameManager.LiveBet.Add(sortedBet[index]);
         }
 
         //setting live bet player id
-        _gameManager.LiveBetPlayerID = playerID;
+        _gameManager.LiveBetPlayerID.Value = playerID;
         return sortedBet;
     }
 
     private IEnumerator CheckMaxBet(byte[] sortedBet)
     {
         //generating a Max Bet
-        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber);
+        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber.Value);
 
         //cheking if the Played Bet is a Max Bet
         if (MaxBet.AreEqual(sortedBet))
         {
             //Directing the Game To an Auto Doubt State
-            _gameManager.DealtCards.ToByteList(_gameManager.DealtCardsList);
+            _gameManager.DealtCardsList= _gameManager.DealtCards.ToByteList();
             DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, sortedBet);
 
             _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
@@ -551,7 +553,7 @@ public class OnlineMode : GameModeBase
 
         //checking if the next Current Player Have to Play a Max Bet
         byte[] roundedUpBet;
-        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber))
+        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber.Value))
         {
             //cheking if the rounded up bet is a max Bet
             if (MaxBet.AreEqual(roundedUpBet))
@@ -560,7 +562,7 @@ public class OnlineMode : GameModeBase
                 LogManager.Log($" changing Game State to Last Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
 #endif
                 //directing Game State to a Last Player Game State
-                _gameManager.State = GameState.LastPlayerTurn;
+                _gameManager.State.Value = GameState.LastPlayerTurn;
                 yield break;
             }
         }
@@ -585,7 +587,7 @@ public class OnlineMode : GameModeBase
             yield break;
         }
         //only current player can confirm bet
-        if (_gameManager.CurrentPlayerID != playerID)
+        if (_gameManager.CurrentPlayerID.Value != playerID)
         {
 #if Log
             LogManager.Log($"Blocking Confirm Rpc ! player with ID:= {playerID} is not the Current PLayer!,Current PLayer ID:={_gameManager.CurrentPlayerID}", Color.red, LogManager.GameModeLogs);
@@ -594,7 +596,7 @@ public class OnlineMode : GameModeBase
         }
         //the previous bet should always be sorted
         byte[] liveBet = _gameManager.LiveBet.ToByteArray();
-        ValidatorArguments betArgs = new ValidatorArguments(bet, liveBet, _gameManager.DealtCardsNumber);
+        ValidatorArguments betArgs = new ValidatorArguments(bet, liveBet, _gameManager.DealtCardsNumber.Value);
         bool isValid = _gameManager.BetHandler.ChainValidateBet(betArgs);
         //bet has to be valid
         if (!isValid)
@@ -612,7 +614,7 @@ public class OnlineMode : GameModeBase
         LogManager.Log("All Players GameStarted Animation Exectuted", Color.green, LogManager.ValueInformationLog);
 #endif
         //moving to dealing state
-        _gameManager.State = GameState.Dealing;
+        _gameManager.State.Value = GameState.Dealing;
     }
     private IEnumerator SetUp()
     {
@@ -636,8 +638,8 @@ public class OnlineMode : GameModeBase
 
         _gameManager.SimulationSetUpRoutine = null;
 
-        if (_gameManager.State == GameState.SimulationSetUp)
-            _gameManager.RPC_PlayerReady(_gameManager.LocalPlayer.playerRef.PlayerId);
+        if (_gameManager.State.Value == GameState.SimulationSetUp)
+            _gameManager.PlayerIsReady();
     }
     private IEnumerator SimulationLogicSetUp()
     {
@@ -667,7 +669,7 @@ public class OnlineMode : GameModeBase
 
         //forcing waiting minimum one sec
 #if Log
-        LogManager.Log($"Waiting for Logic Set Up Runner Player Ref => {_gameManager.GameRunner.LocalPlayer}", Color.yellow, LogManager.ValueInformationLog);
+        LogManager.Log($"Waiting for Logic Set Up Runner Player Ref => {NetworkManager.Singleton.LocalClientId}", Color.yellow, LogManager.ValueInformationLog);
 #endif
         int timer = 0;
         do
@@ -690,7 +692,7 @@ public class OnlineMode : GameModeBase
             _gameManager.StopCoroutine(_gameManager.SimulationSetUpRoutine);
             _gameManager.SimulationState = SimulationSetUpState.SetUpCanceled;
 #if Log
-            LogManager.LogError($"Simulation Set Up is Canceled! Logic Set Up Failed! player Ref=> {_gameManager.GameRunner.LocalPlayer}");
+            LogManager.LogError($"Simulation Set Up is Canceled! Logic Set Up Failed! Ref => {NetworkManager.Singleton.LocalClientId}");
 #endif
         }
     }
@@ -710,11 +712,12 @@ public class OnlineMode : GameModeBase
         foreach (IPlayer player in _gameManager.Players)
         {
             RunTimePlayerData playerData = new RunTimePlayerData();
-            playerData.PlayerRef = player.playerRef;
+            //  playerData.PlayerRef = player.playerRef;
+            playerData.PlayerData.ClientID = player.ClientID;
             playerData.PlayerName = player.Name;
             playerData.PlayerID = player.ID;
             playerData.IconIndex = player.IconID;
-            playerData.PlayerNetObject = player.NetworkObject;
+            playerData.PlayerNetObjectRef = new NetworkObjectReference( player.PlayerNetworkObject);
             //since this only happens after spawning players im assuming it should be true
             playerData.AuthorityAssigned = true;
 
@@ -729,11 +732,11 @@ public class OnlineMode : GameModeBase
         if (_gameManager.CloudplayersData.IsEmpty())
         {
 #if Log
-            LogManager.Log($"No Data In Cloud Found! Loading Player for this Player {_gameManager.GameRunner.LocalPlayer} is Canceled", Color.cyan, LogManager.ValueInformationLog);
+            LogManager.Log($"No Data In Cloud Found! Loading Player for this Client, Client ID=> {NetworkManager.Singleton.LocalClientId} is Canceled", Color.cyan, LogManager.ValueInformationLog);
 #endif
             return;
         }
-        int playersCount = _gameManager.CloudplayersData.Count();
+        int playersCount = _gameManager.CloudplayersData.Count;
         _gameManager.Players = new IPlayer[playersCount];
         _gameManager.PlayersNumber = playersCount;
         int playerIndex = 0;
@@ -763,8 +766,8 @@ public class OnlineMode : GameModeBase
     {
         _gameManager.RunTimeDataHolder.DeckInfo = new DeckInfo();
         _gameManager.RunTimeDataHolder.DeckInfo.DeckType = _gameManager.DeckType.Value;
-        _gameManager.RunTimeDataHolder.DeckInfo.SuitsNumber = _gameManager.SuitsNumber;
-        if (_gameManager.DeckType == DeckType.Custom)
+        _gameManager.RunTimeDataHolder.DeckInfo.SuitsNumber = _gameManager.SuitsNumber.Value;
+        if (_gameManager.DeckType.Value == DeckType.Custom)
         {
             if (_gameManager.CustomSuitRanks.IsEmpty())
             {
@@ -888,7 +891,7 @@ public class OnlineMode : GameModeBase
             LogManager.Log("All Players Simulation is Set Up", Color.green, LogManager.ValueInformationLog);
 #endif
             //Moving tto Game Started Game State
-            _gameManager.State = GameState.GameStarted;
+            _gameManager.State.Value = GameState.GameStarted;
         }
         else
         {
@@ -933,13 +936,13 @@ public class OnlineMode : GameModeBase
         {
             playerCards++;
         }
-        _gameManager.MaxPlayerCards = (byte)(playerCards - 1);
+        _gameManager.MaxPlayerCards.Value = (byte)(playerCards - 1);
     }
     private void UploadDeckInfo()
     {
-        _gameManager.DeckType = _gameManager.RunTimeDataHolder.DeckInfo.DeckType;
-        _gameManager.SuitsNumber = _gameManager.RunTimeDataHolder.DeckInfo.SuitsNumber;
-        if (_gameManager.DeckType == DeckType.Custom)
+        _gameManager.DeckType.Value = _gameManager.RunTimeDataHolder.DeckInfo.DeckType;
+        _gameManager.SuitsNumber.Value = _gameManager.RunTimeDataHolder.DeckInfo.SuitsNumber;
+        if (_gameManager.DeckType.Value == DeckType.Custom)
         {
             if (_gameManager.RunTimeDataHolder.DeckInfo.CustomSuitRanks.IsEmpty())
             {
@@ -948,12 +951,11 @@ public class OnlineMode : GameModeBase
 #endif
                 return;
             }
-            _gameManager.CustomSuitRanks.ClearByteArray();
-            int index = 0;
+            _gameManager.CustomSuitRanks.Clear();
             foreach (byte card in _gameManager.RunTimeDataHolder.DeckInfo.CustomSuitRanks)
             {
                 if (card != 0)
-                    _gameManager.CustomSuitRanks.Set(index++, card);
+                    _gameManager.CustomSuitRanks.Add(card);
             }
         }
     }
@@ -976,7 +978,9 @@ public class OnlineMode : GameModeBase
         foreach (RunTimePlayerData playerData in _gameManager.RunTimeDataHolder.RunTimePlayersData)
         {
             //spawping player
-            NetworkObject playerObject = _gameManager.GameRunner.Spawn(AssetLoader.PrefabContainer.PlayerPrefab, default, default, playerData.PlayerRef);
+            var playerGameObject = _gameManager.Insttantiate(AssetLoader.PrefabContainer.PlayerPrefab);
+            NetworkObject playerObject = playerGameObject.GetComponent<NetworkObject>();
+            playerObject.SpawnAsPlayerObject(playerData.PlayerData.ClientID);
             playerObject.name = playerData.PlayerName;
             Player player = playerObject.GetComponent<Player>();
 
@@ -985,7 +989,7 @@ public class OnlineMode : GameModeBase
 
             //player prep
             PlayerArguments playerArgs = new PlayerArguments();
-            playerArgs.PlayerRef = playerData.PlayerRef;
+            //playerArgs.PlayerRef = playerData.PlayerRef;
             playerArgs.Name = playerData.PlayerName;
             playerArgs.ID = playerData.PlayerID;
             playerArgs.IconID = (byte)playerData.IconIndex;
@@ -1001,11 +1005,12 @@ public class OnlineMode : GameModeBase
 #endif
             //RunTime Data Adjust
             RunTimePlayerData newData = new RunTimePlayerData();
-            newData.PlayerRef = playerData.PlayerRef;
+            //newData.PlayerRef = playerData.PlayerRef;
+            newData.PlayerData = playerData.PlayerData;
             newData.PlayerName = playerData.PlayerName;
             newData.PlayerID = playerData.PlayerID;
             newData.IconIndex = playerData.IconIndex;
-            newData.PlayerNetObject = playerObject;
+            newData.PlayerNetObjectRef = new NetworkObjectReference( playerObject);
             newData.AuthorityAssigned = true;
             newRunTimeData.Add(newData);
 
@@ -1013,7 +1018,7 @@ public class OnlineMode : GameModeBase
             _gameManager.SetLocalPlayer(player);
 
             //uploading player netobject on cloud
-            _gameManager.CloudplayersData.Set(playerIndex, playerObject);
+            _gameManager.CloudplayersData.Add(newData.PlayerNetObjectRef);
 
             //stroing player on local simulation
             _gameManager.Players[playerIndex] = player;
@@ -1023,7 +1028,7 @@ public class OnlineMode : GameModeBase
         _gameManager.RunTimeDataHolder.RunTimePlayersData.Clear();
         _gameManager.RunTimeDataHolder.RunTimePlayersData.AddRange(newRunTimeData);
         //setting the first player
-        _gameManager.CurrentPlayerID = _gameManager.Players[0].ID;
+        _gameManager.CurrentPlayerID.Value = new FixedString64Bytes(_gameManager.Players[0].ID);
         _gameManager.CurrentPlayer = _gameManager.Players[0];
     }
 

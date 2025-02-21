@@ -117,7 +117,7 @@ public class GameManager : NetworkBehaviour
     public int PlayersNumber { get => _playersNumber; set => _playersNumber = value; }
     public IPlayer[] Players;
     public int PlayerIndex;
-    public List<int> PlayerReadyList = new List<int>();
+    public List<ulong> PlayerReadyList = new List<ulong>();
 
     #endregion Player Propertys
 
@@ -474,7 +474,7 @@ public class GameManager : NetworkBehaviour
     //#endif
     //    }
     [ServerRpc]
-    public void PlayerReadyServerRpc(int playerRefID)
+    public void PlayerReadyRpc(ulong playerRefID)
     {
         PlayerReadyList.Add(playerRefID);
 #if Log
@@ -492,7 +492,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        PlayerReadyServerRpc(LocalPlayer.playerRef.PlayerId);
+        PlayerReadyRpc(LocalPlayer.ClientID);
     }
 
     #endregion Player Commands  RPC Methods
@@ -521,7 +521,7 @@ public class GameManager : NetworkBehaviour
 #if Log
         LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Current Player ID Changed ! Current Player ID={CurrentPlayerID}", Color.gray, LogManager.ValueInformationLog);
 #endif
-        _gameModeManager.LoadCurrentPlayer();
+        _callBackManager.EnqueueOrExecute(_gameModeManager.LoadCurrentPlayer);
     }
 
     private void OnPlayerTimerStateChanged(PlayerTimerStates previousValue, PlayerTimerStates newValue)
@@ -529,7 +529,7 @@ public class GameManager : NetworkBehaviour
 #if Log
         LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState}", Color.gray, LogManager.ValueInformationLog);
 #endif
-        _gameModeManager.StartPlayerState();
+       _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState);
     }
 
     private void OnGameStateChanged(GameState previousValue, GameState newValue)

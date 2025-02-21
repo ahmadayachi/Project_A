@@ -1,4 +1,4 @@
-using Fusion;
+//using Fusion;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,7 +6,7 @@ using UnityEngine;
 public class PrefabContainer : ScriptableObject
 {
     #region Network prefabs
-    public NetworkPrefabRef PlayerPrefab;
+    public GameObject PlayerPrefab;
     public GameObject CardPrefab;
     public GameObject RunnerPrefab;
     #endregion

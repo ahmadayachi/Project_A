@@ -116,6 +116,7 @@ public class LobbyManager : NetworkBehaviour
             var playerData = new PlayerData();
             playerData.Name = player.Name.Value.ToString();
             playerData.ID = player.ID.Value.ToString();
+            playerData.ClientID = item.OwnerClientId;
             playerData.IconID = player.IconID.Value;
             runtimeData.PlayerData = playerData;
 

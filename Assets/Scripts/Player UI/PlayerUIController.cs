@@ -20,7 +20,7 @@ public class PlayerUIController :MonoBehaviour
 
 
     #region Player UI
-    public void SetUpCardPositionerCardPool(CardPool cardPool) => _player.PlayerUI.CardPositioner.Init(cardPool, _player.IsLocalPlayer);
+    public void SetUpCardPositionerCardPool(CardPool cardPool) => _player.PlayerUI.CardPositioner.Init(cardPool, _player.IsTheLocalPlayer);
 
     public void SetPlayerName()
     {

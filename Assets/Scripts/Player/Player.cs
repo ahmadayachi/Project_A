@@ -1,14 +1,17 @@
-using Fusion;
+//using Fusion;
+//using Fusion;
 using System.Collections;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
 
-public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
+public class Player : NetworkBehaviour, IPlayer
 {
     #region Player fields
 
-    private NetworkRunner _playerRunner;
-    private ChangeDetector _changeDetector;
+    //private NetworkRunner _playerRunner;
+    //private ChangeDetector _changeDetector;
     private State _playerState;
     [SerializeField] private PlayerUIController _playerUIControler;
 
@@ -21,23 +24,30 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     #region Player Networked Properties
 
-    [Networked] public PlayerRef playerRef { get; set; }
-    [Networked] private string _playerName { get; set; }
-    [Networked] private string _id { get; set; }
+    //[Networked] public PlayerRef playerRef { get; set; }
+    private NetworkVariable<ulong> _clientID { get; set; }
+    //[Networked] private string _playerName { get; set; }
+    private NetworkVariable<FixedString32Bytes> _playerName { get; set; }
+    //[Networked] private string _id { get; set; }
+    private NetworkVariable<FixedString64Bytes> _id { get; set; }
 
     /// <summary>
     /// how many cards should the player Get
     /// </summary>
-    [Networked] private byte _cardToDealCounter { get; set; }
-
-    [Networked] private NetworkBool _isOut { get; set; }
-    [Networked] private byte _iconID { get; set; }
+    //[Networked] private byte _cardToDealCounter { get; set; }
+    private NetworkVariable<byte> _cardToDealCounter { get; set; }
+    //[Networked] private NetworkBool _isOut { get; set; }
+    private NetworkVariable<bool> _isOut { get; set; }
+    //[Networked] private byte _iconID { get; set; }
+    private NetworkVariable<byte> _iconID { get; set; }
     private const int MaxCardsInHand = 52;
     /// <summary>
     /// an array of player Card ID's
     /// </summary>
-    [Networked, Capacity(MaxCardsInHand)]
-    private NetworkArray<byte> _hand { get; }
+    //[Networked, Capacity(MaxCardsInHand)]
+    //private NetworkArray<byte> _hand { get; }
+    private NetworkList<byte> _hand = new NetworkList<byte>();
+    private NetworkObject _netowrkObject { get; set; }
 
     #endregion Player Networked Properties
 
@@ -45,11 +55,11 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public State PlayerState { get => _playerState; }
     public PlayerUIController PlayerUIControler { get => _playerUIControler; }
-    public string Name { get => _playerName; }
-    public string ID { get => _id; }
-    public byte IconID { get => _iconID; }
-    public bool IsLocalPlayer { get => Object.HasInputAuthority; }
-    public NetworkObject NetworkObject { get => Object; }
+    public string Name { get => _playerName.Value.ToString(); }
+    public string ID { get => _id.Value.ToString(); }
+    public byte IconID { get => _iconID.Value; }
+    public bool IsTheLocalPlayer { get => IsLocalPlayer; }
+    public NetworkObject PlayerNetworkObject { get => _netowrkObject; }
     public Transform Transform { get => gameObject.transform; }
     public CardInfo[] Hand
     {
@@ -65,12 +75,16 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
             return result;
         }
     }
-    public NetworkBool IsOut { get => _isOut; }
-    public byte CardsToDealCounter { get => _cardToDealCounter; }
+    public bool IsOut { get => _isOut.Value; }
+    public byte CardsToDealCounter { get => _cardToDealCounter.Value; }
     public int HandCount { get => _hand.ValidCardsCount(); }
     public bool IsHandFull { get => (HandCount == CardsToDealCounter); }
     public GameManager PlayerGameManager { get => _playerGameManager; }
     public PlayerUI PlayerUI { get => _playerUI; }
+
+    public ulong ClientID => throw new System.NotImplementedException();
+
+    bool ICardReceiver.IsOut => throw new System.NotImplementedException();
     #endregion Player Properties
 
     private CallBackManager _callBackManager;
@@ -78,15 +92,34 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     private Coroutine _simulationBondingRoutine;
     private Coroutine _firstTickSyncRoutine;
 
-    public override void Spawned()
+
+    //public override void Spawned()
+    //{
+    //    _playerRunner = Runner;
+    //    _callBackManager = new CallBackManager();
+    //    SetUpPlayerState();
+
+    //    Runner.SetIsSimulated(Object, true);
+    //    _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+    //    if (_playerName != string.Empty)
+    //        gameObject.name = _playerName + ":" + _id;
+    //    if (_waitSimulationInit != null)
+    //        StopCoroutine(_waitSimulationInit);
+    //    _waitSimulationInit = StartCoroutine(WaitSimulation());
+    //}
+
+    public override void OnNetworkSpawn()
     {
-        _playerRunner = Runner;
+        base.OnNetworkSpawn();
+
         _callBackManager = new CallBackManager();
+        _playerName.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName);
+        _iconID.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon);
+        _hand.OnListChanged += (newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards);
+
         SetUpPlayerState();
 
-        Runner.SetIsSimulated(Object, true);
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        if (_playerName != string.Empty)
+        if (_playerName.Value != string.Empty)
             gameObject.name = _playerName + ":" + _id;
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
@@ -99,19 +132,18 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
             StopCoroutine(_firstTickSyncRoutine);
         _firstTickSyncRoutine = StartCoroutine(WaitSimulationAndSyncFirstTick());
     }
-
-    public override void FixedUpdateNetwork()
-    {
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            switch (change)
-            {
-                case nameof(_playerName): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName); break;
-                case nameof(_iconID): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon); break;
-                case nameof(_hand): _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards); break;
-            }
-        }
-    }
+    //public override void FixedUpdateNetwork()
+    //{
+    //    foreach (var change in _changeDetector.DetectChanges(this))
+    //    {
+    //        switch (change)
+    //        {
+    //            case nameof(_playerName): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName); break;
+    //            case nameof(_iconID): _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon); break;
+    //            case nameof(_hand): _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards); break;
+    //        }
+    //    }
+    //}
 
     #region Player Set Up Methods
 
@@ -124,6 +156,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     {
         yield return new WaitUntil(PlayerReadyForCallBacks);
         _callBackManager.SetReady(true);
+        AfterSpawned();
     }
 
     private IEnumerator WaitSimulationAndSyncFirstTick()
@@ -146,9 +179,10 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public void InitPlayer(PlayerArguments playerArgs)
     {
-        SetPlayerRef(playerArgs.PlayerRef);
+        //SetPlayerRef(playerArgs.PlayerRef);
         SetPlayerName(playerArgs.Name);
         SetPlayerID(playerArgs.ID);
+        SetPlayerClientID(playerArgs.ClientID);
         //SetCardCounter(playerArgs.CardCounter);
         SetPlayerIcon(playerArgs.IconID);
         SetIsplayerOut(playerArgs.isplayerOut);
@@ -156,16 +190,20 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
         PlusOneCard();
     }
 
-    public void SetPlayerRef(PlayerRef playerRef)
+//    public void SetPlayerRef(PlayerRef playerRef)
+//    {
+//        if (playerRef == null || playerRef == PlayerRef.None)
+//        {
+//#if Log
+//            LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
+//#endif
+//            return;
+//        }
+//        this.playerRef = playerRef;
+//    }
+    public void SetPlayerClientID(ulong playerCLientID)
     {
-        if (playerRef == null || playerRef == PlayerRef.None)
-        {
-#if Log
-            LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
-#endif
-            return;
-        }
-        this.playerRef = playerRef;
+       _clientID.Value = playerCLientID;
     }
 
     public void SetPlayerID(string playerID)
@@ -219,7 +257,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 
     public void SetPlayerIcon(byte IconID)
     {
-        _iconID = IconID;
+        _iconID.Value = IconID;
     }
     public void BondPlayerSimulation(GameManager gameManager)
     {
@@ -248,7 +286,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
 #endif
     }
 
-    public void SetIsplayerOut(NetworkBool isPlayerOut)
+    public void SetIsplayerOut(bool isPlayerOut)
     {
         if (isPlayerOut)
         {
@@ -256,7 +294,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
             LogManager.Log($"{this} is Out !", Color.yellow, LogManager.ValueInformationLog);
 #endif
         }
-        _isOut = isPlayerOut;
+        _isOut.Value = isPlayerOut;
     }
 
     private void SetUpPlayerBehaviour()
@@ -315,13 +353,13 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     public void ConfirmBet()
     {
         //if it is this player turn and he is the local player
-        if (_playerGameManager.IsMyTurn(_id))
+        if (_playerGameManager.IsMyTurn(_id.Value.ToString()))
         {
 #if Log
             LogManager.Log($"Sending Confirm RPC !, Player=>{this}", Color.grey, LogManager.ValueInformationLog);
 #endif
             //send confirm RPC
-            RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id);
+            RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id.Value);
             //turn off the UI Panel
         }
         else
@@ -347,13 +385,22 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
     {
         _playerGameManager.GameModeManager.ConfirmBet(bet, playerID);
     }
+    [Rpc(SendTo.Server)]
+    public void ConfirmBetServerRpc(NetworkList<byte> bet, FixedString128Bytes playerID)
+    {
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    }
+        [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_Doubt(string playerID)
     {
         _playerGameManager.GameModeManager.DoubtBet(playerID);
     }
-    #endregion 
+
+    public void SetIsplayerOut(bool isPlayerOut)
+    {
+        throw new System.NotImplementedException();
+    }
+    #endregion
 
 
 
@@ -393,7 +440,7 @@ public class Player : NetworkBehaviour, IPlayer, IAfterSpawned
                 GUILayout.Label($"<color=white> Name: {_this.Name}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Player Ref: {_this.playerRef}</color>", labelStyle);
                 GUILayout.Label($"<color=white> ID: {_this.ID}</color>", labelStyle);
-                GUILayout.Label($"<color=white> Is Local Player: {_this.IsLocalPlayer}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Is Local Player: {_this.IsTheLocalPlayer}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Card To Deal Counter: {_this._cardToDealCounter}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Networked Hand Count: {_this._hand.ValidCardsCount()}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ArrayOfBytesToString()}</color>", labelStyle);

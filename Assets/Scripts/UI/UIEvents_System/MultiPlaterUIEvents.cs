@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class MultiPlaterUIEvents : UIEventsBase
@@ -23,7 +24,7 @@ public class MultiPlaterUIEvents : UIEventsBase
 
         _uiManager.GameManagerUI.SimulationState = SimulationSetUpState.UISetUp;
 #if Log
-        LogManager.Log($" UI is Set Up Runner Player Ref => {_uiManager.GameManagerUI.Runner.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
+        LogManager.Log($" UI is Set Up!, Local Client ID => {NetworkManager.Singleton.LocalClientId}", Color.green, LogManager.ValueInformationLog);
 #endif
     }
     public override void OnGameStarted()

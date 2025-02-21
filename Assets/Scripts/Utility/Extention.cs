@@ -1,21 +1,33 @@
-using Fusion;
+//using Fusion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using WebSocketSharp;
 
 public static class Extention
 {
-    public static bool IsObjectUsable(NetworkObject _object)
+    //public static bool IsObjectUsable(NetworkObject _object)
+    //{
+    //    if (_object == null)
+    //        return false;
+    //    else
+    //        return _object.IsValid;
+    //}
+    
+    public static bool IsObjectUsable(NetworkObjectReference networkObjectRef)
     {
-        if (_object == null)
+        NetworkObject networkObject;
+        if (!networkObjectRef.TryGet(out networkObject))
             return false;
-        else
-            return _object.IsValid;
+
+        return networkObject != null && networkObject.IsSpawned;
     }
 
-    public static bool IsEmpty(this IEnumerable<NetworkObject> items)
+
+    public static bool IsEmpty(this NetworkList<NetworkObjectReference> items)
     {
         foreach (NetworkObject item in items)
         {
@@ -312,63 +324,117 @@ public static class Extention
 
     #region Networked Card Array extentions
 
-    public static int ValidCardsCount(this NetworkArray<byte> array)
+    //public static int ValidCardsCount(this NetworkArray<byte> array)
+    //{
+    //    int count = 0;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if ((array[index] != 0))
+    //            count++;
+    //    }
+    //    return count;
+    //}
+    public static int ValidCardsCount(this NetworkList<byte> list)
     {
         int count = 0;
-        for (int index = 0; index < array.Length; index++)
+        for (int index = 0; index < list.Count; index++)
         {
-            if ((array[index] != 0))
+            if ((list[index] != 0))
                 count++;
         }
         return count;
     }
-    public static string ArrayOfBytesToString(this NetworkArray<byte> array)
+    //public static string ArrayOfBytesToString(this NetworkArray<byte> array)
+    //{
+    //    string hand = string.Empty;
+    //    if (array.IsEmpty()) return hand;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if ((array[index] != 0))
+    //            hand += array[index].ToString() + ",";
+    //    }
+    //    return hand;
+    //}
+    public static string ListOfBytesToString(this NetworkList<byte> list)
     {
         string hand = string.Empty;
-        if (array.IsEmpty()) return hand;
-        for (int index = 0; index < array.Length; index++)
+        if (list.IsEmpty()) return hand;
+        for (int index = 0; index < list.Count; index++)
         {
-            if ((array[index] != 0))
-                hand += array[index].ToString() + ",";
+            if ((list[index] != 0))
+                hand += list[index].ToString() + ",";
         }
         return hand;
     }
-    public static string ArrayOfCardInfoToString(this CardInfo[] array)
+    //public static string ArrayOfCardInfoToString(this CardInfo[] array)
+    //{
+    //    string hand = string.Empty;
+    //    if (array.IsEmpty()) return hand;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index].IsValid)
+    //            hand += array[index].ToString() + ",";
+    //    }
+    //    return hand;
+    //}
+    //public static bool IsEmpty(this NetworkArray<byte> array)
+    //{
+    //    return array.ValidCardsCount() == 0;
+    //}
+    public static bool IsEmpty(this NetworkList<byte> list)
     {
-        string hand = string.Empty;
-        if (array.IsEmpty()) return hand;
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index].IsValid)
-                hand += array[index].ToString() + ",";
-        }
-        return hand;
-    }
-    public static bool IsEmpty(this NetworkArray<byte> array)
-    {
-        return array.ValidCardsCount() == 0;
+        return list.ValidCardsCount() == 0;
     }
 
-    public static CardInfo[] ToCardInfo(this NetworkArray<byte> array)
+//    public static CardInfo[] ToCardInfo(this NetworkArray<byte> array)
+//    {
+//        if (CardManager.Deck == null)
+//        {
+//#if Log
+//            Debug.LogError($"Failed Converting Neworked  Cards Array! Cardmanager Deck is Null!");
+//#endif
+//            return null;
+//        }
+//        CardInfo[] cards = null;
+//        if (array.IsEmpty())
+//        {
+//            return null;
+//        }
+//        else
+//        {
+//            cards = new CardInfo[array.ValidCardsCount()];
+//            for (int index = 0; index < array.Length; index++)
+//            {
+//                var cardID = array[index];
+//                if (cardID != 0)
+//                {
+//                    var card = CardManager.GetCard(cardID);
+//                    cards[index] = card;
+//                }
+//            }
+//        }
+//        return cards;
+//    }
+    public static CardInfo[] ToCardInfo(this NetworkList<byte> list)
     {
         if (CardManager.Deck == null)
         {
 #if Log
-            Debug.LogError($"Failed Converting Neworked  Cards Array! Cardmanager Deck is Null!");
+            LogManager.LogError($"[{nameof(Extention)}] - Failed Converting Neworked  Cards Array! Cardmanager Deck is Null!");
 #endif
             return null;
         }
         CardInfo[] cards = null;
-        if (array.IsEmpty())
+        if (list.IsEmpty())
         {
             return null;
         }
         else
         {
-            cards = new CardInfo[array.ValidCardsCount()];
-            for (int index = 0; index < array.Length; index++)
+            cards = new CardInfo[list.ValidCardsCount()];
+            for (int index = 0; index < list.Count; index++)
             {
-                var cardID = array[index];
+                var cardID = list[index];
                 if (cardID != 0)
                 {
                     var card = CardManager.GetCard(cardID);
@@ -379,25 +445,52 @@ public static class Extention
         return cards;
     }
 
-    public static void Clear(this NetworkArray<CardInfo> array)
-    {
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index].IsValid)
-                array[index] = new CardInfo();
-        }
-    }
+    //public static void Clear(this NetworkArray<CardInfo> array)
+    //{
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index].IsValid)
+    //            array[index] = new CardInfo();
+    //    }
+    //}
 
-    public static void ClearByteArray(this NetworkArray<byte> array)
-    {
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index] != 0)
-                array[index] = 0;
-        }
-    }
+    //public static void ClearByteArray(this NetworkArray<byte> array)
+    //{
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index] != 0)
+    //            array[index] = 0;
+    //    }
+    //    NetworkList<byte> list
+    //}
 
-    public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
+//    public static bool AddCardID(this NetworkArray<byte> array, CardInfo card)
+//    {
+//        if (!card.IsValid || card.ID == 0)
+//        {
+//#if Log
+//            LogManager.LogError("Attemp to add invalid Card to Array!");
+//#endif
+//            return false;
+//        }
+//        if (array.ContainsCardID(card.ID))
+//        {
+//#if Log
+//            LogManager.LogError("array Already Contains Card!");
+//#endif
+//            return false;
+//        }
+//        for (int index = 0; index < array.Length; index++)
+//        {
+//            if (array[index] == 0)
+//            {
+//                array[index] = card.ID;
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+    public static bool AddCardID(this NetworkList<byte> list, CardInfo card)
     {
         if (!card.IsValid || card.ID == 0)
         {
@@ -406,33 +499,33 @@ public static class Extention
 #endif
             return false;
         }
-        if (array.ContainsCardID(card.ID))
+        if (list.Contains(card.ID))
         {
 #if Log
             LogManager.LogError("array Already Contains Card!");
 #endif
             return false;
         }
-        for (int index = 0; index < array.Length; index++)
+        for (int index = 0; index < list.Count; index++)
         {
-            if (array[index] == 0)
+            if (list[index] == 0)
             {
-                array[index] = card.ID;
+                list[index] = card.ID;
                 return true;
             }
         }
         return false;
     }
 
-    public static bool ContainsCard(this NetworkArray<CardInfo> array, CardInfo card)
-    {
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (AreSameCard(array[index], card))
-                return true;
-        }
-        return false;
-    }
+    //public static bool ContainsCard(this NetworkArray<CardInfo> array, CardInfo card)
+    //{
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (AreSameCard(array[index], card))
+    //            return true;
+    //    }
+    //    return false;
+    //}
 
     /// <summary>
     /// Only for Arrays of IDs
@@ -440,15 +533,15 @@ public static class Extention
     /// <param name="array"></param>
     /// <param name="cardID"></param>
     /// <returns></returns>
-    public static bool ContainsCardID(this NetworkArray<byte> array, byte cardID)
-    {
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index] == cardID)
-                return true;
-        }
-        return false;
-    }
+    //public static bool ContainsCardID(this NetworkArray<byte> array, byte cardID)
+    //{
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index] == cardID)
+    //            return true;
+    //    }
+    //    return false;
+    //}
 
     public static bool IsNullOrHaveNullElements(this IEnumerable<IPlayer> players)
     {
@@ -459,10 +552,31 @@ public static class Extention
         }
         return false;
     }
-
-    public static byte[] ToByteArray(this NetworkArray<byte> array)
+    ///// <summary>
+    ///// Fusion Extention
+    ///// </summary>
+    ///// <param name="array"></param>
+    ///// <returns></returns>
+    //public static byte[] ToByteArray(this NetworkArray<byte> array)
+    //{
+    //    int arrayCount = array.ValidCardsCount();
+    //    if (arrayCount == 0)
+    //    {
+    //        //returning an rmpty array
+    //        return new byte[] { };
+    //    }
+    //    byte[] convertedArray = new byte[arrayCount];
+    //    int jindex = 0;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if ((array[index] != 0))
+    //            convertedArray[jindex++] = array[index];
+    //    }
+    //    return convertedArray;
+    //}
+    public static byte[] ToByteArray(this NetworkList<byte> list)
     {
-        int arrayCount = array.ValidCardsCount();
+        int arrayCount = list.ValidCardsCount();
         if (arrayCount == 0)
         {
             //returning an rmpty array
@@ -470,71 +584,92 @@ public static class Extention
         }
         byte[] convertedArray = new byte[arrayCount];
         int jindex = 0;
-        for (int index = 0; index < array.Length; index++)
+        for (int index = 0; index < list.Count; index++)
         {
-            if ((array[index] != 0))
-                convertedArray[jindex++] = array[index];
+            if ((list[index] != 0))
+                convertedArray[jindex++] = list[index];
         }
         return convertedArray;
     }
 
-    public static List<byte> ToByteList(this NetworkArray<byte> array)
+    //public static List<byte> ToByteList(this NetworkArray<byte> array)
+    //{
+    //    int arrayCount = array.ValidCardsCount();
+    //    List<byte> byteList = new List<byte>();
+    //    if (arrayCount == 0)
+    //    {
+    //        //returning an rmpty array
+    //        return byteList;
+    //    }
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if ((array[index] != 0))
+    //            byteList.Add(array[index]);
+    //    }
+    //    return byteList;
+    //}
+    public static List<byte> ToByteList(this NetworkList<byte> list)
     {
-        int arrayCount = array.ValidCardsCount();
+        int arrayCount = list.ValidCardsCount();
         List<byte> byteList = new List<byte>();
         if (arrayCount == 0)
         {
             //returning an rmpty array
             return byteList;
         }
-        for (int index = 0; index < array.Length; index++)
+        for (int index = 0; index < list.Count; index++)
         {
-            if ((array[index] != 0))
-                byteList.Add(array[index]);
+            if ((list[index] != 0))
+                byteList.Add(list[index]);
         }
         return byteList;
     }
 
-    public static void ToByteList(this NetworkArray<byte> array, List<byte> byteList)
+    //public static void ToByteList(this NetworkArray<byte> array, List<byte> byteList)
+    //{
+    //    byteList.Clear();
+    //    int arrayCount = array.ValidCardsCount();
+
+    //    if (arrayCount == 0) return;
+
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if ((array[index] != 0))
+    //            byteList.Add(array[index]);
+    //    }
+    //}
+
+    //public static void AddPlayerID(this NetworkArray<string> array, string playerID)
+    //{
+    //    if (playerID.IsNullOrEmpty() || array.Contains(playerID)) return;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index].IsNullOrEmpty())
+    //        {
+    //            array.Set(index, playerID);
+    //            break;
+    //        }
+    //    }
+    //}
+    public static void AddPlayerID(this NetworkList<FixedString64Bytes> list, string playerID)
     {
-        byteList.Clear();
-        int arrayCount = array.ValidCardsCount();
-
-        if (arrayCount == 0) return;
-
-        for (int index = 0; index < array.Length; index++)
-        {
-            if ((array[index] != 0))
-                byteList.Add(array[index]);
-        }
+        if (playerID.IsNullOrEmpty() || list.Contains(playerID)) return;
+        list.Add(playerID);
     }
 
-    public static void AddPlayerID(this NetworkArray<string> array, string playerID)
-    {
-        if (playerID.IsNullOrEmpty() || array.Contains(playerID)) return;
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index].IsNullOrEmpty())
-            {
-                array.Set(index, playerID);
-                break;
-            }
-        }
-    }
+    //public static bool ContainsPlayerID(this NetworkArray<string> array, string playerID)
+    //{
+    //    if (playerID.IsNullOrEmpty()) return false;
+    //    for (int index = 0; index < array.Length; index++)
+    //    {
+    //        if (array[index] == playerID)
+    //        {
+    //            return true;
+    //        }
+    //    }
 
-    public static bool ContainsPlayerID(this NetworkArray<string> array, string playerID)
-    {
-        if (playerID.IsNullOrEmpty()) return false;
-        for (int index = 0; index < array.Length; index++)
-        {
-            if (array[index] == playerID)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    //    return false;
+    //}
 
     #endregion Networked Card Array extentions
 
@@ -552,7 +687,7 @@ public static class Extention
 
     public static void FindCanvasAndSetLastSibling(Transform transform)
     {
-        Canvas canvasgo = MonoBehaviour.FindObjectOfType<Canvas>();
+        Canvas canvasgo = MonoBehaviour.FindFirstObjectByType<Canvas>();
         if (canvasgo != null)
         {
             SetParent(transform, canvasgo.transform);
