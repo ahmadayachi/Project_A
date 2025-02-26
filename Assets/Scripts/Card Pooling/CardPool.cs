@@ -1,5 +1,4 @@
 #define USE_FIXED_ARRAY_SIZE
-using Fusion;
 using System;
 using System.Collections.Generic;
 using UnityEngine;

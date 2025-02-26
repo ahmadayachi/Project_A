@@ -451,7 +451,7 @@ public class GameManager : NetworkBehaviour
     }
     public void SetLocalPlayer(Player player)
     {
-        if (player.HasInputAuthority)
+        if (player.IsTheLocalPlayer)
         {
             LocalPlayer = player;
 #if Log
@@ -474,7 +474,7 @@ public class GameManager : NetworkBehaviour
     //#endif
     //    }
     [ServerRpc]
-    public void PlayerReadyRpc(ulong playerRefID)
+    public void PlayerReadyServerRpc(ulong playerRefID)
     {
         PlayerReadyList.Add(playerRefID);
 #if Log
@@ -492,7 +492,7 @@ public class GameManager : NetworkBehaviour
 #endif
             return;
         }
-        PlayerReadyRpc(LocalPlayer.ClientID);
+        PlayerReadyServerRpc(LocalPlayer.ClientID);
     }
 
     #endregion Player Commands  RPC Methods

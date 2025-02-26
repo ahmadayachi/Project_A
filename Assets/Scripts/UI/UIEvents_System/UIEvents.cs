@@ -6,7 +6,7 @@ public class UIEvents
     public UIEvents(UIEventsArgs args)
     {
         //since starting off with two modes then i can just do this 
-        _uiEvents = args.GameMode == Fusion.GameMode.Single ? new SinglePlayerUIEvents(args.UIManager) : new MultiPlaterUIEvents(args.UIManager);
+        _uiEvents = args.GameMode == GameMode.Single ? new SinglePlayerUIEvents(args.UIManager) : new MultiPlaterUIEvents(args.UIManager);
     }
     /// <summary>
     /// something to let players know what are they waiting

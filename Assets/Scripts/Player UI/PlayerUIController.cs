@@ -46,7 +46,7 @@ public class PlayerUIController :MonoBehaviour
             return;
         }
 #if Log
-        LogManager.Log($"{_player.Runner.LocalPlayer} Icon Is Set !", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"{_player.ClientID} Icon Is Set !", Color.gray, LogManager.ValueInformationLog);
 #endif
         _player.PlayerUI.PlayerIcon.sprite = sprite;
     }

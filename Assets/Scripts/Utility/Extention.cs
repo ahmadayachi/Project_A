@@ -5,7 +5,6 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using WebSocketSharp;
 
 public static class Extention
 {
@@ -366,17 +365,17 @@ public static class Extention
         }
         return hand;
     }
-    //public static string ArrayOfCardInfoToString(this CardInfo[] array)
-    //{
-    //    string hand = string.Empty;
-    //    if (array.IsEmpty()) return hand;
-    //    for (int index = 0; index < array.Length; index++)
-    //    {
-    //        if (array[index].IsValid)
-    //            hand += array[index].ToString() + ",";
-    //    }
-    //    return hand;
-    //}
+    public static string ArrayOfCardInfoToString(this CardInfo[] array)
+    {
+        string hand = string.Empty;
+        if (array.IsEmpty()) return hand;
+        for (int index = 0; index < array.Length; index++)
+        {
+            if (array[index].IsValid)
+                hand += array[index].ToString() + ",";
+        }
+        return hand;
+    }
     //public static bool IsEmpty(this NetworkArray<byte> array)
     //{
     //    return array.ValidCardsCount() == 0;
@@ -653,7 +652,7 @@ public static class Extention
     //}
     public static void AddPlayerID(this NetworkList<FixedString64Bytes> list, string playerID)
     {
-        if (playerID.IsNullOrEmpty() || list.Contains(playerID)) return;
+        if (string.IsNullOrEmpty(playerID)|| list.Contains(playerID)) return;
         list.Add(playerID);
     }
 

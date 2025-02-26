@@ -215,7 +215,7 @@ public class Player : NetworkBehaviour, IPlayer
 #endif
             return;
         }
-        _id = playerID;
+        _id.Value = playerID;
     }
 
     public void SetPlayerName(string playerName)
@@ -227,7 +227,7 @@ public class Player : NetworkBehaviour, IPlayer
 #endif
             return;
         }
-        _playerName = playerName;
+        _playerName.Value = playerName;
     }
 
     public void SetCardCounter(byte cardCounter)
@@ -239,7 +239,7 @@ public class Player : NetworkBehaviour, IPlayer
 #endif
             return;
         }
-        _cardToDealCounter = cardCounter;
+        _cardToDealCounter.Value = cardCounter;
     }
 
     /// <summary>
@@ -247,12 +247,12 @@ public class Player : NetworkBehaviour, IPlayer
     /// </summary>
     public void PlusOneCard()
     {
-        _cardToDealCounter++;
+        _cardToDealCounter.Value++;
     }
 
     public void ClearCardsCounter()
     {
-        _cardToDealCounter = 0;
+        _cardToDealCounter.Value = 0;
     }
 
     public void SetPlayerIcon(byte IconID)
@@ -359,7 +359,7 @@ public class Player : NetworkBehaviour, IPlayer
             LogManager.Log($"Sending Confirm RPC !, Player=>{this}", Color.grey, LogManager.ValueInformationLog);
 #endif
             //send confirm RPC
-            RPC_ConfirmBet(_playerUIControler.ProcessSelectedCards(), _id.Value);
+            ConfirmBetServerRpc(_playerUIControler.ProcessSelectedCards(), _id.Value);
             //turn off the UI Panel
         }
         else
@@ -372,34 +372,43 @@ public class Player : NetworkBehaviour, IPlayer
     }
     public void DoubtBet()
     {
-        if (_playerGameManager.IsMyTurn(_id))
+        if (_playerGameManager.IsMyTurn(_id.Value.ToString()))
         {
+
             //send confirm RPC
-            RPC_Doubt(_id);
+            DoubtServerRpc(_id.Value);
             //turn off the UI Panel
         }
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_ConfirmBet(byte[] bet, string playerID)
-    {
-        _playerGameManager.GameModeManager.ConfirmBet(bet, playerID);
-    }
+    //[Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    //public void RPC_ConfirmBet(byte[] bet, string playerID)
+    //{
+    //    _playerGameManager.GameModeManager.ConfirmBet(bet, playerID);
+    //}
+
     [Rpc(SendTo.Server)]
-    public void ConfirmBetServerRpc(NetworkList<byte> bet, FixedString128Bytes playerID)
+    public void ConfirmBetServerRpc(byte[] bet, FixedString128Bytes playerID)
     {
-
-    }
-        [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    public void RPC_Doubt(string playerID)
-    {
-        _playerGameManager.GameModeManager.DoubtBet(playerID);
+        _playerGameManager.GameModeManager.ConfirmBet(bet, playerID.ToString());
     }
 
-    public void SetIsplayerOut(bool isPlayerOut)
+
+    //[Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    //public void RPC_Doubt(string playerID)
+    //{
+    //    _playerGameManager.GameModeManager.DoubtBet(playerID);
+    //}
+    [Rpc(SendTo.Server)]
+    public void DoubtServerRpc(FixedString64Bytes playerID)
     {
-        throw new System.NotImplementedException();
+        _playerGameManager.GameModeManager.DoubtBet(playerID.ToString());
     }
+
+    //public void SetIsplayerOut(bool isPlayerOut)
+    //{
+    //    throw new System.NotImplementedException();
+    //}
     #endregion
 
 
@@ -438,12 +447,12 @@ public class Player : NetworkBehaviour, IPlayer
             try
             {
                 GUILayout.Label($"<color=white> Name: {_this.Name}</color>", labelStyle);
-                GUILayout.Label($"<color=white> Player Ref: {_this.playerRef}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Client ID: {_this.ClientID}</color>", labelStyle);
                 GUILayout.Label($"<color=white> ID: {_this.ID}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Is Local Player: {_this.IsTheLocalPlayer}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Card To Deal Counter: {_this._cardToDealCounter}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Networked Hand Count: {_this._hand.ValidCardsCount()}</color>", labelStyle);
-                GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ArrayOfBytesToString()}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ToString()}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Cards in Hand: {_this.Hand.ArrayOfCardInfoToString()}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Is Out: {_this.IsOut}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Icon ID: {_this.IconID}</color>", labelStyle);

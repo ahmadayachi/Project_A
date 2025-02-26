@@ -1,12 +1,12 @@
-using Fusion;
+//using Fusion;
 using UnityEngine;
 
 public class FakePlayer : ICardReceiver
 {
     private string _id;
     public string ID { get => _id; }
-    private NetworkBool _isPlayerOut;
-    public NetworkBool IsOut { get => _isPlayerOut; }
+    private bool _isPlayerOut;
+    public bool IsOut { get => _isPlayerOut; }
 
     private byte _maxCards;
     public byte MaxCards { get => _maxCards; }
@@ -27,7 +27,7 @@ public class FakePlayer : ICardReceiver
     }
     public void SetCardCounter(byte CardsCounter)
     {
-        if (CardsCounter > 0 && CardsCounter <=_maxCards)
+        if (CardsCounter > 0 && CardsCounter <= _maxCards)
             _cardsCounter = CardsCounter;
     }
     public void SetMaxCards(byte maxCards)
@@ -57,7 +57,7 @@ public class FakePlayer : ICardReceiver
 #endif
         }
 #if Log
-            Debug.Log($"card Is Added !. player:{this} Card to Add{card}");
+        Debug.Log($"card Is Added !. player:{this} Card to Add{card}");
 #endif
         return true;
     }
