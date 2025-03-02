@@ -25,7 +25,7 @@ public class ProfileManager : MonoBehaviour
         string playerName = string.Empty;
         playerName = _uiRefs.PlayerName.text;
         if (!string.IsNullOrEmpty(playerName))
-            AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name = playerName;
+            AssetLoader.RunTimeDataHolder.LocalPlayerInfo.PlayerName = playerName;
     }
 
     private void LoadPlayerData()
@@ -43,8 +43,8 @@ public class ProfileManager : MonoBehaviour
             playerName = Player;
             playerID = playerID = Guid.NewGuid().ToString();
         }
-        AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name = playerName;
-        AssetLoader.RunTimeDataHolder.LocalPlayerInfo.ID = playerID;
+        AssetLoader.RunTimeDataHolder.LocalPlayerInfo.PlayerName = playerName;
+        AssetLoader.RunTimeDataHolder.LocalPlayerInfo.PlayerID = playerID;
         //loading player name to UI
         _uiRefs.PlayerName.text = playerName;
     }
@@ -52,7 +52,7 @@ public class ProfileManager : MonoBehaviour
     {
         foreach (var icon in _allIcons)
         {
-            if (icon.ID == AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconID)
+            if (icon.ID == AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconIndex)
             {
                 icon.ToggleIconHighlight(true);
                 _uiRefs.SelectedProfileIcon.sprite = icon.UIRefs.SpriteHolder.sprite;
@@ -81,7 +81,7 @@ public class ProfileManager : MonoBehaviour
             {
                 icon.ToggleIconHighlight(true);
                 _uiRefs.SelectedProfileIcon.sprite = icon.UIRefs.SpriteHolder.sprite;
-                AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconID = ID;
+                AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconIndex = ID;
                 Debug.Log($"Icon Clicked id=>{ID}");
 
             }

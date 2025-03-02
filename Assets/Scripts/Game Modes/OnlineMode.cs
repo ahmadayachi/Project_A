@@ -713,7 +713,7 @@ public class OnlineMode : GameModeBase
         {
             RunTimePlayerData playerData = new RunTimePlayerData();
             //  playerData.PlayerRef = player.playerRef;
-            playerData.PlayerData.ClientID = player.ClientID;
+            playerData.ClientID = player.ClientID;
             playerData.PlayerName = player.Name;
             playerData.PlayerID = player.ID;
             playerData.IconIndex = player.IconID;
@@ -980,7 +980,7 @@ public class OnlineMode : GameModeBase
             //spawping player
             var playerGameObject = _gameManager.Insttantiate(AssetLoader.PrefabContainer.PlayerPrefab);
             NetworkObject playerObject = playerGameObject.GetComponent<NetworkObject>();
-            playerObject.SpawnAsPlayerObject(playerData.PlayerData.ClientID);
+            playerObject.SpawnAsPlayerObject(playerData.ClientID);
             playerObject.name = playerData.PlayerName;
             Player player = playerObject.GetComponent<Player>();
 
@@ -1006,7 +1006,6 @@ public class OnlineMode : GameModeBase
             //RunTime Data Adjust
             RunTimePlayerData newData = new RunTimePlayerData();
             //newData.PlayerRef = playerData.PlayerRef;
-            newData.PlayerData = playerData.PlayerData;
             newData.PlayerName = playerData.PlayerName;
             newData.PlayerID = playerData.PlayerID;
             newData.IconIndex = playerData.IconIndex;

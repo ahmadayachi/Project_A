@@ -7,13 +7,14 @@ public class RunTimeDataHolder : ScriptableObject
     public List<RunTimePlayerData> RunTimePlayersData = new List<RunTimePlayerData>();
     public DeckInfo DeckInfo;
     public LobbyData LobbySettings;
-    public PlayerData LocalPlayerInfo;
+    //public PlayerData LocalPlayerInfo;
+    public RunTimePlayerData LocalPlayerInfo;
 }
-[System.Serializable]
-public struct PlayerData
-{
-    public string Name;
-    public string ID;
-    public ulong ClientID;
-    public int IconID;
-}
+//[System.Serializable]
+//public struct PlayerData
+//{
+//    public string Name;
+//    public string ID;
+//    public ulong ClientID;
+//    public int IconID;
+//}

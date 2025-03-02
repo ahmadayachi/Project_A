@@ -25,21 +25,21 @@ public class Player : NetworkBehaviour, IPlayer
     #region Player Networked Properties
 
     //[Networked] public PlayerRef playerRef { get; set; }
-    private NetworkVariable<ulong> _clientID { get; set; }
+    private NetworkVariable<ulong> _clientID  = new NetworkVariable<ulong>();
     //[Networked] private string _playerName { get; set; }
-    private NetworkVariable<FixedString32Bytes> _playerName { get; set; }
+    private NetworkVariable<FixedString32Bytes> _playerName = new NetworkVariable<FixedString32Bytes>();
     //[Networked] private string _id { get; set; }
-    private NetworkVariable<FixedString64Bytes> _id { get; set; }
+    private NetworkVariable<FixedString64Bytes> _id = new NetworkVariable<FixedString64Bytes>();
 
     /// <summary>
     /// how many cards should the player Get
     /// </summary>
     //[Networked] private byte _cardToDealCounter { get; set; }
-    private NetworkVariable<byte> _cardToDealCounter { get; set; }
+    private NetworkVariable<byte> _cardToDealCounter = new NetworkVariable<byte>();
     //[Networked] private NetworkBool _isOut { get; set; }
-    private NetworkVariable<bool> _isOut { get; set; }
+    private NetworkVariable<bool> _isOut = new NetworkVariable<bool>();
     //[Networked] private byte _iconID { get; set; }
-    private NetworkVariable<byte> _iconID { get; set; }
+    private NetworkVariable<byte> _iconID = new NetworkVariable<byte>();
     private const int MaxCardsInHand = 52;
     /// <summary>
     /// an array of player Card ID's
@@ -82,9 +82,8 @@ public class Player : NetworkBehaviour, IPlayer
     public GameManager PlayerGameManager { get => _playerGameManager; }
     public PlayerUI PlayerUI { get => _playerUI; }
 
-    public ulong ClientID => throw new System.NotImplementedException();
+    public ulong ClientID => _clientID.Value;
 
-    bool ICardReceiver.IsOut => throw new System.NotImplementedException();
     #endregion Player Properties
 
     private CallBackManager _callBackManager;

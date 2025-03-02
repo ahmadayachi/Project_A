@@ -77,13 +77,11 @@ public interface ICardReceiver
 [Serializable]
 public struct RunTimePlayerData
 {
-    //Todo: check if this is needed
-    public PlayerData PlayerData;
-
     //public PlayerRef PlayerRef;
     public string PlayerName;
     public string PlayerID;
     public int IconIndex;
+    public ulong ClientID;
     public NetworkObjectReference PlayerNetObjectRef;
     public bool AuthorityAssigned;
 }

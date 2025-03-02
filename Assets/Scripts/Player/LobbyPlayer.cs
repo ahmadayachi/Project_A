@@ -97,9 +97,9 @@ public class LobbyPlayer : NetworkBehaviour
         //if it is the owner , he sends his info 
         if (IsLocalPlayer)
         {
-            FixedString32Bytes playerName = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.Name;
-            FixedString64Bytes playerID = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.ID;
-            byte IconD = (byte)AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconID;
+            FixedString32Bytes playerName = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.PlayerName;
+            FixedString64Bytes playerID = AssetLoader.RunTimeDataHolder.LocalPlayerInfo.PlayerID;
+            byte IconD = (byte)AssetLoader.RunTimeDataHolder.LocalPlayerInfo.IconIndex;
 
             InitPlayerRpc(playerName, playerID, IconD);
         }

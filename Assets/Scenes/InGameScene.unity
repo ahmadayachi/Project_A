@@ -167,6 +167,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3181277253351263317, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 939335468
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181277253351263317, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1211073475
+      objectReference: {fileID: 0}
     - target: {fileID: 4199332720837305407, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
       propertyPath: m_Name
       value: Player Prefab   (1)
@@ -654,6 +662,14 @@ PrefabInstance:
     - target: {fileID: 2099172614401843503, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181277253351263317, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3717376854
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181277253351263317, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1211073475
       objectReference: {fileID: 0}
     - target: {fileID: 4199332720837305407, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
       propertyPath: m_Name
@@ -1982,6 +1998,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 372195452}
+  - component: {fileID: 372195453}
   m_Layer: 0
   m_Name: 'Players On Front '
   m_TagString: Untagged
@@ -2005,6 +2022,31 @@ Transform:
   - {fileID: 652231}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 40, y: 0, z: 0}
+--- !u!114 &372195453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372195451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 954960604
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1001 &386889691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7478,6 +7520,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1287427611}
+  - component: {fileID: 1287427612}
   m_Layer: 0
   m_Name: Players On Right
   m_TagString: Untagged
@@ -7500,6 +7543,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 45.42, y: 31.23, z: 0}
+--- !u!114 &1287427612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1287427610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 4145170744
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1297184094
 GameObject:
   m_ObjectHideFlags: 0
@@ -8716,6 +8784,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1515237232}
+  - component: {fileID: 1515237233}
   m_Layer: 5
   m_Name: 'Player POV '
   m_TagString: Untagged
@@ -8739,6 +8808,31 @@ Transform:
   - {fileID: 56047970}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 40, y: 0, z: 0}
+--- !u!114 &1515237233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1515237231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2307268547
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1525204653
 GameObject:
   m_ObjectHideFlags: 0
@@ -9571,6 +9665,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1666016031}
+  - component: {fileID: 1666016032}
   m_Layer: 0
   m_Name: Players On Left
   m_TagString: Untagged
@@ -9593,6 +9688,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 45.42, y: -31.23, z: 0}
+--- !u!114 &1666016032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1666016030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 930198264
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1675938042
 GameObject:
   m_ObjectHideFlags: 0
@@ -13105,20 +13225,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8833672251866958176}
   m_CullTransparentMesh: 1
---- !u!114 &578796632491157186
-MonoBehaviour:
-  m_ObjectHideFlags: 59
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9119996161165815747}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1541381998, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Guid:
-    RawGuidValue: 26e0f689ae9a31148b9afb52257818ea
 --- !u!224 &595220200180908512
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13479,30 +13585,237 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2e9fc473c6c855478041a8f26647dbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   _uiManager: {fileID: 1850008180}
   RunTimeDataHolder: {fileID: 11400000, guid: d0985afb4a6f32d4ab24ac3a15e85f27, type: 2}
-  _MaxPlayerCards: 0
-  _DeckType: 0
-  _SuitsNumber: 0
-  _CustomSuitRanks: 
-  _CloudplayersData: []
-  _LoosersIDs: []
-  _WinnerID: 
-  _CurrentPlayerID: 
-  _PlayerTimerState: 0
+  MaxPlayerCards:
+    m_InternalValue: 0
+  DeckType:
+    m_InternalValue: 0
+  SuitsNumber:
+    m_InternalValue: 0
+  WinnerID:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  CurrentPlayerID:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  PlayerTimerState:
+    m_InternalValue: 0
   PlayerIndex: 0
   PlayerReadyList: 
-  _DealtCards: 
   DealtCardsList: 
-  _State: 0
-  _DealtCardsNumber: 0
-  _DoubtState: 0
-  _LiveBet: 
-  _LiveBetPlayerID: 
-  _DoubtSceneTimer: 0
-  GameRunner: {fileID: 0}
+  State:
+    m_InternalValue: 0
+  DealtCardsNumber:
+    m_InternalValue: 0
+  DoubtState:
+    m_InternalValue: 0
+  LiveBetPlayerID:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  DoubtSceneTimer:
+    m_InternalValue: 0
   SimulationState: 0
-  AutoStartGame: 0
+  AutoStartGame: 1
 --- !u!224 &961832776356181935
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21468,7 +21781,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3776661470614016526}
   - component: {fileID: 9119996161165815748}
-  - component: {fileID: 578796632491157186}
   - component: {fileID: 905114835796103834}
   m_Layer: 0
   m_Name: Game Manager

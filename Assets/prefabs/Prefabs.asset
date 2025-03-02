@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b054285f0977b6428fbdc2ad1a7bfd2, type: 3}
   m_Name: Prefabs
   m_EditorClassIdentifier: 
-  PlayerPrefab:
-    RawGuidValue: 68e5880446c090b49814aeef46f3045e
+  PlayerPrefab: {fileID: 4199332720837305407, guid: 68e5880446c090b49814aeef46f3045e, type: 3}
   CardPrefab: {fileID: 2239426072865866237, guid: 258c03e99d080ca4c88e7d99bdb2d42c, type: 3}
   RunnerPrefab: {fileID: 3184919321294230871, guid: fc812d1970a2ecd4ba5d3ea76ab59860, type: 3}
   LogPrefab: {fileID: 6493413077421578651, guid: 66cc5c5661ae0ec40837c3745fd4c057, type: 3}

@@ -113,13 +113,10 @@ public class LobbyManager : NetworkBehaviour
 
             //player data set up
             var runtimeData = new RunTimePlayerData();
-            var playerData = new PlayerData();
-            playerData.Name = player.Name.Value.ToString();
-            playerData.ID = player.ID.Value.ToString();
-            playerData.ClientID = item.OwnerClientId;
-            playerData.IconID = player.IconID.Value;
-            runtimeData.PlayerData = playerData;
-
+            runtimeData.PlayerName = player.Name.Value.ToString();
+            runtimeData.PlayerID = player.ID.Value.ToString();
+            runtimeData.ClientID = item.OwnerClientId;
+            runtimeData.IconIndex = player.IconID.Value;
             AssetLoader.RunTimeDataHolder.RunTimePlayersData.Add(runtimeData);
 
         }
