@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class GameManager : NetworkBehaviour
@@ -240,7 +241,6 @@ public class GameManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
         //setting up callbacks 
         State.OnValueChanged += OnGameStateChanged; 
         PlayerTimerState.OnValueChanged += OnPlayerTimerStateChanged;
@@ -274,6 +274,7 @@ public class GameManager : NetworkBehaviour
         {
             _gameModeManager.StartSimulationSetUp();
         }
+
 #if Log
         LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Game Manager spawned", Color.gray, LogManager.ValueInformationLog);
 #endif
@@ -425,7 +426,7 @@ public class GameManager : NetworkBehaviour
     public bool IsModeSingle() => CurrentGameMode == GameMode.Single;
     private bool NeedSimuationSetUp()
     {
-        return State.Value != GameState.NoGameState && State.Value != GameState.SimulationSetUp;
+        return State.Value != GameState.NoGameState /*&& State.Value != GameState.SimulationSetUp*/;
     }
     public bool CanStartGame()
     {
@@ -473,27 +474,27 @@ public class GameManager : NetworkBehaviour
     //        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
     //#endif
     //    }
-    [ServerRpc]
-    public void PlayerReadyServerRpc(ulong playerRefID)
-    {
-        PlayerReadyList.Add(playerRefID);
-#if Log
-        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
-#endif
-    }
+//    [ServerRpc]
+//    public void PlayerReadyServerRpc(ulong playerRefID)
+//    {
+//        PlayerReadyList.Add(playerRefID);
+//#if Log
+//        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
+//#endif
+//    }
 
 
-    public void PlayerIsReady()
-    {
-        if (LocalPlayer == null)
-        {
-#if Log
-            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, Local Player Is Null! ");
-#endif
-            return;
-        }
-        PlayerReadyServerRpc(LocalPlayer.ClientID);
-    }
+//    public void PlayerIsReady()
+//    {
+//        if (LocalPlayer == null)
+//        {
+//#if Log
+//            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, Local Player Is Null! ");
+//#endif
+//            return;
+//        }
+//        PlayerReadyServerRpc(LocalPlayer.ClientID);
+//    }
 
     #endregion Player Commands  RPC Methods
 
@@ -535,11 +536,10 @@ public class GameManager : NetworkBehaviour
     private void OnGameStateChanged(GameState previousValue, GameState newValue)
     {
 #if Log
-        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Game State Changed ! gameState={State}", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"Client ID {NetworkManager.Singleton.LocalClientId} Game State Changed ! gameState={State.Value}", Color.gray, LogManager.ValueInformationLog);
 #endif
         _gameModeManager.SetGameState(newValue);
     }
-    //    private void OnCurrentPlayerIDChanged()
     //    {
     //        //#if Log
     //        //        LogManager.Log($"{Runner.LocalPlayer} Current Player ID Changed ! Current Player ID={CurrentPlayerID}", Color.gray, LogManager.ValueInformationLog);

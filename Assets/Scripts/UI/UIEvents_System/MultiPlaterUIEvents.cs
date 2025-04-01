@@ -15,6 +15,7 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override IEnumerator SetUpUI()
     {
+        if(_uiManager.GameManagerUI.IsHost)
         yield return PlacingPlayersUI();
         yield return null;
         yield return SetUpMyDisplayCards();
@@ -86,7 +87,7 @@ public class MultiPlaterUIEvents : UIEventsBase
     {
         yield return null;
         //informing server player animation finished
-        _uiManager.GameManagerUI.PlayerIsReady();
+        _uiManager.GameManagerUI.LocalPlayer.PlayerIsReady();
     }
 
 

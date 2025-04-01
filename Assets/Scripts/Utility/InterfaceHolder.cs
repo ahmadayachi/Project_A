@@ -49,6 +49,7 @@ public interface IPlayer : ICardReceiver
     //player commands 
     void ConfirmBet();
     void DoubtBet();
+    void PlayerIsReady();
     string ToString();
 }
 

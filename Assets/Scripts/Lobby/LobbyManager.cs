@@ -78,6 +78,7 @@ public class LobbyManager : NetworkBehaviour
     {
         if (SetUpPlayersData())
         {
+            SetUpDeckInfo();
             string sceneName = "InGameScene";
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
 #if Log
@@ -101,6 +102,8 @@ public class LobbyManager : NetworkBehaviour
 #endif
             return false;
         }
+        //reseting data 
+        AssetLoader.RunTimeDataHolder.ResetRuntimePLayerData();
 
         foreach (var item in _lobbyPlayersNetObjects)
         {
@@ -110,6 +113,7 @@ public class LobbyManager : NetworkBehaviour
             {
                 return false;
             }
+            
 
             //player data set up
             var runtimeData = new RunTimePlayerData();
@@ -122,6 +126,18 @@ public class LobbyManager : NetworkBehaviour
         }
 
         return true;
+    }
+    private void SetUpDeckInfo()
+    {
+        //reseting deck info
+        AssetLoader.RunTimeDataHolder.ResetDeckInfo();
+      
+        //injecting a Standard Deck info 
+        DeckInfo deckInfo = new DeckInfo();
+        deckInfo.DeckType = DeckType.Standard;
+        deckInfo.SuitsNumber = (byte)_lobbyPlayersNetObjects.Count;
+        deckInfo.CustomSuitRanks = null;
+        AssetLoader.RunTimeDataHolder.DeckInfo = deckInfo;
     }
     private bool PlayerIsValid(LobbyPlayer player)
     {

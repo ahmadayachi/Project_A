@@ -9,6 +9,18 @@ public class RunTimeDataHolder : ScriptableObject
     public LobbyData LobbySettings;
     //public PlayerData LocalPlayerInfo;
     public RunTimePlayerData LocalPlayerInfo;
+    public void ResetRuntimePLayerData() 
+    {
+        RunTimePlayersData.Clear();
+    }
+    public void ResetDeckInfo() 
+    {
+        DeckInfo = default(DeckInfo);
+    }
+    public void ResetLocalPLayerInfo() 
+    {
+        LocalPlayerInfo = default(RunTimePlayerData);
+    }
 }
 //[System.Serializable]
 //public struct PlayerData

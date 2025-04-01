@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: RunTimeData
   m_EditorClassIdentifier: 
   RunTimePlayersData:
-  - PlayerName: editor1
-    PlayerID: e3b3a14d-7712-4104-a21d-bc9f61ef8820
-    IconIndex: 2
-    ClientID: 0
-    AuthorityAssigned: 1
-  - PlayerName: editor2
-    PlayerID: 58b2879a-699c-4131-bbc7-9ba49fda5b81
+  - PlayerName: Player
+    PlayerID: 3f602ac5-fb16-41c3-b095-0fb1f04539eb
     IconIndex: 3
     ClientID: 0
     AuthorityAssigned: 1
+  - PlayerName: Player
+    PlayerID: 42b2db41-8bcc-41b5-9ded-18e5fd5a639e
+    IconIndex: 7
+    ClientID: 0
+    AuthorityAssigned: 1
   DeckInfo:
-    DeckType: 7
+    DeckType: 2
     SuitsNumber: 2
     CustomSuitRanks: 
   LocalPlayerInfo:
-    PlayerName: editor1
-    PlayerID: e3b3a14d-7712-4104-a21d-bc9f61ef8820
-    IconIndex: 2
+    PlayerName: Player
+    PlayerID: 3f602ac5-fb16-41c3-b095-0fb1f04539eb
+    IconIndex: 3
     ClientID: 0
     AuthorityAssigned: 0

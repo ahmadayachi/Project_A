@@ -336,7 +336,7 @@ public class Player : NetworkBehaviour, IPlayer
         if (!_hand.AddCardID(card))
         {
 #if Log
-            LogManager.LogError($"Adding {card} to player={this} Failed!");
+            LogManager.LogError($"Adding Failed!=>>> {card} to player={this.ToString()} ");
 #endif
             return false;
         }
@@ -345,7 +345,7 @@ public class Player : NetworkBehaviour, IPlayer
 
     public override string ToString()
     {
-        return $"Name:{_playerName}/ ID:{_id}/ CardCounter{_cardToDealCounter}/ IsOut{_isOut}";
+        return $"Name:{_playerName.Value}/ ID:{_id.Value}/ CardCounter{_cardToDealCounter.Value}/ IsOut{_isOut.Value}";
     }
 
     #region Player Commands
@@ -408,6 +408,25 @@ public class Player : NetworkBehaviour, IPlayer
     //{
     //    throw new System.NotImplementedException();
     //}
+    public void PlayerIsReady()
+    {
+        if (_playerGameManager == null)
+        {
+#if Log
+            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, PlayerGameManager Is Null! ");
+#endif
+            return;
+        }
+        PlayerReadyServerRpc(_clientID.Value);
+    }
+    [ServerRpc]
+    public void PlayerReadyServerRpc(ulong playerRefID)
+    {
+        _playerGameManager.PlayerReadyList.Add(playerRefID);
+#if Log
+        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
+#endif
+    }
     #endregion
 
 

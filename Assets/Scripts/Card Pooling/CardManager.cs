@@ -217,6 +217,13 @@ public static class CardManager
         }
         //filling sorted ranks array
         SetUpSortedRanks(deckInfo);
+#if Log
+        LogManager.Log($"Deck Created Successfully! Deck Size: {_cards.Length} Sorted Ranks: {_sortedRanks.Length}",Color.green,LogManager.ValueInformationLog);
+        foreach (var item in _cards)
+        {
+            LogManager.Log($"Card Created=>{item.ToString()}",Color.green,LogManager.ValueInformationLog);
+        }
+#endif
     }
 
     private static int SetCardsArraySize(DeckType deckType, byte SuitsNumber, int CustomArrayLengh)

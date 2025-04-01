@@ -505,15 +505,16 @@ public static class Extention
 #endif
             return false;
         }
-        for (int index = 0; index < list.Count; index++)
-        {
-            if (list[index] == 0)
-            {
-                list[index] = card.ID;
-                return true;
-            }
-        }
-        return false;
+        list.Add(card.ID);
+        //for (int index = 0; index < list.Count; index++)
+        //{
+        //    if (list[index] == 0)
+        //    {
+        //        list[index] = card.ID;
+        //        return true;
+        //    }
+        //}
+        return true;
     }
 
     //public static bool ContainsCard(this NetworkArray<CardInfo> array, CardInfo card)

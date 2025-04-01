@@ -639,7 +639,7 @@ public class OnlineMode : GameModeBase
         _gameManager.SimulationSetUpRoutine = null;
 
         if (_gameManager.State.Value == GameState.SimulationSetUp)
-            _gameManager.PlayerIsReady();
+            _gameManager.LocalPlayer.PlayerIsReady();
     }
     private IEnumerator SimulationLogicSetUp()
     {
