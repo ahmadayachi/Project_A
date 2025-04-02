@@ -15,7 +15,7 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override IEnumerator SetUpUI()
     {
-        if(_uiManager.GameManagerUI.IsHost)
+        //if(_uiManager.GameManagerUI.IsHost)
         yield return PlacingPlayersUI();
         yield return null;
         yield return SetUpMyDisplayCards();

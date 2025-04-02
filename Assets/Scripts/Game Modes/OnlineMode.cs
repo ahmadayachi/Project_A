@@ -635,6 +635,8 @@ public class OnlineMode : GameModeBase
         _gameManager.SimulationState = SimulationSetUpState.SetUpComplete;
 
         _gameManager.CallBackManager.SetReady(true);
+        if (_gameManager.IsClient)
+            _gameManager.SyncFirstTick();
 
         _gameManager.SimulationSetUpRoutine = null;
 

@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class GameManager : NetworkBehaviour
@@ -242,7 +241,8 @@ public class GameManager : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         //setting up callbacks 
-        State.OnValueChanged += OnGameStateChanged; 
+        State.OnValueChanged += OnGameStateChanged;
+
         PlayerTimerState.OnValueChanged += OnPlayerTimerStateChanged;
         CurrentPlayerID.OnValueChanged += OnCurrentPlayerIDChanged;
         //injecting UI dependancy
@@ -280,7 +280,7 @@ public class GameManager : NetworkBehaviour
 #endif
     }
 
- 
+
 
     //public override void Render()
     //{
@@ -315,30 +315,30 @@ public class GameManager : NetworkBehaviour
     #endregion methods to link with UI
     #region Mono Method Wrappers
 
-//    /// <summary>
-//    /// wrapper method for runnner.spawn(objectToSPawn)
-//    /// </summary>
-//    /// <param name="objectRef"></param>
-//    /// <returns></returns>
-//    private NetworkObject SpawnObject(NetworkPrefabRef objectRef)
-//    {
-//        if (GameRunner == null)
-//        {
-//#if Log
-//            LogManager.LogError("spawning object failed! runner is null!");
-//#endif
-//            return null;
-//        }
-//        if (objectRef == null)
-//        {
-//#if Log
-//            LogManager.LogError("spawning object failed! object is null!");
-//#endif
-//            return null;
-//        }
+    //    /// <summary>
+    //    /// wrapper method for runnner.spawn(objectToSPawn)
+    //    /// </summary>
+    //    /// <param name="objectRef"></param>
+    //    /// <returns></returns>
+    //    private NetworkObject SpawnObject(NetworkPrefabRef objectRef)
+    //    {
+    //        if (GameRunner == null)
+    //        {
+    //#if Log
+    //            LogManager.LogError("spawning object failed! runner is null!");
+    //#endif
+    //            return null;
+    //        }
+    //        if (objectRef == null)
+    //        {
+    //#if Log
+    //            LogManager.LogError("spawning object failed! object is null!");
+    //#endif
+    //            return null;
+    //        }
 
-//        return GameRunner.Spawn(objectRef);
-//    }
+    //        return GameRunner.Spawn(objectRef);
+    //    }
 
     public T Insttantiate<T>(T objectToInstantiate, Transform Parent = null) where T : Object
     {
@@ -474,27 +474,27 @@ public class GameManager : NetworkBehaviour
     //        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
     //#endif
     //    }
-//    [ServerRpc]
-//    public void PlayerReadyServerRpc(ulong playerRefID)
-//    {
-//        PlayerReadyList.Add(playerRefID);
-//#if Log
-//        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
-//#endif
-//    }
+    //    [ServerRpc]
+    //    public void PlayerReadyServerRpc(ulong playerRefID)
+    //    {
+    //        PlayerReadyList.Add(playerRefID);
+    //#if Log
+    //        LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
+    //#endif
+    //    }
 
 
-//    public void PlayerIsReady()
-//    {
-//        if (LocalPlayer == null)
-//        {
-//#if Log
-//            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, Local Player Is Null! ");
-//#endif
-//            return;
-//        }
-//        PlayerReadyServerRpc(LocalPlayer.ClientID);
-//    }
+    //    public void PlayerIsReady()
+    //    {
+    //        if (LocalPlayer == null)
+    //        {
+    //#if Log
+    //            LogManager.LogError("Playuer Is Ready Rpc is Canceled !, Local Player Is Null! ");
+    //#endif
+    //            return;
+    //        }
+    //        PlayerReadyServerRpc(LocalPlayer.ClientID);
+    //    }
 
     #endregion Player Commands  RPC Methods
 
@@ -524,13 +524,24 @@ public class GameManager : NetworkBehaviour
 #endif
         _callBackManager.EnqueueOrExecute(_gameModeManager.LoadCurrentPlayer);
     }
-
+    public void SyncFirstTick()
+    {
+        //syncing GameState the first Tick
+        if (State.Value != default(GameState))
+            OnGameStateChanged(GameState.NoGameState, State.Value);
+        // Syncing PlayerTimer First Tick
+        if (PlayerTimerState.Value != default(PlayerTimerStates))
+            OnPlayerTimerStateChanged(PlayerTimerStates.NoTimer, PlayerTimerState.Value);
+        // syncing CurrentPlayerID First Tick
+        if (CurrentPlayerID.Value != default(FixedString64Bytes))
+            OnCurrentPlayerIDChanged(new FixedString64Bytes(), CurrentPlayerID.Value);
+    }
     private void OnPlayerTimerStateChanged(PlayerTimerStates previousValue, PlayerTimerStates newValue)
     {
 #if Log
         LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState}", Color.gray, LogManager.ValueInformationLog);
 #endif
-       _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState);
+        _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState);
     }
 
     private void OnGameStateChanged(GameState previousValue, GameState newValue)
