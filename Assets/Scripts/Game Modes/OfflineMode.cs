@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class OfflineMode : GameModeBase
@@ -9,12 +10,12 @@ public class OfflineMode : GameModeBase
         _gameManager = args.GameManager;
     }
 
-    public override void ConfirmBet(byte[] bet, string playerID)
+    public override void ConfirmBet(byte[] bet, FixedString64Bytes playerID)
     {
         throw new System.NotImplementedException();
     }
 
-    public override void DoubtBet(string playerID)
+    public override void DoubtBet(FixedString64Bytes playerID)
     {
         throw new System.NotImplementedException();
     }

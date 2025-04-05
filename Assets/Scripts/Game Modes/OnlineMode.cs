@@ -16,15 +16,15 @@ public class OnlineMode : GameModeBase
         _gameManager = args.GameManager;
     }
 
-    public override void ConfirmBet(byte[] bet, string playerID)
+    public override void ConfirmBet(byte[] bet, FixedString64Bytes playerID)
     {
         _confirmRoutine = _gameManager.StartCoroutine(ConfirmRoutine(bet, playerID));
 
     }
-    public override void DoubtBet(string playerID)
+    public override void DoubtBet(FixedString64Bytes playerID)
     {
         //blocking invalid args
-        if (string.IsNullOrEmpty(playerID))
+        if (default == playerID)
         {
 #if Log
             LogManager.LogError($"Blocking Doubt Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_gameManager.CurrentPlayerID}");
@@ -70,7 +70,7 @@ public class OnlineMode : GameModeBase
     public override void PassTurn()
     {
         //Server Only Bitch
-        if (_gameManager.IsClient)
+        if (!_gameManager.IsHost)
         {
 #if Log
             LogManager.Log($"Ignoring Passing Turn ! this is a Client!{_gameManager.LocalPlayer}", Color.yellow, LogManager.GameModeLogs);
@@ -139,13 +139,14 @@ public class OnlineMode : GameModeBase
     }
     public override void StartGame()
     {
+
+        //Initialising players
+        InitPlayers();
+
         UploadDeckInfo();
 
         //Create CardManager
         _gameManager.SetUpCardManager();
-
-        //Initialising players
-        InitPlayers();
 
         //uploading max cards a player can get
         SetMaxPlayerCards();
@@ -271,7 +272,7 @@ public class OnlineMode : GameModeBase
         CaluCulateDoubtSceneTimer();
 
         //punishing Doubt looser
-        string playerToPunishID;
+        FixedString64Bytes playerToPunishID;
         IPlayer playerToPunish;
         PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
 
@@ -296,7 +297,7 @@ public class OnlineMode : GameModeBase
 
         byte[] roundedUpBet;
 
-        if (BetGenerator.TryRoundUpBet(currentBet, out roundedUpBet,(byte) _gameManager.DealtCardsNumber.Value))
+        if (BetGenerator.TryRoundUpBet(currentBet, out roundedUpBet, (byte)_gameManager.DealtCardsNumber.Value))
         {
             Extention.BetDiffuser(roundedUpBet, diffusedBet);
         }
@@ -348,6 +349,7 @@ public class OnlineMode : GameModeBase
     {
         //maybe some other UI Shit here
         _gameManager.DealtCardsNumber.Value = DealtCardsCounter();
+        CollectDealtCards();
         _gameManager.State.Value = GameState.FirstPlayerTurn;
     }
     protected override void Doubting()
@@ -380,7 +382,7 @@ public class OnlineMode : GameModeBase
                 return;
             }
             //setting the Winner ID
-            _gameManager.WinnerID.Value = new FixedString64Bytes( Winner.ID);
+            _gameManager.WinnerID.Value = new FixedString64Bytes(Winner.ID);
             //directing Game State and updating clients
             _gameManager.State.Value = GameState.GameOver;
             //Maybe game Over stuff here
@@ -423,7 +425,7 @@ public class OnlineMode : GameModeBase
     protected override void StartPlayerTimer()
     {
         if (_gameManager.IsHost)
-            _gameManager.SetPlayerTimerState( PlayerTimerStates.StartTimer);
+            _gameManager.SetPlayerTimerState(PlayerTimerStates.StartTimer);
     }
     protected override void PlayerControl()
     {
@@ -452,18 +454,96 @@ public class OnlineMode : GameModeBase
     #endregion
 
     #region private Swamp
-    private IEnumerator ConfirmRoutine(byte[] bet, string playerID)
+    private IEnumerator ConfirmRoutine(byte[] bet, FixedString64Bytes playerID)
     {
-        yield return BetValidation( bet,playerID);
+        yield return BetValidation(bet, playerID);
 
         //stoping timer
         _gameManager.SetPlayerTimerState(PlayerTimerStates.StopTimer);
         yield return null;
 
-        byte[] sortedBet = SetLiveBet(bet,playerID);
+        byte[] sortedBet = SetLiveBet(bet, playerID);
+
+        //generating a Max Bet
+        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber.Value);
+
+        //cheking if the Played Bet is a Max Bet
+        if (MaxBet.AreEqual(sortedBet))
+        {
+            //Directing the Game To an Auto Doubt State
+            _gameManager.DealtCardsList = _gameManager.DealtCards.ToByteList();
+            DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, sortedBet);
+            
+            //passing Turn here
+            PassTurn();
+            
+            _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
+#if Log
+            LogManager.Log($"Auto Doubt is Launched!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.blue, LogManager.GameModeLogs);
+#endif
+            yield break;
+        }
+
+        //checking if the next Current Player Have to Play a Max Bet
+        byte[] roundedUpBet;
+        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber.Value))
+        {
+            //cheking if the rounded up bet is a max Bet
+            if (MaxBet.AreEqual(roundedUpBet))
+            {
+#if Log
+                LogManager.Log($" changing Game State to Last Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
+#endif
+                //directing Game State to a Last Player Game State
+                _gameManager.State.Value = GameState.LastPlayerTurn;
+
+                //passing Turn here
+                PassTurn();
+
+                yield break;
+            }
+        }
+        //abbording everythink if a bet cannot be Rounded Up
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Confirm Rpc ! Failed Rounding Up Current Bet! CurrentPlayerID is :=>{_gameManager.CurrentPlayerID}");
+#endif
+            yield break;
+        }
+#if Log
+        LogManager.Log($" changing Game State to Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
+#endif
+        //Directing Game State  to a normal Player turn
+        _gameManager.State.Value = GameState.PlayerTurn;
 
         //passing Turn here
         PassTurn();
+    }
+
+    private byte[] SetLiveBet(byte[] bet, FixedString64Bytes playerID)
+    {
+        //making sure the array is sorted before confirming
+        Extention.BetDiffuser(bet, _gameManager.DiffusedBet);
+        byte[] sortedBet = _gameManager.DiffusedBet.ToByteArray();
+        int sortedBetLength = sortedBet.Length;
+
+        //cleaning Network Array      
+        _gameManager.LiveBet.Clear();
+
+        //adding Bet
+        for (int index = 0; (index < sortedBetLength); index++)
+        {
+            _gameManager.LiveBet.Add(sortedBet[index]);
+        }
+
+        //setting live bet player id
+        _gameManager.LiveBetPlayerID.Value = playerID;
+        return sortedBet;
+    }
+
+    private IEnumerator CheckMaxBet(byte[] sortedBet)
+    {
         //generating a Max Bet
         byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber.Value);
 
@@ -504,82 +584,12 @@ public class OnlineMode : GameModeBase
 #endif
             yield break;
         }
-#if Log
-        LogManager.Log($" changing Game State to Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
-#endif
-        //Directing Game State  to a normal Player turn
-        _gameManager.State.Value = GameState.PlayerTurn;
     }
 
-    private byte[] SetLiveBet(byte[] bet, string playerID)
-    {
-        //making sure the array is sorted before confirming
-        Extention.BetDiffuser(bet, _gameManager.DiffusedBet);
-        byte[] sortedBet = _gameManager.DiffusedBet.ToByteArray();
-        int sortedBetLength = sortedBet.Length;
-
-        //cleaning Network Array      
-        _gameManager.LiveBet.Clear();
-
-        //adding Bet
-        for (int index = 0; (index < sortedBetLength); index++)
-        {
-            _gameManager.LiveBet.Add(sortedBet[index]);
-        }
-
-        //setting live bet player id
-        _gameManager.LiveBetPlayerID.Value = playerID;
-        return sortedBet;
-    }
-
-    private IEnumerator CheckMaxBet(byte[] sortedBet)
-    {
-        //generating a Max Bet
-        byte[] MaxBet = BetGenerator.GenerateMaxBet(_gameManager.DealtCardsNumber.Value);
-
-        //cheking if the Played Bet is a Max Bet
-        if (MaxBet.AreEqual(sortedBet))
-        {
-            //Directing the Game To an Auto Doubt State
-            _gameManager.DealtCardsList= _gameManager.DealtCards.ToByteList();
-            DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, sortedBet);
-
-            _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
-#if Log
-            LogManager.Log($"Auto Doubt is Launched!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.blue, LogManager.GameModeLogs);
-#endif
-            yield break;
-        }
-
-        //checking if the next Current Player Have to Play a Max Bet
-        byte[] roundedUpBet;
-        if (BetGenerator.TryRoundUpBet(sortedBet, out roundedUpBet, _gameManager.DealtCardsNumber.Value))
-        {
-            //cheking if the rounded up bet is a max Bet
-            if (MaxBet.AreEqual(roundedUpBet))
-            {
-#if Log
-                LogManager.Log($" changing Game State to Last Player turn after confirming Bet!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.green, LogManager.GameModeLogs);
-#endif
-                //directing Game State to a Last Player Game State
-                _gameManager.State.Value = GameState.LastPlayerTurn;
-                yield break;
-            }
-        }
-        //abbording everythink if a bet cannot be Rounded Up
-        else
-        {
-#if Log
-            LogManager.LogError($"Failed Confirm Rpc ! Failed Rounding Up Current Bet! CurrentPlayerID is :=>{_gameManager.CurrentPlayerID}");
-#endif
-            yield break;
-        }
-    }
-
-    private IEnumerator BetValidation(byte[] bet, string playerID)
+    private IEnumerator BetValidation(byte[] bet, FixedString64Bytes playerID)
     {
         //blocking invalid args
-        if (string.IsNullOrEmpty(playerID) || bet == null)
+        if (default == playerID || bet == null)
         {
 #if Log
             LogManager.LogError($"Blocking Confirm Rpc ! Invalid Args Found! CurrentPlayerID is :=>{_gameManager.CurrentPlayerID}");
@@ -635,7 +645,7 @@ public class OnlineMode : GameModeBase
         _gameManager.SimulationState = SimulationSetUpState.SetUpComplete;
 
         _gameManager.CallBackManager.SetReady(true);
-        if (_gameManager.IsClient)
+        if (!_gameManager.IsHost)
             _gameManager.SyncFirstTick();
 
         _gameManager.SimulationSetUpRoutine = null;
@@ -719,7 +729,7 @@ public class OnlineMode : GameModeBase
             playerData.PlayerName = player.Name;
             playerData.PlayerID = player.ID;
             playerData.IconIndex = player.IconID;
-            playerData.PlayerNetObjectRef = new NetworkObjectReference( player.PlayerNetworkObject);
+            playerData.PlayerNetObjectRef = new NetworkObjectReference(player.PlayerNetworkObject);
             //since this only happens after spawning players im assuming it should be true
             playerData.AuthorityAssigned = true;
 
@@ -1011,7 +1021,7 @@ public class OnlineMode : GameModeBase
             newData.PlayerName = playerData.PlayerName;
             newData.PlayerID = playerData.PlayerID;
             newData.IconIndex = playerData.IconIndex;
-            newData.PlayerNetObjectRef = new NetworkObjectReference( playerObject);
+            newData.PlayerNetObjectRef = new NetworkObjectReference(playerObject);
             newData.AuthorityAssigned = true;
             newRunTimeData.Add(newData);
 

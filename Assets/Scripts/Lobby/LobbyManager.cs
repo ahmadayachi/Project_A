@@ -134,7 +134,7 @@ public class LobbyManager : NetworkBehaviour
       
         //injecting a Standard Deck info 
         DeckInfo deckInfo = new DeckInfo();
-        deckInfo.DeckType = DeckType.Standard;
+        deckInfo.DeckType = DeckType.Belote;
         deckInfo.SuitsNumber = (byte)_lobbyPlayersNetObjects.Count;
         deckInfo.CustomSuitRanks = null;
         AssetLoader.RunTimeDataHolder.DeckInfo = deckInfo;

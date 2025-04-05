@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
+using Unity.Collections;
 
 #region Interfaces
 
@@ -178,8 +179,8 @@ public interface IDealerBehaviour
 
 public interface IGameMode
 {
-    void ConfirmBet(byte[] bet, string playerID);
-    void DoubtBet(string playerID);
+    void ConfirmBet(byte[] bet, FixedString64Bytes playerID);
+    void DoubtBet(FixedString64Bytes playerID);
     void PassTurn();
     void StartGame();
     void SetGameState(GameState state);
@@ -190,7 +191,7 @@ public interface IGameMode
     void DoubtLogic(DoubtState doubtState);
     void DoubtOverLogic();
     List<DiffusedRankInfo> RoundUpCurrentBet();
-    bool TryFindPlayer(string playerID, out IPlayer player);
+    bool TryFindPlayer(FixedString64Bytes playerID, out IPlayer player);
 }
 public struct GameModeARGS
 {

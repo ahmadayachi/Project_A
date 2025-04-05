@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 
 public class GameModeManager
 {
@@ -13,12 +14,12 @@ public class GameModeManager
             _activeGameModeBehaviour = new OnlineMode(args);
     }
 
-    public void ConfirmBet(byte[] bet, string playerID)
+    public void ConfirmBet(byte[] bet, FixedString64Bytes playerID)
     {
         _activeGameModeBehaviour.ConfirmBet(bet, playerID);
     }
 
-    public void DoubtBet(string playerID)
+    public void DoubtBet(FixedString64Bytes playerID)
     {
         _activeGameModeBehaviour.DoubtBet(playerID);
     }
@@ -61,7 +62,7 @@ public class GameModeManager
         return _activeGameModeBehaviour.RoundUpCurrentBet();
     }
 
-    public bool TryFindPlayer(string playerID, out IPlayer player)
+    public bool TryFindPlayer(FixedString64Bytes playerID, out IPlayer player)
     {
         return _activeGameModeBehaviour.TryFindPlayer(playerID, out player);
     }

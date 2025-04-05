@@ -132,7 +132,7 @@ public class CardPool
         if (TryGetUsedCard(out ICard card))
         {
             //adjust it to needs and return it
-            card.Enable(cardInfo);
+            card?.Enable(cardInfo);
             return card;
         }
 
@@ -186,8 +186,16 @@ public class CardPool
 
     public void DestroyAll()
     {
+        if (_cards == null || _cards.Length <= 0)
+        {
+#if Log
+            LogManager.Log("Ignoring Deastroying Pooled Cards! Card Pool is Empty or Null !",Color.yellow,LogManager.ValueInformationLog);
+            return;
+#endif
+        }
         for (int index = 0; index < _cards.Length; index++)
         {
+            if (_cards[index] == null) continue;
             _cards[index].Disable();
             //no need for contain because if it does it should be an error
             if (emptyIndex.Contains(index))

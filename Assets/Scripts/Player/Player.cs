@@ -401,7 +401,7 @@ public class Player : NetworkBehaviour, IPlayer
     [Rpc(SendTo.Server)]
     public void DoubtServerRpc(FixedString64Bytes playerID)
     {
-        _playerGameManager.GameModeManager.DoubtBet(playerID.ToString());
+        _playerGameManager.GameModeManager.DoubtBet(playerID);
     }
 
     //public void SetIsplayerOut(bool isPlayerOut)

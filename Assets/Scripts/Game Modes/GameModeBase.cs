@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine;
 
 
 public abstract class GameModeBase : IGameMode
 {
     protected GameManager _gameManager;
 
-    public abstract void ConfirmBet(byte[] bet, string playerID);
-    public abstract void DoubtBet(string playerID);
+    public abstract void ConfirmBet(byte[] bet, FixedString64Bytes playerID);
+    public abstract void DoubtBet(FixedString64Bytes playerID);
     public abstract void PassTurn();
     public abstract void SetGameState(GameState state);
     public abstract void StartGame();
@@ -19,10 +21,10 @@ public abstract class GameModeBase : IGameMode
     public abstract void DoubtOverLogic();
     public abstract List<DiffusedRankInfo> RoundUpCurrentBet();
     
-    public virtual bool TryFindPlayer(string playerID, out IPlayer player)
+    public virtual bool TryFindPlayer(FixedString64Bytes playerID, out IPlayer player)
     {
         player = null;
-        if (string.IsNullOrEmpty(playerID)) return false;
+        if (default == playerID) return false;
         if (_gameManager.Players.IsNullOrHaveNullElements())
         {
 #if Log
@@ -73,7 +75,7 @@ public abstract class GameModeBase : IGameMode
         //Currently its a fixed time 
         _gameManager.DoubtSceneTimer.Value = 3;
     }
-    protected virtual void PunishingDoubtLooser(out string playerToPunishID, out IPlayer playerToPunish)
+    protected virtual void PunishingDoubtLooser(out FixedString64Bytes playerToPunishID, out IPlayer playerToPunish)
     {
         playerToPunishID = (_gameManager.DoubtState.Value == DoubtState.WinDoubt) ? _gameManager.LiveBetPlayerID.Value.ToString() : _gameManager.CurrentPlayerID.Value.ToString();
         if (TryFindPlayer(playerToPunishID, out playerToPunish))
@@ -96,5 +98,22 @@ public abstract class GameModeBase : IGameMode
             dealtCards += player.CardsToDealCounter;
         }
         return dealtCards;
+    }
+    protected virtual void CollectDealtCards()
+    {
+        //clearing previous dealt Cards
+        _gameManager.DealtCards.Clear();
+        //adding dealt Cards 
+        foreach (var player in _gameManager.Players)
+        {
+            foreach (var card in player.Hand)
+            {
+                _gameManager.DealtCards.Add(card.ID);
+#if Log
+                LogManager.Log($"Collected Dealt Card!, Card=>{card}",Color.green,LogManager.ValueInformationLog);
+#endif
+            }
+        }
+
     }
 }

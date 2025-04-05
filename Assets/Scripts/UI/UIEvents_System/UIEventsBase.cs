@@ -540,6 +540,9 @@ public abstract class UIEventsBase : IUIEvents
 #endif
             yield break;
         }
+        //cleaning mydisplay cards
+        ClearMyDisplayCards();
+        //setting up display cards
         var displayCardSuit = CardSuit.Spades;
         var displayCardsParent = _uiManager.PlayerTurnUI.BettingScreenUI.MyBetSuitHolder;
 
@@ -554,6 +557,17 @@ public abstract class UIEventsBase : IUIEvents
             _myDisplayCards.Add(displayCard);
             yield return null;
         }
+    }
+    private void ClearMyDisplayCards()
+    {
+       if(_myDisplayCards.Count == 0)
+            return;
+      for(int index = 0; index < _myDisplayCards.Count; index++)
+        {
+            var displayCard = _myDisplayCards[index];
+           MonoBehaviour.Destroy(displayCard.gameObject);
+        }
+        _myDisplayCards.Clear();
     }
 
     protected virtual void OnCardSelected(byte rank)
