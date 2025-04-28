@@ -105,6 +105,8 @@ public class Dealer : State
             }
         }
 
+        yield return new WaitForSeconds(1f);
+
         //invoking callback for (some UI shet)
         arguments.OnDealerStateEnds?.Invoke();
         //reseting coroutine

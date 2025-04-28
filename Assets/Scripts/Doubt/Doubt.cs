@@ -56,7 +56,7 @@ public class Doubt : State
             yield break;
         }
         // any wrong Cards in bet results in Loosing the Bet 
-        DoubtState doubtState = DoubtState.WinDoubt;
+        DoubtState doubtState = DoubtState.LooseDoubt;
         foreach (byte Rank in args.Livebet)
         {
             if (args.DealtCards.Contains(Rank))
@@ -65,7 +65,7 @@ public class Doubt : State
             }
             else
             {
-                doubtState = DoubtState.LooseDoubt;
+                doubtState = DoubtState.WinDoubt;
                 break;
             }
         }

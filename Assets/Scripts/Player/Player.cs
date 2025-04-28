@@ -112,9 +112,9 @@ public class Player : NetworkBehaviour, IPlayer
         base.OnNetworkSpawn();
 
         _callBackManager = new CallBackManager();
-        _playerName.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName);
-        _iconID.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon);
-        _hand.OnListChanged += (newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards);
+        _playerName.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName, nameof(_playerUIControler.SetPlayerName));
+        _iconID.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon, nameof(_playerUIControler.SetPlayerIcon));
+        _hand.OnListChanged += (newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards, nameof(_playerUIControler.LoadPlayerCards));
 
         SetUpPlayerState();
 
@@ -246,7 +246,7 @@ public class Player : NetworkBehaviour, IPlayer
     /// </summary>
     public void PlusOneCard()
     {
-        _cardToDealCounter.Value++;
+        _cardToDealCounter.Value += 1;
     }
 
     public void ClearCardsCounter()
@@ -403,7 +403,7 @@ public class Player : NetworkBehaviour, IPlayer
     {
         _playerGameManager.GameModeManager.DoubtBet(playerID);
     }
-
+  
     //public void SetIsplayerOut(bool isPlayerOut)
     //{
     //    throw new System.NotImplementedException();
@@ -468,9 +468,9 @@ public class Player : NetworkBehaviour, IPlayer
                 GUILayout.Label($"<color=white> Client ID: {_this.ClientID}</color>", labelStyle);
                 GUILayout.Label($"<color=white> ID: {_this.ID}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Is Local Player: {_this.IsTheLocalPlayer}</color>", labelStyle);
-                GUILayout.Label($"<color=white> Card To Deal Counter: {_this._cardToDealCounter}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Card To Deal Counter: {_this._cardToDealCounter.Value}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Networked Hand Count: {_this._hand.ValidCardsCount()}</color>", labelStyle);
-                GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ToString()}</color>", labelStyle);
+                GUILayout.Label($"<color=white> Networked Cards IDs in Hand: {_this._hand.ListOfBytesToString()}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Cards in Hand: {_this.Hand.ArrayOfCardInfoToString()}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Is Out: {_this.IsOut}</color>", labelStyle);
                 GUILayout.Label($"<color=white> Icon ID: {_this.IconID}</color>", labelStyle);

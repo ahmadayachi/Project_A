@@ -177,13 +177,13 @@ public class OnlineMode : GameModeBase
         switch (state)
         {
             case GameState.SimulationSetUp: SimulationPrepGameState(); break;
-            case GameState.GameStarted: _gameManager.CallBackManager.EnqueueOrExecute(GameStarted); break;
-            case GameState.Dealing: _gameManager.CallBackManager.EnqueueOrExecute(Dealing); break;
-            case GameState.Doubting: _gameManager.CallBackManager.EnqueueOrExecute(Doubting); break;
-            case GameState.RoudOver: _gameManager.CallBackManager.EnqueueOrExecute(RoundOver); break;
-            case GameState.GameOver: _gameManager.CallBackManager.EnqueueOrExecute(GameOver); break;
+            case GameState.GameStarted: _gameManager.CallBackManager.EnqueueOrExecute(GameStarted, nameof(GameStarted)); break;
+            case GameState.Dealing: _gameManager.CallBackManager.EnqueueOrExecute(Dealing, nameof(Dealing)); break;
+            case GameState.Doubting: _gameManager.CallBackManager.EnqueueOrExecute(Doubting, nameof(Doubting)); break;
+            case GameState.RoudOver: _gameManager.CallBackManager.EnqueueOrExecute(RoundOver, nameof(RoundOver)); break;
+            case GameState.GameOver: _gameManager.CallBackManager.EnqueueOrExecute(GameOver, nameof(GameOver)); break;
             case GameState.FirstPlayerTurn:
-            case GameState.LastPlayerTurn: _gameManager.CallBackManager.EnqueueOrExecute(StartPlayerTimer); break;
+            case GameState.LastPlayerTurn: _gameManager.CallBackManager.EnqueueOrExecute(StartPlayerTimer, nameof(StartPlayerTimer)); break;
         }
     }
     public override void StartPlayerState()
@@ -235,7 +235,7 @@ public class OnlineMode : GameModeBase
         }
         //looking for desired payer
         IPlayer newCurrentPlayer = null;
-        if (TryFindPlayer(_gameManager.CurrentPlayerID.Value.ToString(), out newCurrentPlayer))
+        if (TryFindPlayer(_gameManager.CurrentPlayerID.Value, out newCurrentPlayer))
         {
 #if Log
             LogManager.Log($"Loading Current Player={newCurrentPlayer}!// Simulatio=>{_gameManager.LocalPlayer}", Color.green, LogManager.ValueInformationLog);
@@ -257,6 +257,15 @@ public class OnlineMode : GameModeBase
     }
     public override void DoubtOverLogic()
     {
+        //punishing Doubt looser
+        FixedString64Bytes playerToPunishID;
+        IPlayer playerToPunish;
+        PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
+
+        //setting the Current Player
+        _gameManager.CurrentPlayerID.Value = playerToPunishID;
+        _gameManager.CurrentPlayer = playerToPunish;
+
         //Player Control
         PlayerControl();
 
@@ -270,15 +279,6 @@ public class OnlineMode : GameModeBase
 
         // Calculate and Set Doubt Scene Time
         CaluCulateDoubtSceneTimer();
-
-        //punishing Doubt looser
-        FixedString64Bytes playerToPunishID;
-        IPlayer playerToPunish;
-        PunishingDoubtLooser(out playerToPunishID, out playerToPunish);
-
-        //setting the Current Player
-        _gameManager.CurrentPlayerID.Value = new FixedString64Bytes(playerToPunishID);
-        _gameManager.CurrentPlayer = playerToPunish;
 
         // Updating Clients and Host UI
         _gameManager.State.Value = GameState.Doubting;
@@ -363,7 +363,9 @@ public class OnlineMode : GameModeBase
         _gameManager.UIManager.ActiveUIEvents.OnRoundOver();
         //TODO : Link with UI
         //cleaing Cards , link to On ROund Over
-        _gameManager.CardPool.DestroyAll();
+        //_gameManager.CardPool.DestroyAll();
+       // foreach (var player in _gameManager.Players)
+       //     player.PlayerUI.CardPositioner.ClearLoadedCards();
         if (_gameManager.IsHost)
             OnRoundIsOverLogic();
     }
@@ -473,10 +475,10 @@ public class OnlineMode : GameModeBase
             //Directing the Game To an Auto Doubt State
             _gameManager.DealtCardsList = _gameManager.DealtCards.ToByteList();
             DoubtStateArguments stateArguments = new DoubtStateArguments(_gameManager.DealtCardsList, sortedBet);
-            
+
             //passing Turn here
             PassTurn();
-            
+
             _gameManager.ChangeState(_gameManager.Doubt, stateArguments);
 #if Log
             LogManager.Log($"Auto Doubt is Launched!, Current Player {_gameManager.CurrentPlayerID} Live Bet Player ID {_gameManager.LiveBetPlayerID}", Color.blue, LogManager.GameModeLogs);
@@ -517,6 +519,7 @@ public class OnlineMode : GameModeBase
         //Directing Game State  to a normal Player turn
         _gameManager.State.Value = GameState.PlayerTurn;
 
+        yield return new WaitForSeconds(0.5f);
         //passing Turn here
         PassTurn();
     }

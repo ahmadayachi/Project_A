@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -56,6 +54,9 @@ public class CardPositioner : MonoBehaviour
 #endif
             return;
         }
+        //clearing previously Loaded Cards 
+
+        //ClearLoadedCards();
 
         for (int index = 0; index < cards.Length; index++)
         {
@@ -74,6 +75,18 @@ public class CardPositioner : MonoBehaviour
         SyncRankPairedDic();
         //position loaded cards here
         PositionLoadedCardsForLocalPlayer();
+    }
+
+    public void ClearLoadedCards()
+    {
+        if (_loadedCards.Count > 0)
+        {
+            foreach (var card in _loadedCards)
+            {
+                _cardPool.DestroyCard(card);
+            }
+            _loadedCards.Clear();
+        }
     }
 
     private void PositionLoadedCardsForLocalPlayer()
@@ -144,11 +157,14 @@ public class CardPositioner : MonoBehaviour
         int MirrorCardIndex = 0;
         do
         {
+
             //setting card z stacker
             var card = _diffusedRankPairedLoadedCards[CurrentCardIndex];
+            //reseting th Rotation
+            card.Transform.localRotation = Quaternion.identity;
             //casually hard coding temporary shet 
             if (_isLocalPlayer)
-                card.Transform.localRotation = Quaternion.Euler(0, yRotationStacker,0);
+                card.Transform.localRotation = Quaternion.Euler(0, yRotationStacker, 0);
             else
                 card.Transform.localRotation = Quaternion.Euler(-80f, yRotationStacker, 180f);
 
@@ -161,7 +177,7 @@ public class CardPositioner : MonoBehaviour
             //setting mirror Card z stacker
             card = _diffusedRankPairedLoadedCards[MirrorCardIndex];
             if (_isLocalPlayer)
-                card.Transform.localRotation = Quaternion.Euler(0, -yRotationStacker,0);
+                card.Transform.localRotation = Quaternion.Euler(0, -yRotationStacker, 0);
             else
                 card.Transform.localRotation = Quaternion.Euler(-80f, yRotationStacker, 180f);
             //stacking y

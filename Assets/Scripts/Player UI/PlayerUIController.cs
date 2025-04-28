@@ -55,6 +55,7 @@ public class PlayerUIController :MonoBehaviour
     {
         if (_player.HandCount == 0)
         {
+            _player.PlayerUI.CardPositioner.ClearLoadedCards();
             return;
         }
         if (PlayerCanLoadCards())

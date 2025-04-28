@@ -45,6 +45,7 @@ public interface IPlayer : ICardReceiver
     byte IconID { get; }
     bool IsTheLocalPlayer { get; }
     public NetworkObject PlayerNetworkObject { get; }
+    public PlayerUI PlayerUI{ get; }
     Transform Transform { get; }
 
     //player commands 

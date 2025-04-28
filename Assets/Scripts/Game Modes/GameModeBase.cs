@@ -77,10 +77,13 @@ public abstract class GameModeBase : IGameMode
     }
     protected virtual void PunishingDoubtLooser(out FixedString64Bytes playerToPunishID, out IPlayer playerToPunish)
     {
-        playerToPunishID = (_gameManager.DoubtState.Value == DoubtState.WinDoubt) ? _gameManager.LiveBetPlayerID.Value.ToString() : _gameManager.CurrentPlayerID.Value.ToString();
+        playerToPunishID = (_gameManager.DoubtState.Value == DoubtState.WinDoubt) ? _gameManager.LiveBetPlayerID.Value : _gameManager.CurrentPlayerID.Value;
         if (TryFindPlayer(playerToPunishID, out playerToPunish))
         {
             playerToPunish.PlusOneCard();
+#if Log
+            LogManager.Log($"Punishing Player! Player ID:=> {playerToPunishID}, DoubtState{_gameManager.DoubtState.Value}", Color.red, LogManager.ValueInformationLog);
+#endif
         }
         else
         {
@@ -108,7 +111,7 @@ public abstract class GameModeBase : IGameMode
         {
             foreach (var card in player.Hand)
             {
-                _gameManager.DealtCards.Add(card.ID);
+                _gameManager.DealtCards.Add(card.Rank);
 #if Log
                 LogManager.Log($"Collected Dealt Card!, Card=>{card}",Color.green,LogManager.ValueInformationLog);
 #endif

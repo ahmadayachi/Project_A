@@ -1,5 +1,4 @@
 #define USE_FIXED_ARRAY_SIZE
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -120,10 +119,10 @@ public class CardPool
     private Transform _cardsHolder;
     public CardPool(CardPoolArguments poolArgs)
     {
-       _cardPrefab = poolArgs.CardPrefab;
+        _cardPrefab = poolArgs.CardPrefab;
         _cardsHolder = poolArgs.CardsHolder;
 #if USE_FIXED_ARRAY_SIZE
-        InitArray(poolArgs.MaxPlayerCards,poolArgs.ActivePlayerCount);
+        InitArray(poolArgs.MaxPlayerCards, poolArgs.ActivePlayerCount);
 #endif
     }
 
@@ -148,7 +147,7 @@ public class CardPool
         LogManager.Log($"Creating Card from array index {_arrayIndex}", Color.yellow, LogManager.CardPoolLog);
 #endif
         var spawnedCard = InstantiateCard();
-        if(spawnedCard == null)
+        if (spawnedCard == null)
         {
 #if Log
             LogManager.LogError("Card Creation Failed ! Spawned Card is Null");
@@ -156,7 +155,7 @@ public class CardPool
         }
         _cards[_arrayIndex] = spawnedCard;
         ICard cardToReturn = currentCard;
-        _arrayIndex++;        
+        _arrayIndex++;
         cardToReturn.Enable(cardInfo);
 
         return cardToReturn;
@@ -164,13 +163,16 @@ public class CardPool
 
     public void DestroyCard(ICard card)
     {
+        int startingIndex = emptyIndex.Count> 0 ? emptyIndex.Count : 0;
         for (int index = 0; index < _cards.Length; index++)
         {
             if (_cards[index].ID == card.ID)
             {
                 _cards[index].Disable();
+                //playcing the card out of the screen 
+                _cards[index].Transform.SetParent(_cardsHolder);
                 //no need for contain because if it does it should be an error
-                if (emptyIndex.Contains(index))
+                if (emptyIndex.Contains(startingIndex))
                 {
 #if Log
                     LogManager.LogError($"trying to add element that already exist element: {index}");
@@ -178,7 +180,7 @@ public class CardPool
                     break;
                 }
                 //notify we have gap
-                emptyIndex.Enqueue(index);
+                emptyIndex.Enqueue(startingIndex++);
                 break;
             }
         }
@@ -189,14 +191,19 @@ public class CardPool
         if (_cards == null || _cards.Length <= 0)
         {
 #if Log
-            LogManager.Log("Ignoring Deastroying Pooled Cards! Card Pool is Empty or Null !",Color.yellow,LogManager.ValueInformationLog);
+            LogManager.Log("Ignoring Deastroying Pooled Cards! Card Pool is Empty or Null !", Color.yellow, LogManager.ValueInformationLog);
             return;
 #endif
         }
         for (int index = 0; index < _cards.Length; index++)
         {
             if (_cards[index] == null) continue;
+#if Log
+            LogManager.Log($"destroying this card ! {_cards[index]}", Color.yellow, LogManager.ValueInformationLog);
+#endif
             _cards[index].Disable();
+            //playcing the card out of the screen 
+            _cards[index].Transform.SetParent(_cardsHolder);
             //no need for contain because if it does it should be an error
             if (emptyIndex.Contains(index))
             {
@@ -218,7 +225,7 @@ public class CardPool
     }
 
 #if USE_FIXED_ARRAY_SIZE
-    private void InitArray(byte MaxPlayerCards,byte playerNumber)
+    private void InitArray(byte MaxPlayerCards, byte playerNumber)
     {
         //determined maximum cards that can be played in a game
         _arraySize = MaxPlayerCards * playerNumber;
@@ -255,7 +262,7 @@ public class CardPool
 
     private ICard InstantiateCard()
     {
-        var gameobj = GameObject.Instantiate(_cardPrefab,_cardsHolder);
+        var gameobj = GameObject.Instantiate(_cardPrefab, _cardsHolder);
         return gameobj.GetComponent<ICard>();
     }
 }

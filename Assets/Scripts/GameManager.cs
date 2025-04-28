@@ -1,5 +1,6 @@
 #define AUTOSTARTGAMECONTROL
 //using Fusion;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -340,7 +341,7 @@ public class GameManager : NetworkBehaviour
     //        return GameRunner.Spawn(objectRef);
     //    }
 
-    public T Insttantiate<T>(T objectToInstantiate, Transform Parent = null) where T : Object
+    public T Insttantiate<T>(T objectToInstantiate, Transform Parent = null) where T : UnityEngine.Object
     {
         return Instantiate(objectToInstantiate, Parent);
     }
@@ -436,12 +437,20 @@ public class GameManager : NetworkBehaviour
     {
         _gameModeManager.StartGame();
     }
-    public bool IsMyTurn()
+    public  bool IsMyTurn()
     {
         if (CurrentPlayerID.Value.IsEmpty || LocalPlayer == null) return false;
-        return LocalPlayer.ID == CurrentPlayerID.Value;
+       
+        if (LocalPlayer.ID == CurrentPlayerID.Value)
+        {
+            return true;
+        }
+#if Log
+        LogManager.Log($"it is not my turn!my ID=>({LocalPlayer.ID}) vs Current Player ID=>({CurrentPlayerID.Value})", Color.yellow, LogManager.ValueInformationLog);
+#endif
+        return false;
     }
-    public bool IsMyTurn(string playerID)
+    public  bool IsMyTurn(string playerID)
     {
         if (CurrentPlayerID.Value.IsEmpty || LocalPlayer == null) return false;
         return playerID == LocalPlayer.ID && LocalPlayer.ID == CurrentPlayerID.Value;
@@ -462,6 +471,11 @@ public class GameManager : NetworkBehaviour
     }
     public void SetUpCardManager() => CardManager.Init(RunTimeDataHolder.DeckInfo);
 
+    public IEnumerator DelayAction(float delay, Action action)
+    {
+        yield return new WaitForSeconds(delay);
+        action?.Invoke();
+    }
     #endregion General Logic Swamp
 
     #region Player Commands  RPC Methods
@@ -520,9 +534,9 @@ public class GameManager : NetworkBehaviour
     private void OnCurrentPlayerIDChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
 #if Log
-        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Current Player ID Changed ! Current Player ID={CurrentPlayerID}", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Current Player ID Changed ! Current Player ID={CurrentPlayerID.Value}", Color.gray, LogManager.ValueInformationLog);
 #endif
-        _callBackManager.EnqueueOrExecute(_gameModeManager.LoadCurrentPlayer);
+        _callBackManager.EnqueueOrExecute(_gameModeManager.LoadCurrentPlayer, nameof(_gameModeManager.LoadCurrentPlayer));
     }
     public void SyncFirstTick()
     {
@@ -539,9 +553,9 @@ public class GameManager : NetworkBehaviour
     private void OnPlayerTimerStateChanged(PlayerTimerStates previousValue, PlayerTimerStates newValue)
     {
 #if Log
-        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState}", Color.gray, LogManager.ValueInformationLog);
+        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState.Value}", Color.gray, LogManager.ValueInformationLog);
 #endif
-        _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState);
+        _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState, nameof(_gameModeManager.StartPlayerState));
     }
 
     private void OnGameStateChanged(GameState previousValue, GameState newValue)

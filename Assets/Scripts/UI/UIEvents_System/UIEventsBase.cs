@@ -225,28 +225,40 @@ public abstract class UIEventsBase : IUIEvents
         //setting up ultimatum screen 
         var ultimatumScreenUI = _uiManager.PlayerTurnUI.UltimatumScreenUI;
 
-        //setting previous player Icon 
-        var previousPlayerIconID = _uiManager.GameManagerUI.CurrentPlayer.IconID;
-        ultimatumScreenUI.PreviousBetPlayerIcon.sprite = AssetLoader.AllIcons[previousPlayerIconID];
-
-        //setting previous player name 
-        var previousPlayerName = _uiManager.GameManagerUI.CurrentPlayer.Name;
-        ultimatumScreenUI.PreviousBetPlayerName.text = previousPlayerName;
-
-        //moving previous player display cards
-        foreach (var displayCard in _previousPlayerDisplayCards)
+        
+        IPlayer PreviousPlayer;
+        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID.Value, out PreviousPlayer))
         {
-            displayCard.transform.SetParent(ultimatumScreenUI.PreviousBetSuitHolder);
+            //setting previous player Icon
+            var previousPlayerIconID = PreviousPlayer.IconID;
+            ultimatumScreenUI.PreviousBetPlayerIcon.sprite = AssetLoader.AllIcons[previousPlayerIconID];
+
+            //setting previous player name 
+            var previousPlayerName = PreviousPlayer.Name;
+            ultimatumScreenUI.PreviousBetPlayerName.text = previousPlayerName;
+
+            //moving previous player display cards
+            foreach (var displayCard in _previousPlayerDisplayCards)
+            {
+                displayCard.transform.SetParent(ultimatumScreenUI.PreviousBetSuitHolder);
+            }
+
+            //setting up previous bet as display cards 
+            var previousBet = _uiManager.GameManagerUI.LiveBet.ToByteArray();
+            var diffusedBet = new List<DiffusedRankInfo>();
+            Extention.BetDiffuser(previousBet, diffusedBet);
+            UpdatePreviousPlayerDisplayCards(diffusedBet, ultimatumScreenUI.PreviousBetSuitScore);
+        }
+        else
+        {
+#if Log
+            LogManager.LogError($"Failed Finding Previous Player Player! Cant Find  Player with ID:=> {_uiManager.GameManagerUI.LiveBetPlayerID.Value}");
+#endif
+            return;
         }
 
-        //setting up previous bet as display cards 
-        var previousBet = _uiManager.GameManagerUI.LiveBet.ToByteArray();
-        var diffusedBet = new List<DiffusedRankInfo>();
-        Extention.BetDiffuser(previousBet, diffusedBet);
-        UpdatePreviousPlayerDisplayCards(diffusedBet, ultimatumScreenUI.PreviousBetSuitScore);
-
-        //ultimatum screen on 
-        ultimatumScreenUI.UltimatumScreen.gameObject.SetActive(true);
+            //ultimatum screen on 
+            ultimatumScreenUI.UltimatumScreen.gameObject.SetActive(true);
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
 
         //making sure that the level up button is on 
@@ -625,16 +637,17 @@ public abstract class UIEventsBase : IUIEvents
         var currentPlayerIconID = _uiManager.GameManagerUI.CurrentPlayer.IconID;
         doubtScreen.RightPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[currentPlayerIconID];
         doubtScreen.RightPlayerDisplay.PlayerName.text = _uiManager.GameManagerUI.CurrentPlayer.Name;
-        doubtScreen.RightPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState.Value == DoubtState.WinDoubt ? Winner : Looser;
+        var DoubtState = _uiManager.GameManagerUI.DoubtState.Value;
+        doubtScreen.RightPlayerDisplay.DoubtStateText.text = DoubtState == DoubtState.WinDoubt? Winner : Looser;
         //grabing previous player 
         IPlayer previousPlayer;
         //TODO:Remove the cast
-        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID.Value.ToString(), out previousPlayer))
+        if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID.Value, out previousPlayer))
         {
             var previousPlayerIconID = previousPlayer.IconID;
             doubtScreen.LeftPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[previousPlayerIconID];
             doubtScreen.LeftPlayerDisplay.PlayerName.text = previousPlayer.Name;
-            doubtScreen.LeftPlayerDisplay.DoubtStateText.text = _uiManager.GameManagerUI.DoubtState.Value == DoubtState.WinDoubt ? Looser : Winner;
+            doubtScreen.LeftPlayerDisplay.DoubtStateText.text = DoubtState == DoubtState.WinDoubt ? Looser : Winner;
         }
         else
         {
@@ -645,6 +658,8 @@ public abstract class UIEventsBase : IUIEvents
         }
         //panel on 
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
+        //Doubting screen on
+        doubtScreen.DoubtScreen.gameObject.SetActive(true);
 
     }
     protected virtual IEnumerator DoubtScene()
@@ -653,6 +668,8 @@ public abstract class UIEventsBase : IUIEvents
         //waiting animation
         yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer.Value);
       
+        //collecting cards of table and player hands 
+
         //after the animation inoking logic
         if (_uiManager.GameManagerUI.IsHost)
         {
