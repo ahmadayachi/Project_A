@@ -15,7 +15,7 @@ public class PlayerState : State
         {
             //showing Player UI Commands/panels 
             if (PlayerStateArgs.IsMyTurn)
-                UnlockPlayerUI(PlayerStateArgs.GameState);
+                UnlockPlayerUI(PlayerStateArgs.TurnState);
 
             //starting timers
             _uiControler.StartTimers();
@@ -32,13 +32,13 @@ public class PlayerState : State
         _uiControler.StopTimers();
         _uiControler.HidePlayerUI();
     }
-    private void UnlockPlayerUI(GameState gameState)
+    private void UnlockPlayerUI(PlayerTurnStates TurnState)
     {
-        switch (gameState)
+        switch (TurnState)
         {
-            case GameState.FirstPlayerTurn: _uiControler.ShowFirstPlayerUI(); break;
-            case GameState.PlayerTurn: _uiControler.ShowNormalPlayerUI(); break;
-            case GameState.LastPlayerTurn: _uiControler.ShowLastPlayerUI(); break;
+            case PlayerTurnStates.FirstPlayerTurn: _uiControler.ShowFirstPlayerUI(); break;
+            case PlayerTurnStates.PlayerTurn: _uiControler.ShowNormalPlayerUI(); break;
+            case PlayerTurnStates.LastPlayerTurn: _uiControler.ShowLastPlayerUI(); break;
         }
     }
 

@@ -254,12 +254,12 @@ public struct DealerStateArguments
 
 public struct PlayerStateArguments
 {
-    public GameState GameState;
+    public PlayerTurnStates TurnState;
     public bool IsMyTurn;
 
-    public PlayerStateArguments(GameState gameState, bool isMyTurn)
+    public PlayerStateArguments(PlayerTurnStates turnState, bool isMyTurn)
     {
-        GameState = gameState;
+        TurnState = turnState;
         IsMyTurn = isMyTurn;
     }
 }
@@ -483,32 +483,9 @@ public enum SimulationSetUpState
     SetUpCanceled
 }
 
-public enum PlayerTimerStates
-{
-    NoTimer=0,
-    StartTimer=1,
-    StopTimer=-1
-}
 
-public enum GameState : byte
-{
-    NoGameState,
 
-    /// <summary>
-    /// just chilling, maybe waiting for clients, a host migration happening
-    /// </summary>
-    SimulationSetUp,
 
-    GameStarted,
-    Dealing,
-    FirstPlayerTurn,
-    PlayerTurn,
-    LastPlayerTurn,
-    Doubting,
-    RoudOver,
-    GameOver,
-    //HostMigration
-}
 
 public enum DoubtState
 {
@@ -661,5 +638,55 @@ public struct LobbyData
         LobbyName = lobbyName;
         IsPrivate = isPrivate;
         IsValid = true;
+    }
+}
+public enum GameState : byte
+{
+    NoGameState,
+
+    /// <summary>
+    /// just chilling, maybe waiting for clients, a host migration happening
+    /// </summary>
+    SimulationSetUp,
+
+    GameStarted,
+    Dealing,
+    //FirstPlayerTurn,
+    //PlayerTurn,
+    //LastPlayerTurn,
+    Doubting,
+    RoudOver,
+    GameOver,
+    //HostMigration
+}
+public enum PlayerTurnStates
+{
+    NoState = 0,
+    FirstPlayerTurn = 1,
+    PlayerTurn = 2,
+    LastPlayerTurn = 3,
+}
+public enum PlayerTimerStates
+{
+    NoTimer = 0,
+    StartTimer = 1,
+    StopTimer = -1
+}
+
+public struct PlayerUIState : INetworkSerializable
+{
+    public PlayerTurnStates PlayerTurnState;
+    public PlayerTimerStates PlayerTimerState;
+
+    public PlayerUIState(PlayerTurnStates turnState = PlayerTurnStates.NoState, PlayerTimerStates timerState = PlayerTimerStates.NoTimer)
+    {
+        PlayerTurnState = turnState;
+        PlayerTimerState = timerState;
+    }
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref PlayerTurnState);
+        serializer.SerializeValue(ref PlayerTimerState);
     }
 }

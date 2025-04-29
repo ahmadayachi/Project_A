@@ -112,7 +112,7 @@ public class Card : MonoBehaviour, ICard
         _suit = 0;
         _cardUIControler.ResetCardRankSprite();
     }
-
+   
     public CardInfo ToCardInfo()
     {
         CardInfo info = new CardInfo();

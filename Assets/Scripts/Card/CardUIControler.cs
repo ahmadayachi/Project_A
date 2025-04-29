@@ -1,13 +1,11 @@
 //#define USINGSPRITE
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CardUIControler 
+public class CardUIControler
 {
     Card _card;
     CardUI _cardUI;
-    public CardUIControler (Card card,CardUI cardUI)
+    public CardUIControler(Card card, CardUI cardUI)
     {
         _card = card;
         _cardUI = cardUI;

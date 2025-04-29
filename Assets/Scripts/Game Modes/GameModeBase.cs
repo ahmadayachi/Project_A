@@ -52,7 +52,7 @@ public abstract class GameModeBase : IGameMode
     protected abstract void RoundOverVariablesCleaning();
     protected abstract void OnDealingOver();
     protected abstract void GameOver();
-    protected abstract void StartPlayerTimer();
+    //protected abstract void StartPlayerTimer();
     protected abstract void PlayerControl();
 
     protected virtual void NextPlayerIndex()

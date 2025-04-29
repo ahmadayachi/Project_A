@@ -54,9 +54,9 @@ public class CardPositioner : MonoBehaviour
 #endif
             return;
         }
-        //clearing previously Loaded Cards 
 
-        //ClearLoadedCards();
+        //clearing previously Loaded Cards 
+        ClearLoadedCards();
 
         for (int index = 0; index < cards.Length; index++)
         {

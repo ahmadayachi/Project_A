@@ -58,11 +58,6 @@ public class PlayerUIController :MonoBehaviour
             _player.PlayerUI.CardPositioner.ClearLoadedCards();
             return;
         }
-        if (PlayerCanLoadCards())
-        {
-            _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
-            return;
-        }
         if (_loadingHandCoroutine != null)
             StopCoroutine(_loadingHandCoroutine);
         _loadingHandCoroutine = StartCoroutine(WaitHandThenUpdate());

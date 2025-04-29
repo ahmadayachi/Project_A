@@ -111,7 +111,7 @@ public class GameManager : NetworkBehaviour
     //[Networked] public string CurrentPlayerID { get; set; }
     public NetworkVariable<FixedString64Bytes> CurrentPlayerID = new NetworkVariable<FixedString64Bytes>();
     // [Networked] public PlayerTimerStates PlayerTimerState { get; set; }
-    public NetworkVariable<PlayerTimerStates> PlayerTimerState = new NetworkVariable<PlayerTimerStates>();
+    //public NetworkVariable<PlayerTimerStates> PlayerTimerState = new NetworkVariable<PlayerTimerStates>();
     public IPlayer LocalPlayer;
     public IPlayer CurrentPlayer;
     private int _playersNumber;
@@ -119,6 +119,7 @@ public class GameManager : NetworkBehaviour
     public IPlayer[] Players;
     public int PlayerIndex;
     public List<ulong> PlayerReadyList = new List<ulong>();
+    public NetworkVariable<PlayerUIState> PlayerUIStates = new NetworkVariable<PlayerUIState>();
 
     #endregion Player Propertys
 
@@ -243,9 +244,9 @@ public class GameManager : NetworkBehaviour
         base.OnNetworkSpawn();
         //setting up callbacks 
         State.OnValueChanged += OnGameStateChanged;
-
-        PlayerTimerState.OnValueChanged += OnPlayerTimerStateChanged;
+        //PlayerTimerState.OnValueChanged += OnPlayerTimerStateChanged;
         CurrentPlayerID.OnValueChanged += OnCurrentPlayerIDChanged;
+        PlayerUIStates.OnValueChanged += OnPlayerUIStateChanged;
         //injecting UI dependancy
         _uiManager.InjectGameManager(this);
 
@@ -280,6 +281,8 @@ public class GameManager : NetworkBehaviour
         LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Game Manager spawned", Color.gray, LogManager.ValueInformationLog);
 #endif
     }
+
+
 
 
 
@@ -368,10 +371,10 @@ public class GameManager : NetworkBehaviour
     #endregion Mono Method Wrappers
 
     #region General Logic Swamp
-    public void SetPlayerTimerState(PlayerTimerStates state)
-    {
-        PlayerTimerState.Value = state;
-    }
+    //public void SetPlayerTimerState(PlayerTimerStates state)
+    //{
+    //    PlayerTimerState.Value = state;
+    //}
     /// <summary>
     /// allocates callbackManager and grabs the change detector
     /// </summary>
@@ -538,25 +541,49 @@ public class GameManager : NetworkBehaviour
 #endif
         _callBackManager.EnqueueOrExecute(_gameModeManager.LoadCurrentPlayer, nameof(_gameModeManager.LoadCurrentPlayer));
     }
+    private void OnPlayerUIStateChanged(PlayerUIState previousValue, PlayerUIState newValue)
+    {
+#if Log
+        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} PlayerUIState Changed ! TurnState{newValue.PlayerTurnState}//// TimerState {newValue.PlayerTimerState}", Color.gray, LogManager.ValueInformationLog);
+#endif
+        switch (newValue.PlayerTurnState)
+        {
+            //case PlayerTurnStates.NoState:
+            //    {
+
+            //    }
+            //    break;
+            case PlayerTurnStates.FirstPlayerTurn:
+               
+            case PlayerTurnStates.PlayerTurn:
+                
+            case PlayerTurnStates.LastPlayerTurn:
+                {
+                    _callBackManager.EnqueueOrExecute(GameModeManager.StartPlayerState, nameof(GameModeManager.StartPlayerState)); 
+                }
+                break;
+
+        }
+    }
     public void SyncFirstTick()
     {
         //syncing GameState the first Tick
         if (State.Value != default(GameState))
             OnGameStateChanged(GameState.NoGameState, State.Value);
         // Syncing PlayerTimer First Tick
-        if (PlayerTimerState.Value != default(PlayerTimerStates))
-            OnPlayerTimerStateChanged(PlayerTimerStates.NoTimer, PlayerTimerState.Value);
+        if(PlayerUIStates.Value.PlayerTurnState != PlayerTurnStates.NoState || PlayerUIStates.Value.PlayerTimerState!= PlayerTimerStates.NoTimer)
+            OnPlayerUIStateChanged(new PlayerUIState(), PlayerUIStates.Value);
         // syncing CurrentPlayerID First Tick
         if (CurrentPlayerID.Value != default(FixedString64Bytes))
             OnCurrentPlayerIDChanged(new FixedString64Bytes(), CurrentPlayerID.Value);
     }
-    private void OnPlayerTimerStateChanged(PlayerTimerStates previousValue, PlayerTimerStates newValue)
-    {
-#if Log
-        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState.Value}", Color.gray, LogManager.ValueInformationLog);
-#endif
-        _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState, nameof(_gameModeManager.StartPlayerState));
-    }
+//    private void OnPlayerTimerStateChanged(PlayerTimerStates previousValue, PlayerTimerStates newValue)
+//    {
+//#if Log
+//        LogManager.Log($"{NetworkManager.Singleton.LocalClientId} Player Timer State Changed ! PlayerTimerState={PlayerTimerState.Value}", Color.gray, LogManager.ValueInformationLog);
+//#endif
+//        _callBackManager.EnqueueOrExecute(_gameModeManager.StartPlayerState, nameof(_gameModeManager.StartPlayerState));
+//    }
 
     private void OnGameStateChanged(GameState previousValue, GameState newValue)
     {

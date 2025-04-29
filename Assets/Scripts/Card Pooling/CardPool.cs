@@ -169,6 +169,8 @@ public class CardPool
             if (_cards[index].ID == card.ID)
             {
                 _cards[index].Disable();
+
+                _cards[index].Transform.rotation = Quaternion.identity;
                 //playcing the card out of the screen 
                 _cards[index].Transform.SetParent(_cardsHolder);
                 //no need for contain because if it does it should be an error
@@ -179,7 +181,6 @@ public class CardPool
 #endif
                     break;
                 }
-                //notify we have gap
                 emptyIndex.Enqueue(startingIndex++);
                 break;
             }
