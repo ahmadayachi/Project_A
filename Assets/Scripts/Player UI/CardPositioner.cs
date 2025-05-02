@@ -60,7 +60,7 @@ public class CardPositioner : MonoBehaviour
 
         for (int index = 0; index < cards.Length; index++)
         {
-            if (!cards[index].IsValid || IsCardLoaded(cards[index])) continue;
+            //if (!cards[index].IsValid /*|| IsCardLoaded(cards[index])*/) continue;
             ICard loadedCard = _cardPool.CreateACard(cards[index]);
             if (loadedCard == null)
             {
@@ -69,6 +69,10 @@ public class CardPositioner : MonoBehaviour
 #endif
                 return;
             }
+#if Log
+            LogManager.Log($" this card is Created and Loaded !{loadedCard}", Color.yellow, LogManager.ValueInformationLog);
+#endif
+
             _loadedCards.Add(loadedCard);
         }
         //sync paired Dick
@@ -86,6 +90,8 @@ public class CardPositioner : MonoBehaviour
                 _cardPool.DestroyCard(card);
             }
             _loadedCards.Clear();
+            _rankPairedLoadedCards.Clear();
+            _diffusedRankPairedLoadedCards.Clear();
         }
     }
 

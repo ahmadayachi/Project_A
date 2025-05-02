@@ -110,6 +110,7 @@ public class Card : MonoBehaviour, ICard
         _rank = 0;
         _id = 0;
         _suit = 0;
+        transform.gameObject.name = "EmptyCard";
         _cardUIControler.ResetCardRankSprite();
     }
    

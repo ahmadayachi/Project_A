@@ -58,14 +58,22 @@ public class PlayerUIController :MonoBehaviour
             _player.PlayerUI.CardPositioner.ClearLoadedCards();
             return;
         }
+
         if (_loadingHandCoroutine != null)
             StopCoroutine(_loadingHandCoroutine);
         _loadingHandCoroutine = StartCoroutine(WaitHandThenUpdate());
+        //_player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
     }
     private IEnumerator WaitHandThenUpdate()
     {
         yield return new WaitUntil(PlayerCanLoadCards);
         _player.PlayerUI.CardPositioner.LoadCards(_player.Hand);
+        foreach (var item in _player.Hand)
+        {
+#if Log
+            LogManager.Log($"{_player.Name} is Loading this card!{item}", Color.yellow, LogManager.ValueInformationLog);
+#endif
+        }
     }
 
     private bool PlayerCanLoadCards()

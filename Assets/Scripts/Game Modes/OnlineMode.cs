@@ -276,7 +276,11 @@ public class OnlineMode : GameModeBase
         //Directing Game State
         _gameManager.State.Value = GameState.RoudOver;
     }
-    //Might return -1 if no such player is found 
+    /// <summary>
+    /// Might return -1 if no such player is found 
+    /// </summary>
+    /// <param name="playerID"></param>
+    /// <returns></returns>
     private int IndexOfPlayer(FixedString64Bytes playerID)
     {
         for (int index = 0; index < _gameManager.Players.Length; index++)

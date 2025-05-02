@@ -1,4 +1,5 @@
 #define USE_FIXED_ARRAY_SIZE
+//#define BYPASS_CARDPOOLING
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -128,12 +129,14 @@ public class CardPool
 
     public ICard CreateACard(CardInfo cardInfo)
     {
+#if !BYPASS_CARDPOOLING
         if (TryGetUsedCard(out ICard card))
         {
             //adjust it to needs and return it
-            card?.Enable(cardInfo);
+            card.Enable(cardInfo);
             return card;
         }
+#endif
 
         if (arrayFull)
         {
@@ -168,11 +171,17 @@ public class CardPool
         {
             if (_cards[index].ID == card.ID)
             {
-                _cards[index].Disable();
+                var cardToDestroy = _cards[index];
 
-                _cards[index].Transform.rotation = Quaternion.identity;
+                cardToDestroy.Disable();
+
+                cardToDestroy.Transform.rotation = Quaternion.identity;
                 //playcing the card out of the screen 
-                _cards[index].Transform.SetParent(_cardsHolder);
+                cardToDestroy.Transform.SetParent(_cardsHolder);
+
+                cardToDestroy.Transform.position = Vector3.zero;
+                cardToDestroy.Transform.localRotation = Quaternion.identity;
+
                 //no need for contain because if it does it should be an error
                 if (emptyIndex.Contains(startingIndex))
                 {
