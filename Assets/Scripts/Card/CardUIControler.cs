@@ -5,6 +5,7 @@ public class CardUIControler
 {
     Card _card;
     CardUI _cardUI;
+    const string X = "X";
     public CardUIControler(Card card, CardUI cardUI)
     {
         _card = card;
@@ -28,6 +29,16 @@ public class CardUIControler
     {
         _cardUI.CardRank.material = null;
         _cardUI.CardRank.enabled = false;
+    }
+    public void SetCardCounter(int counter)
+    {
+        _cardUI.CardCounterText.gameObject.SetActive(true);
+        _cardUI.CardCounterText.text = X + counter.ToString();
+    }
+    public void ResetCardCounter()
+    {
+        _cardUI.CardCounterText.text = string.Empty;
+        _cardUI.CardCounterText.gameObject.SetActive(false);
     }
 
 #if USINGSPRITE

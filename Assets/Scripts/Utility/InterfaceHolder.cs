@@ -109,6 +109,9 @@ public interface ICard : ICardInfo
 
     Transform Transform { get; }
 
+    void EnableCardCounter(int counter);
+    void DisableCardCounter();
+
     string ToString();
 }
 
@@ -344,6 +347,7 @@ public struct DeckInfo
 public struct CardUI
 {
     public MeshRenderer CardRank;
+    public TextMeshPro CardCounterText;
     //public SpriteRenderer CardPlate;
     //public SpriteRenderer CardBack;
 }

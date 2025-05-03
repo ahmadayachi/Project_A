@@ -113,7 +113,16 @@ public class Card : MonoBehaviour, ICard
         transform.gameObject.name = "EmptyCard";
         _cardUIControler.ResetCardRankSprite();
     }
-   
+
+    public void EnableCardCounter(int counter)
+    {
+        _cardUIControler.SetCardCounter(counter);
+    }
+    public void DisableCardCounter()
+    {
+        _cardUIControler.ResetCardCounter();
+    }
+
     public CardInfo ToCardInfo()
     {
         CardInfo info = new CardInfo();

@@ -18,7 +18,7 @@ public class CardPositioner : MonoBehaviour
     public CardPool CardPool { get => _cardPool; }
 
     [SerializeField, Header("X Axis Card Spacing STarter and Buffer ")]
-    private float _xSpacing = 0.04f;
+    private float _xSpacing = 0.06f;
 
     [SerializeField, Header("Y Axis Card Spacing For First Card ON A Side ")]
     private float _ySpacing = 0.002f;
@@ -79,6 +79,8 @@ public class CardPositioner : MonoBehaviour
         SyncRankPairedDic();
         //position loaded cards here
         PositionLoadedCardsForLocalPlayer();
+
+        SetUpCardCounter();
     }
 
     public void ClearLoadedCards()
@@ -298,6 +300,18 @@ public class CardPositioner : MonoBehaviour
                     _rankPairedLoadedCards.Add(card.Rank, tempoAssignedList);
                 }
             }
+        }
+    }
+    private void SetUpCardCounter()
+    {
+        foreach (var item in _rankPairedLoadedCards)
+        {
+            var firstCard = item.Value.First();
+
+            if (item.Value.Count > 1)
+                firstCard.EnableCardCounter(item.Value.Count);
+            else
+                firstCard.DisableCardCounter();
         }
     }
 

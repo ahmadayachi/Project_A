@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2696727568a854044b505d90e34ba107, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _xSpacing: 0.02
+  _xSpacing: 0.06
   _ySpacing: 0.002
   _ySpacingBuffer: 0.001
   _zSpacing: -0.004
