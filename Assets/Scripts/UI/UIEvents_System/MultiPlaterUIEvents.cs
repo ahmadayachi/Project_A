@@ -51,7 +51,8 @@ public class MultiPlaterUIEvents : UIEventsBase
 
     public override void OnGameOver()
     {
-        // throw new System.NotImplementedException();
+        UpdateLosersScreen();
+        LoosersScreenLayoutSetUp();
     }
 
     public override void OnRoundOver()

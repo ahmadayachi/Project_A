@@ -1,4 +1,3 @@
-//using Fusion;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,4 +20,6 @@ public class PrefabContainer : ScriptableObject
     public GameObject PublicSteamLobbyPrefab;
     public GameObject LobbyPlayerPrefab;
     public ProfileIcon ProfileIconPrefab;
+
+    public EndGamePlayerDisplay EndGamePlayerDisplayPrefab;
 }

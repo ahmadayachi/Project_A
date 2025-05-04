@@ -408,9 +408,13 @@ public class OnlineMode : GameModeBase
             }
             //setting the Winner ID
             _gameManager.WinnerID.Value = new FixedString64Bytes(Winner.ID);
+            Winner.SetIsPlayerWinner(true);
             //directing Game State and updating clients
             _gameManager.State.Value = GameState.GameOver;
             //Maybe game Over stuff here
+#if Log
+            LogManager.Log($"Game Over! Winner is {Winner.ID}!", Color.green, LogManager.ValueInformationLog);
+#endif
         }
         else
         {
@@ -440,7 +444,7 @@ public class OnlineMode : GameModeBase
     {
         _gameManager.UIManager.ActiveUIEvents.OnGameOver();
         //cleaing Cards
-        _gameManager.CardPool.DestroyAll();
+       // _gameManager.CardPool.DestroyAll();
 
         if (_gameManager.IsHost)
         {
@@ -468,10 +472,10 @@ public class OnlineMode : GameModeBase
             {
                 if (!player.IsOut)
                 {
-                    player.ClearHand();
-                    player.ClearCardsCounter();
-                    player.SetIsplayerOut(true);
                     _gameManager.LoosersIDs.AddPlayerID(player.ID);
+                    player.SetIsplayerOut(true);
+                  //  player.ClearHand();
+                   // player.ClearCardsCounter();
                 }
             }
         }

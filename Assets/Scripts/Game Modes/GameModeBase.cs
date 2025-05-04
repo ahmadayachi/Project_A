@@ -109,6 +109,7 @@ public abstract class GameModeBase : IGameMode
         //adding dealt Cards 
         foreach (var player in _gameManager.Players)
         {
+            if(player.IsOut) continue;
             foreach (var card in player.Hand)
             {
                 _gameManager.DealtCards.Add(card.Rank);

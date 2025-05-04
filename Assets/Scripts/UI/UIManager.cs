@@ -26,6 +26,14 @@ public class UIManager : MonoBehaviour
         args.UIManager = this;
         _uiEvents = new UIEvents(args);
     }
+    public Coroutine StartRoutine(IEnumerator routine)
+    {
+        return StartCoroutine(routine);
+    }
+    public void StopRoutine(Coroutine routineCash)
+    {
+        StopCoroutine(routineCash);
+    }
 
     public void InjectGameManager(GameManager gameManager) => _gameManager = gameManager;
 }

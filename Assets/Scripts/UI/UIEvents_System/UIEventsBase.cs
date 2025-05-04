@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -10,9 +12,11 @@ public abstract class UIEventsBase : IUIEvents
     public const string Zeros = "0000";
     public const string Winner = "Winner";
     public const string Looser = "Looser";
-    protected List<DisplayCard> _myDisplayCards= new List<DisplayCard>();
+    protected List<DisplayCard> _myDisplayCards = new List<DisplayCard>();
     protected List<DisplayCard> _previousPlayerDisplayCards = new List<DisplayCard>();
     protected Coroutine _doubtSceneRoutine;
+    protected List<EndGamePlayerDisplay> _endGamePlayerDisplays = new List<EndGamePlayerDisplay>();
+    Coroutine _updateLoosersScreenRoutine;
     #region Const
     private const string PlayerUIPlacementSettingAddr = "PlayerUIPlacementSetting";
     #endregion
@@ -34,7 +38,6 @@ public abstract class UIEventsBase : IUIEvents
     public abstract void OnLastPlayerTurn();
 
     #endregion UIEvent
-
 
     #region Player Placing
     protected IEnumerator PlacingPlayersUI()
@@ -225,7 +228,7 @@ public abstract class UIEventsBase : IUIEvents
         //setting up ultimatum screen 
         var ultimatumScreenUI = _uiManager.PlayerTurnUI.UltimatumScreenUI;
 
-        
+
         IPlayer PreviousPlayer;
         if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(_uiManager.GameManagerUI.LiveBetPlayerID.Value, out PreviousPlayer))
         {
@@ -257,8 +260,8 @@ public abstract class UIEventsBase : IUIEvents
             return;
         }
 
-            //ultimatum screen on 
-            ultimatumScreenUI.UltimatumScreen.gameObject.SetActive(true);
+        //ultimatum screen on 
+        ultimatumScreenUI.UltimatumScreen.gameObject.SetActive(true);
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
 
         //making sure that the level up button is on 
@@ -427,7 +430,6 @@ public abstract class UIEventsBase : IUIEvents
         var backGround = _uiManager.PlayerTurnUI.BackGround;
         backGround.SetActive(!backGround.activeSelf);
     }
-
     protected void BettingScreenOn()
     {
         ClearMySelectedBet();
@@ -572,12 +574,12 @@ public abstract class UIEventsBase : IUIEvents
     }
     private void ClearMyDisplayCards()
     {
-       if(_myDisplayCards.Count == 0)
+        if (_myDisplayCards.Count == 0)
             return;
-      for(int index = 0; index < _myDisplayCards.Count; index++)
+        for (int index = 0; index < _myDisplayCards.Count; index++)
         {
             var displayCard = _myDisplayCards[index];
-           MonoBehaviour.Destroy(displayCard.gameObject);
+            MonoBehaviour.Destroy(displayCard.gameObject);
         }
         _myDisplayCards.Clear();
     }
@@ -638,7 +640,7 @@ public abstract class UIEventsBase : IUIEvents
         doubtScreen.RightPlayerDisplay.PlayerIcon.sprite = AssetLoader.AllIcons[currentPlayerIconID];
         doubtScreen.RightPlayerDisplay.PlayerName.text = _uiManager.GameManagerUI.CurrentPlayer.Name;
         var DoubtState = _uiManager.GameManagerUI.DoubtState.Value;
-        doubtScreen.RightPlayerDisplay.DoubtStateText.text = DoubtState == DoubtState.WinDoubt? Winner : Looser;
+        doubtScreen.RightPlayerDisplay.DoubtStateText.text = DoubtState == DoubtState.WinDoubt ? Winner : Looser;
         //grabing previous player 
         IPlayer previousPlayer;
         //TODO:Remove the cast
@@ -667,7 +669,7 @@ public abstract class UIEventsBase : IUIEvents
         DoubtScreenSetUp();
         //waiting animation
         yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer.Value);
-      
+
         //collecting cards of table and player hands 
 
         //after the animation inoking logic
@@ -676,6 +678,155 @@ public abstract class UIEventsBase : IUIEvents
             _uiManager.GameManagerUI.GameModeManager.DoubtOverLogic();
         }
     }
+    #endregion
+
+    #region GameOver
+    
+    private IEnumerator LoosersScreenRoutine()
+    {
+        if (_uiManager.GameManagerUI.LoosersIDs.ValidPlayerIDCount() == 0)
+        {
+#if Log
+            LogManager.Log("Setting up Looser Screen Canceled!,loosersIds List is empty!", Color.red, LogManager.ValueInformationLog);
+#endif
+            yield break;
+        }
+        //clearing any duplicates , a lazy way shall be solved by managed the callback correctly ehhem when i feel like it 
+        CleanEndGameDuplicates();
+        yield return new WaitForFixedUpdate();
+        int playerRank = 0;
+        foreach (var playerID in _uiManager.GameManagerUI.LoosersIDs)
+        {
+            if (LooserDisplayExists(playerID))
+                continue;
+            else
+            {
+                //grabing the player
+                if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(playerID, out IPlayer player))
+                {
+                    SetUpEndGameDisplayPrefab(playerRank, player);
+                }
+                else
+                {
+#if Log
+                    LogManager.LogError($"Failed Finding Player! Player ID:=> {playerID}");
+#endif
+                    yield break;
+                }
+            }
+            playerRank++;
+
+        }
+    }
+    public void UpdateLosersScreen()
+    {
+        if(_updateLoosersScreenRoutine!=null)
+            _uiManager.StopRoutine(_updateLoosersScreenRoutine );
+        _updateLoosersScreenRoutine = _uiManager.StartRoutine(LoosersScreenRoutine());
+    }
+
+    public void AddWinnerEndGameDisplay()
+    {
+        //adding the winner
+        FixedString64Bytes winnerID = _uiManager.GameManagerUI.WinnerID.Value;
+        if (!winnerID.IsEmpty)
+        {
+            if (_uiManager.GameManagerUI.GameModeManager.TryFindPlayer(winnerID, out IPlayer winner))
+            {
+                SetUpEndGameDisplayPrefab(0, winner, true);
+            }
+            else
+            {
+#if Log
+                LogManager.LogError($"Failed Finding Player! Player ID:=> {winnerID}");
+#endif
+                return;
+            }
+        }
+    }
+
+    private void SetUpEndGameDisplayPrefab(int playerRank, IPlayer player, bool isWinner = false)
+    {
+        //fillign up data 
+        var endgameData = new EndGamePlayerDisplayData();
+        endgameData.PlayerID = player.ID;
+        endgameData.PlayerName = player.Name;
+        Sprite sprite = AssetLoader.AllIcons[player.IconID];
+        if (sprite == null)
+        {
+#if Log
+            LogManager.LogError($"Failed Find Icon for Player =>{player}");
+#endif
+            return;
+        }
+        endgameData.PlayerIcon = sprite;
+        //calculating the player Rank 
+        if (isWinner)
+            endgameData.PlayerRank = 1;
+        else
+            endgameData.PlayerRank = Mathf.Abs(playerRank - _uiManager.GameManagerUI.PlayersNumber);
+        //spawning the player prefab 
+        var endGameDIsplay = _uiManager.GameManagerUI.Insttantiate(AssetLoader.PrefabContainer.EndGamePlayerDisplayPrefab, _uiManager.PlayerTurnUI.LooserScreen.LoosersHolder);
+        endGameDIsplay.SetPlayerDisplayData(endgameData);
+    }
+
+    //one lazy method i dont wanna deal with callbacks today 
+    private void CleanEndGameDuplicates()
+    {
+        var endGameDisplaysClone = _endGamePlayerDisplays.ToList();
+        foreach (var item in endGameDisplaysClone)
+        {
+                //removing the display 
+                _endGamePlayerDisplays.Remove(item);
+                //destroying the game object 
+                MonoBehaviour.Destroy(item.gameObject);
+            //if (LooserDisplayCounter(item.PlayerID) > 1)
+            //{
+            //}
+        }
+    }
+    private int LooserDisplayCounter(FixedString64Bytes id)
+    {
+        int counter = 0;
+        foreach (var playerDisplay in _endGamePlayerDisplays)
+        {
+            if (playerDisplay.PlayerID == id)
+            {
+                counter++;
+            }
+        }
+        return counter;
+    }
+    private bool LooserDisplayExists(FixedString64Bytes id)
+    {
+        if (_endGamePlayerDisplays.Count == 0)
+            return false;
+
+        foreach (var playerDisplay in _endGamePlayerDisplays)
+        {
+            if (playerDisplay.PlayerID == id)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public void LoosersScreenLayoutSetUp()
+    {
+        //force reseting ui panels 
+        ResetPlayerTurnUIPanels(true);
+        //checking if this player is a looser or the winner
+        if (_uiManager.GameManagerUI.LocalPlayer.ID != _uiManager.GameManagerUI.WinnerID.Value)
+            _uiManager.PlayerTurnUI.LooserScreen.OutletText.text = Looser;
+        else
+            _uiManager.PlayerTurnUI.LooserScreen.OutletText.text = Winner;
+
+        //if looser screen is not on then turn it on 
+        if (!_uiManager.PlayerTurnUI.LooserScreen.LooserPanel.activeSelf)
+            _uiManager.PlayerTurnUI.LooserScreen.LooserPanel.SetActive(true);
+        _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
+    }
+   
     #endregion
 
 }

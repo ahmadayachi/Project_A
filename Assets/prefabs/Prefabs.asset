@@ -22,3 +22,4 @@ MonoBehaviour:
   PublicSteamLobbyPrefab: {fileID: 188815484911116110, guid: 5a8eb105ebcfd9b46aa1bf28b0074462, type: 3}
   LobbyPlayerPrefab: {fileID: 8800153567558148587, guid: f54181e9ee712a943a37e45eec87c72c, type: 3}
   ProfileIconPrefab: {fileID: 2856001526782714434, guid: 8a6ae72431cc9d142a0cda687016c0b0, type: 3}
+  EndGamePlayerDisplayPrefab: {fileID: 1213168739616716636, guid: 52f0c584227d8d14cb393092153e8830, type: 3}

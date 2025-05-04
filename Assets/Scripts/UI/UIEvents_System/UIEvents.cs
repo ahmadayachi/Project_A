@@ -67,4 +67,16 @@ public class UIEvents
     {
         _uiEvents.PlayerTurnUIOff();
     }
+    public void LoosersScreenLayoutSetUp()
+    {
+        _uiEvents.LoosersScreenLayoutSetUp();
+    }
+    public void UpdateLosersScreen()
+    {
+        _uiEvents.UpdateLosersScreen();
+    }
+    public void AddWinnerEndGameDisplay()
+    {
+        _uiEvents.AddWinnerEndGameDisplay();
+    }
 }

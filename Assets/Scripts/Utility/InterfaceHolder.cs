@@ -40,6 +40,7 @@ public interface IPlayer : ICardReceiver
     void ClearHand();
 
     void SetIsplayerOut(bool isPlayerOut);
+    void SetIsPlayerWinner(bool isPlayerWinner);
 
     State PlayerState { get; }
     byte IconID { get; }
@@ -242,6 +243,9 @@ public interface IUIEvents
     void OnPlayerTurn();
     void OnLastPlayerTurn();
     void PlayerTurnUIOff();
+    void UpdateLosersScreen();
+    void LoosersScreenLayoutSetUp();
+    void AddWinnerEndGameDisplay();
 }
 
 #endregion Interfaces
@@ -693,4 +697,20 @@ public struct PlayerUIState : INetworkSerializable
         serializer.SerializeValue(ref PlayerTurnState);
         serializer.SerializeValue(ref PlayerTimerState);
     }
+}
+
+[System.Serializable]
+public struct EndGamePlayerDisplayUIRefs
+{
+    public TextMeshProUGUI PlayerName;
+    public Image PlayerIcon;
+    public TextMeshProUGUI playerRank;
+}
+
+public struct EndGamePlayerDisplayData
+{
+    public FixedString64Bytes PlayerID;
+    public FixedString32Bytes PlayerName;
+    public int PlayerRank;
+    public Sprite PlayerIcon;
 }

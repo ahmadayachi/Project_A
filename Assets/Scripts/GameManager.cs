@@ -107,6 +107,7 @@ public class GameManager : NetworkBehaviour
 
     public NetworkList<FixedString64Bytes> LoosersIDs = new NetworkList<FixedString64Bytes>();
     // [Networked] public string WinnerID { get; set; }
+    [SerializeField]
     public NetworkVariable<FixedString64Bytes> WinnerID = new NetworkVariable<FixedString64Bytes>();
     //[Networked] public string CurrentPlayerID { get; set; }
     public NetworkVariable<FixedString64Bytes> CurrentPlayerID = new NetworkVariable<FixedString64Bytes>();

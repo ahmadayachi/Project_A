@@ -1290,4 +1290,18 @@ public static class Extention
     }
 
     #endregion List of Diffused rank Struct shit
+
+    public static int ValidPlayerIDCount(this NetworkList<FixedString64Bytes> list)
+    {
+        int counter = 0;
+        
+        if(list.Count == 0) return counter;
+
+        foreach (var item in list) 
+        {
+            if(!item.IsEmpty)
+                counter++;
+        }
+        return counter;
+    }
 }

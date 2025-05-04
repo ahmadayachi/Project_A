@@ -25,7 +25,7 @@ public class Player : NetworkBehaviour, IPlayer
     #region Player Networked Properties
 
     //[Networked] public PlayerRef playerRef { get; set; }
-    private NetworkVariable<ulong> _clientID  = new NetworkVariable<ulong>();
+    private NetworkVariable<ulong> _clientID = new NetworkVariable<ulong>();
     //[Networked] private string _playerName { get; set; }
     private NetworkVariable<FixedString32Bytes> _playerName = new NetworkVariable<FixedString32Bytes>();
     //[Networked] private string _id { get; set; }
@@ -38,6 +38,7 @@ public class Player : NetworkBehaviour, IPlayer
     private NetworkVariable<byte> _cardToDealCounter = new NetworkVariable<byte>();
     //[Networked] private NetworkBool _isOut { get; set; }
     private NetworkVariable<bool> _isOut = new NetworkVariable<bool>();
+    private NetworkVariable<bool> _isWinner = new NetworkVariable<bool>();
     //[Networked] private byte _iconID { get; set; }
     private NetworkVariable<byte> _iconID = new NetworkVariable<byte>();
     private const int MaxCardsInHand = 52;
@@ -110,11 +111,13 @@ public class Player : NetworkBehaviour, IPlayer
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
         _callBackManager = new CallBackManager();
         _playerName.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerName, nameof(_playerUIControler.SetPlayerName));
         _iconID.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.SetPlayerIcon, nameof(_playerUIControler.SetPlayerIcon));
         _hand.OnListChanged += (newValue) => _callBackManager.EnqueueOrExecute(_playerUIControler.LoadPlayerCards, nameof(_playerUIControler.LoadPlayerCards));
+        //yea whaterver 
+        _isOut.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(()=>OnPlayerOut(newValue),nameof(OnPlayerOut));
+        _isWinner.OnValueChanged += (previousValue, newValue) => _callBackManager.EnqueueOrExecute(() => OnPlayerWin(newValue), nameof(OnPlayerWin));
 
         SetUpPlayerState();
 
@@ -123,6 +126,23 @@ public class Player : NetworkBehaviour, IPlayer
         if (_waitSimulationInit != null)
             StopCoroutine(_waitSimulationInit);
         _waitSimulationInit = StartCoroutine(WaitSimulation());
+    }
+
+    private void OnPlayerOut(bool isOut)
+    {
+        if (isOut)
+        {
+            _playerGameManager.UIManager.ActiveUIEvents.UpdateLosersScreen();
+            if (IsLocalPlayer)
+                _playerGameManager.UIManager.ActiveUIEvents.LoosersScreenLayoutSetUp();
+        }
+    }
+    private void OnPlayerWin(bool isWinner)
+    {
+        if (isWinner)
+        {
+                _playerGameManager.UIManager.ActiveUIEvents.AddWinnerEndGameDisplay();
+        }
     }
 
     public void AfterSpawned()
@@ -189,20 +209,20 @@ public class Player : NetworkBehaviour, IPlayer
         PlusOneCard();
     }
 
-//    public void SetPlayerRef(PlayerRef playerRef)
-//    {
-//        if (playerRef == null || playerRef == PlayerRef.None)
-//        {
-//#if Log
-//            LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
-//#endif
-//            return;
-//        }
-//        this.playerRef = playerRef;
-//    }
+    //    public void SetPlayerRef(PlayerRef playerRef)
+    //    {
+    //        if (playerRef == null || playerRef == PlayerRef.None)
+    //        {
+    //#if Log
+    //            LogManager.LogError($"Invalid Player Player Ref =>{playerRef} player =>{this}");
+    //#endif
+    //            return;
+    //        }
+    //        this.playerRef = playerRef;
+    //    }
     public void SetPlayerClientID(ulong playerCLientID)
     {
-       _clientID.Value = playerCLientID;
+        _clientID.Value = playerCLientID;
     }
 
     public void SetPlayerID(string playerID)
@@ -403,7 +423,7 @@ public class Player : NetworkBehaviour, IPlayer
     {
         _playerGameManager.GameModeManager.DoubtBet(playerID);
     }
-  
+
     //public void SetIsplayerOut(bool isPlayerOut)
     //{
     //    throw new System.NotImplementedException();
@@ -426,6 +446,11 @@ public class Player : NetworkBehaviour, IPlayer
 #if Log
         LogManager.Log($" playerRefID:={playerRefID} Added to PlayerReadyList ", Color.green, LogManager.ValueInformationLog);
 #endif
+    }
+
+    public void SetIsPlayerWinner(bool isPlayerWinner)
+    {
+        _isWinner.Value = isPlayerWinner;
     }
     #endregion
 
