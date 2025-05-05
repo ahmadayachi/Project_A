@@ -190,7 +190,7 @@ public abstract class UIEventsBase : IUIEvents
     protected virtual void FirstPlayerTurnLayOutSetUp()
     {
         //force reseting ui panels 
-        ResetPlayerTurnUIPanels(true);
+        ResetPlayerTurnUIPanels(!_uiManager.GameManagerUI.LocalPlayer.IsOut);
 
         var bettingScreen = _uiManager.PlayerTurnUI.BettingScreenUI;
 
@@ -223,7 +223,7 @@ public abstract class UIEventsBase : IUIEvents
     protected virtual void PlayerTurnLayOutSetUp()
     {
         //force reseting ui panels 
-        ResetPlayerTurnUIPanels(true);
+        ResetPlayerTurnUIPanels(!_uiManager.GameManagerUI.LocalPlayer.IsOut);
 
         //setting up ultimatum screen 
         var ultimatumScreenUI = _uiManager.PlayerTurnUI.UltimatumScreenUI;
@@ -291,12 +291,14 @@ public abstract class UIEventsBase : IUIEvents
         //only player who did not loose, looser screen off 
         if (isNotALooser)
             _uiManager.PlayerTurnUI.LooserScreen.LooserPanel.SetActive(false);
+        else
+            _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
     }
     public virtual void PlayerTurnUIOff()
     {
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(false);
         //forcing everything off
-        ResetPlayerTurnUIPanels(true);
+        ResetPlayerTurnUIPanels(!_uiManager.GameManagerUI.LocalPlayer.IsOut);
     }
     #endregion
 
@@ -681,7 +683,7 @@ public abstract class UIEventsBase : IUIEvents
     #endregion
 
     #region GameOver
-    
+
     private IEnumerator LoosersScreenRoutine()
     {
         if (_uiManager.GameManagerUI.LoosersIDs.ValidPlayerIDCount() == 0)
@@ -720,8 +722,8 @@ public abstract class UIEventsBase : IUIEvents
     }
     public void UpdateLosersScreen()
     {
-        if(_updateLoosersScreenRoutine!=null)
-            _uiManager.StopRoutine(_updateLoosersScreenRoutine );
+        if (_updateLoosersScreenRoutine != null)
+            _uiManager.StopRoutine(_updateLoosersScreenRoutine);
         _updateLoosersScreenRoutine = _uiManager.StartRoutine(LoosersScreenRoutine());
     }
 
@@ -776,10 +778,10 @@ public abstract class UIEventsBase : IUIEvents
         var endGameDisplaysClone = _endGamePlayerDisplays.ToList();
         foreach (var item in endGameDisplaysClone)
         {
-                //removing the display 
-                _endGamePlayerDisplays.Remove(item);
-                //destroying the game object 
-                MonoBehaviour.Destroy(item.gameObject);
+            //removing the display 
+            _endGamePlayerDisplays.Remove(item);
+            //destroying the game object 
+            MonoBehaviour.Destroy(item.gameObject);
             //if (LooserDisplayCounter(item.PlayerID) > 1)
             //{
             //}
@@ -822,11 +824,10 @@ public abstract class UIEventsBase : IUIEvents
             _uiManager.PlayerTurnUI.LooserScreen.OutletText.text = Winner;
 
         //if looser screen is not on then turn it on 
-        if (!_uiManager.PlayerTurnUI.LooserScreen.LooserPanel.activeSelf)
-            _uiManager.PlayerTurnUI.LooserScreen.LooserPanel.SetActive(true);
+        _uiManager.PlayerTurnUI.LooserScreen.LooserPanel.SetActive(true);
         _uiManager.PlayerTurnUI.PlayerTurnUIManager.SetActive(true);
     }
-   
+
     #endregion
 
 }
