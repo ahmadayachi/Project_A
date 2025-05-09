@@ -668,6 +668,7 @@ public abstract class UIEventsBase : IUIEvents
     }
     protected virtual IEnumerator DoubtScene()
     {
+        yield return new WaitUntil(() => _uiManager.GameManagerUI.DoubtState.Value != DoubtState.NoDoubting);
         DoubtScreenSetUp();
         //waiting animation
         yield return new WaitForSeconds(_uiManager.GameManagerUI.DoubtSceneTimer.Value);
