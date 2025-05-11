@@ -1,0 +1,1 @@
+## Details : This project is inspired by the classic bluffing game Dudo, It is currently in the prototype stage, built in Unity using C#. The game is fully networked with online multiplayer support using Netcode for GameObjects and integrated with Steamworks.
