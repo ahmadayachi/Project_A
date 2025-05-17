@@ -463,6 +463,8 @@ public abstract class UIEventsBase : IUIEvents
 
         //turning on the betting screen
         bettingScreen.BettingScreen.SetActive(true);
+        //Ultimatum screen off 
+        _uiManager.PlayerTurnUI.UltimatumScreenUI.UltimatumScreen.gameObject.SetActive(false);
     }
     protected void BettingScreenOff()
     {
@@ -483,6 +485,17 @@ public abstract class UIEventsBase : IUIEvents
 #endif
             yield break;
         }
+        //cleaning mydisplay cards, i dont want to deal with double callback right now 
+        if (_previousPlayerDisplayCards.Count > 0)
+        {
+            var displayCardsClone = _previousPlayerDisplayCards.ToList();
+            foreach (var displayCard in displayCardsClone)
+            {
+                MonoBehaviour.Destroy(displayCard.gameObject);
+                _previousPlayerDisplayCards.Remove(displayCard);
+            }
+
+        }
         var displayCardSuit = CardSuit.Spades;
         var displayCardsParent = _uiManager.PlayerTurnUI.UltimatumScreenUI.PreviousBetSuitHolder;
 
@@ -498,6 +511,7 @@ public abstract class UIEventsBase : IUIEvents
             yield return null;
         }
     }
+
     private void UpdatePreviousPlayerDisplayCards(List<DiffusedRankInfo> bet, TextMeshProUGUI score)
     {
         //reseting display cards 
