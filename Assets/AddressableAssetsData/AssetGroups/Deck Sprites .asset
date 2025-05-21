@@ -13,30 +13,8 @@ MonoBehaviour:
   m_Name: 'Deck Sprites '
   m_EditorClassIdentifier: 
   m_GroupName: 'Deck Sprites '
-  m_Data:
-    m_SerializedData: []
   m_GUID: d78cafe0e6e9ba24ba75c490bd6370fa
   m_SerializeEntries:
-  - m_GUID: cc5a41b6a826f724cb15046573ad032a
-    m_Address: CartoonishCD
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7fd39f561d2a1b34f8e7469b0a86b2b3
-    m_Address: Prefabs.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 66cc5c5661ae0ec40837c3745fd4c057
-    m_Address: Log.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d0985afb4a6f32d4ab24ac3a15e85f27
-    m_Address: RunTimeData
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 079cedc238e21df49b22acc03b666bea
     m_Address: Assets/UI/Icons/doggo icon 1.png
     m_ReadOnly: 0
@@ -48,8 +26,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66cc5c5661ae0ec40837c3745fd4c057
+    m_Address: Log.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7fd39f561d2a1b34f8e7469b0a86b2b3
+    m_Address: Prefabs.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a05e36423c5657540af9801feae46ec6
     m_Address: White_deck.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cc5a41b6a826f724cb15046573ad032a
+    m_Address: CartoonishCD
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0985afb4a6f32d4ab24ac3a15e85f27
+    m_Address: RunTimeData
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -57,5 +55,5 @@ MonoBehaviour:
   m_Settings: {fileID: 11400000, guid: 14090ee14254b9a41bdaa4ec791eb352, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: e1a950b30dfcf9f4489ab947759ef912, type: 2}
     - {fileID: 11400000, guid: 87f456e6a1e1cf042a60a4619296b46d, type: 2}
+    - {fileID: 11400000, guid: e1a950b30dfcf9f4489ab947759ef912, type: 2}

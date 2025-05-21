@@ -112,8 +112,20 @@ public class PlayerUIController :MonoBehaviour
     public void HideDoubtButton()
     {
     }
+    public void PlayerCameraOn()
+    {
+        _player.PlayerUI.PlayerCamera.gameObject.SetActive(true);
+    }
+    public void PlayerCameraOff()
+    {
+        _player.PlayerUI.PlayerCamera.gameObject.SetActive(false);
+    }
+    public void RotateCardPositioner()
+    {
+        var yrotation = 180;
+        _player.PlayerUI.CardPositioner.gameObject.transform.localRotation = Quaternion.Euler(-30, -yrotation, 0);
+    }
 
-  
     #region Player Turn UI Panels Management
     /// <summary>
     /// Resets and Hides all PlayerPanels

@@ -181,6 +181,12 @@ public class Player : NetworkBehaviour, IPlayer
     private IEnumerator WaitSimulationAndSyncFirstTick()
     {
         yield return new WaitUntil(PlayerReadyForCallBacks);
+
+        if (IsLocalPlayer)
+            _playerUIControler.PlayerCameraOn();
+        else
+            _playerUIControler.RotateCardPositioner();
+
         _playerUIControler.SetPlayerName();
         _playerUIControler.SetPlayerIcon();
         _playerUIControler.LoadPlayerCards();

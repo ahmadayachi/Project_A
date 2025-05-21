@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using Unity.Collections;
+using Codice.CM.Common;
+using Unity.Cinemachine;
 
 #region Interfaces
 
@@ -362,6 +364,7 @@ public struct PlayerUI
     public CardPositioner CardPositioner;
     public SpriteRenderer PlayerIcon;
     public TextMeshPro PlayerName;
+    public  CinemachineCamera PlayerCamera;
 }
 
 [Serializable]
