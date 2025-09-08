@@ -258,4 +258,18 @@ public struct LobbyUIRefs
     public TextMeshProUGUI StartButtonText;
     public Button StartButton;
     public Transform LobbyPlayersHolder;
+    
+}
+[System.Serializable]
+public struct InGameSetUpUIRefs
+{
+    public GameObject InGameSetUpPanel;
+    public Button CloseButton;
+    //public TextMeshProUGUI DeckTypeText;
+    public TextMeshProUGUI DeckSuitsNumberText;
+    public Button DeckSuitsNumberButton;
+    public TextMeshProUGUI CustomSuitsRanksText;
+    public Button Continue;
+    public Button StartGameButton;
+    public Button CancelButton;
 }
