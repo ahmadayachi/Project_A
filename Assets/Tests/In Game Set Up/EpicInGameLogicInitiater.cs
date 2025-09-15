@@ -748,13 +748,13 @@
 //    private void SinglePeerPlayerInfoSetUp()
 //    {
 //        _dataHolder.RunTimePlayersData.Clear();
-//     //setting player shet 
+//        //setting player shet 
 //        int playerIndex = 1;
 //        foreach (var item in _singlePeerHostRunner.ActivePlayers)
 //        {
 //            var playerData = new RunTimePlayerData();
 //            playerData.PlayerRef = item;
-//            playerData.PlayerName = Player+playerIndex.ToString();
+//            playerData.PlayerName = Player + playerIndex.ToString();
 //            playerData.PlayerID = Guid.NewGuid().ToString();
 //            playerIndex++;
 //            playerData.AuthorityAssigned = false;
@@ -769,7 +769,7 @@
 
 //    }
 
-   
+
 //    #endregion SinglePeerStart
 //}
 
