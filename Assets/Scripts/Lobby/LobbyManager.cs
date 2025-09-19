@@ -14,7 +14,6 @@ public class LobbyManager : NetworkBehaviour
     public const string IsReady = "IsReady";
     public const string NotReady = "Not Ready";
     public const string Start = "Start";
-    public const string Next = "Next";
 
     [SerializeField]
     private LobbyUIRefs _lobbyUIRefs;
@@ -317,7 +316,6 @@ public class LobbyManager : NetworkBehaviour
             _selectedDeckType = DeckType.Belote;
             _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
             _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.StartButtonText.text = Start;
         }
     }
 
@@ -328,7 +326,6 @@ public class LobbyManager : NetworkBehaviour
             _selectedDeckType = DeckType.Standard;
             _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
             _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.StartButtonText.text = Start;
         }
     }
 
@@ -339,7 +336,6 @@ public class LobbyManager : NetworkBehaviour
             _selectedDeckType = DeckType.Custom;
             _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
             _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.StartButtonText.text = Next;
         }
     }
     private void ResetCustomComnbination()
@@ -394,72 +390,96 @@ public class LobbyManager : NetworkBehaviour
         }
         _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationIndicator.sprite = _lobbyUIRefs.InGameSetUpUIRefs.RedIndicator;
     }
-    private void InitCustomCombinationPanel()
+
+    private void PhazeOneNextButton()
     {
-        _lobbyUIRefs.InGameSetUpUIRefs.ConfirmButton.onClick.RemoveAllListeners();
-        _lobbyUIRefs.InGameSetUpUIRefs.ConfirmButton.onClick.AddListener(ConfirmCustomCombination);
-        _lobbyUIRefs.InGameSetUpUIRefs.ResetButton.onClick.RemoveAllListeners();
-        _lobbyUIRefs.InGameSetUpUIRefs.ResetButton.onClick.AddListener(ResetCustomComnbination);
-        InitCustomCombinationCards();
-    }
-    private void NextButton()
-    {
+        _lobbyUIRefs.InGameSetUpUIRefs.FirstPhazeOptionsPanel.SetActive(false);
         if (_selectedDeckType == DeckType.Custom)
-        {
-            _lobbyUIRefs.InGameSetUpUIRefs.FazeOneOptions.SetActive(false);
             _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.SetActive(true);
-        }
         else
-            StartGame();
+        {
+            CalculateMaxCardsInHand();
+            _lobbyUIRefs.InGameSetUpUIRefs.ThirdPhazeOptionsPanel.SetActive(true);
+        }
+    }
+    private void PhazeTwoNextButton()
+    {
+        if(_selectedCustomDeckCards.Count < 8) return;
+        _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.SetActive(false);
+        CalculateMaxCardsInHand();
+        _lobbyUIRefs.InGameSetUpUIRefs.ThirdPhazeOptionsPanel.SetActive(true);
+    }
+    private void PhazeThreeStartButton()
+    {
+        StartGame();
     }
     public void CloseButton()
     {
-        if (_selectedDeckType == DeckType.Custom && _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.activeSelf)
-        {
+        var inGameUIRefs = _lobbyUIRefs.InGameSetUpUIRefs;
+
+        if (_selectedDeckType == DeckType.Custom)
             ResetCustomComnbination();
-            _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.SetActive(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.FazeOneOptions.SetActive(true);
-        }
-        else
-        {
-            _selectedDeckType = DeckType.Standard;
-            _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(false);
-        }
+        _selectedDeckType = DeckType.Belote;
+        inGameUIRefs.BeloteDeckTypeToglle.isOn = true;
+        inGameUIRefs.StandartDeckTypeToggle.isOn = false;
+        inGameUIRefs.CustomDeckTypeToggle.isOn = false;
+        inGameUIRefs.InGameSetUpPanel.SetActive(false);
+        inGameUIRefs.CustomCombinationPanel.SetActive(false);
+        inGameUIRefs.ThirdPhazeOptionsPanel.SetActive(false);
+        inGameUIRefs.FirstPhazeOptionsPanel.SetActive(true);
     }
     private void InGameLogicPanelSetUp()
     {
-        _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(false);
-        _lobbyUIRefs.InGameSetUpUIRefs.FazeOneOptions.SetActive(true);
-        _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.SetActive(false);
+        var inGameUIRefs = _lobbyUIRefs.InGameSetUpUIRefs;
 
-        _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text = 2.ToString();
-        _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberButton.onClick.AddListener(SuitNumber);
+        inGameUIRefs.InGameSetUpPanel.SetActive(false);
+        inGameUIRefs.FirstPhazeOptionsPanel.SetActive(true);
+        inGameUIRefs.CustomCombinationPanel.SetActive(false);
+
+        inGameUIRefs.CloseButton.onClick.RemoveAllListeners();
+        inGameUIRefs.CloseButton.onClick.AddListener(CloseButton);
+        inGameUIRefs.OpenPanelButton.gameObject.SetActive(true);
+        inGameUIRefs.OpenPanelButton.onClick.RemoveAllListeners();
+        inGameUIRefs.OpenPanelButton.onClick.AddListener(OpenIngameSettingsPanelButton);
+
+        //Setting up Phaze one UI
+        inGameUIRefs.DeckSuitsNumberText.text = 2.ToString();
+        inGameUIRefs.DeckSuitsNumberButton.onClick.AddListener(SuitNumber);
 
         _selectedDeckType = DeckType.Belote;
-        _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.isOn = true;
-        _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.isOn = false;
-        _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.isOn = false;
+        inGameUIRefs.BeloteDeckTypeToglle.isOn = true;
+        inGameUIRefs.StandartDeckTypeToggle.isOn = false;
+        inGameUIRefs.CustomDeckTypeToggle.isOn = false;
+        inGameUIRefs.BeloteDeckTypeToglle.onValueChanged.AddListener(Belote);
+        inGameUIRefs.StandartDeckTypeToggle.onValueChanged.AddListener(Standart);
+        inGameUIRefs.CustomDeckTypeToggle.onValueChanged.AddListener(Custom);
+        inGameUIRefs.NextButton.onClick.RemoveAllListeners();
+        inGameUIRefs.NextButton.onClick.AddListener(PhazeOneNextButton);
 
-        _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.onValueChanged.AddListener(Belote);
-        _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.onValueChanged.AddListener(Standart);
-        _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.onValueChanged.AddListener(Custom);
+        //Setting up Phaze two UI
+        inGameUIRefs.SecondNextButton.onClick.RemoveAllListeners();
+        inGameUIRefs.SecondNextButton.onClick.AddListener(ConfirmCustomCombination);
+        inGameUIRefs.ResetButton.onClick.RemoveAllListeners();
+        inGameUIRefs.ResetButton.onClick.AddListener(ResetCustomComnbination);
+        InitCustomCombinationCards();
+        inGameUIRefs.SecondNextButton.onClick.RemoveAllListeners();
+        inGameUIRefs.SecondNextButton.onClick.AddListener(PhazeTwoNextButton);
 
-        _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.minValue = 2;
-        _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.wholeNumbers = true;
-        _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.onValueChanged.RemoveAllListeners();
-        _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.onValueChanged.AddListener(MaxCardsInHandSlider);
-        CalculateMaxCardsInHand();
 
-        InitCustomCombinationPanel();
-
-        _lobbyUIRefs.InGameSetUpUIRefs.StartGameButton.onClick.RemoveAllListeners();
-        _lobbyUIRefs.InGameSetUpUIRefs.StartGameButton.onClick.AddListener(NextButton);
-
-        _lobbyUIRefs.InGameSetUpUIRefs.CloseButton.onClick.RemoveAllListeners();
-        _lobbyUIRefs.InGameSetUpUIRefs.CloseButton.onClick.AddListener(CloseButton);
+        //Setting up Phaze three
+        inGameUIRefs.MaxCardsInHandSlider.minValue = 2;
+        inGameUIRefs.MaxCardsInHandSlider.wholeNumbers = true;
+        inGameUIRefs.MaxCardsInHandSlider.onValueChanged.RemoveAllListeners();
+        inGameUIRefs.MaxCardsInHandSlider.onValueChanged.AddListener(MaxCardsInHandSlider);
+        inGameUIRefs.StartGameButton.onClick.RemoveAllListeners();
+        inGameUIRefs.StartGameButton.onClick.AddListener(PhazeThreeStartButton);
     }
 
-
+    private void OpenIngameSettingsPanelButton()
+    {
+        CalculateMaxCardsInHand();
+        _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(true);
+    }
 
     #endregion
 
@@ -480,7 +500,9 @@ public struct LobbyUIRefs
 public struct InGameSetUpUIRefs
 {
     public GameObject InGameSetUpPanel;
-    public GameObject FazeOneOptions;
+    public GameObject FirstPhazeOptionsPanel;
+    public GameObject ThirdPhazeOptionsPanel;
+    public Button OpenPanelButton;
     // First Faze Panel 
     public Button CloseButton;
     public TextMeshProUGUI DeckSuitsNumberText;
@@ -488,11 +510,7 @@ public struct InGameSetUpUIRefs
     public Toggle StandartDeckTypeToggle;
     public Toggle CustomDeckTypeToggle;
     public Toggle BeloteDeckTypeToglle;
-    public TextMeshProUGUI MixMaxCardsInHandsText;
-    public TextMeshProUGUI MaxCardsInHandsText;
-    public Slider MaxCardsInHandSlider;
-    public Button StartGameButton;
-    public TextMeshProUGUI StartButtonText;
+    public Button NextButton;
     // Second Faze Panel
     public GameObject CustomCombinationPanel;
     public Transform FirstCombinationHolder;
@@ -502,5 +520,10 @@ public struct InGameSetUpUIRefs
     public Sprite GreenIndicator;
     public Sprite RedIndicator;
     public Button ResetButton;
-    public Button ConfirmButton;
+    public Button SecondNextButton;
+    // Third Faze Panel
+    public TextMeshProUGUI MixMaxCardsInHandsText;
+    public TextMeshProUGUI MaxCardsInHandsText;
+    public Slider MaxCardsInHandSlider;
+    public Button StartGameButton;
 }
