@@ -1,5 +1,6 @@
 using Steamworks;
 using System.Collections.Generic;
+using NUnit.Framework.Constraints;
 using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
@@ -11,14 +12,16 @@ using UnityEngine.UI;
 
 public class LobbyManager : NetworkBehaviour
 {
-    public const string IsReady = "IsReady";
-    public const string NotReady = "Not Ready";
-    public const string Start = "Start";
+    private const string IsReady = "Is Ready";
+    private const string NotReady = "Not Ready";
+    private const string Start = "Start";
+    private const string InGameScene = "InGameScene";
+    private const CardSuit CustomDeckSuit = CardSuit.Spades;
 
     [SerializeField]
     private LobbyUIRefs _lobbyUIRefs;
-    private NetworkVariable<FixedString64Bytes> LobbyName = new NetworkVariable<FixedString64Bytes>();
-    private NetworkVariable<FixedString64Bytes> LobbyID = new NetworkVariable<FixedString64Bytes>();
+    private NetworkVariable<FixedString64Bytes> _lobbyName = new NetworkVariable<FixedString64Bytes>();
+    private NetworkVariable<FixedString64Bytes> _lobbyID = new NetworkVariable<FixedString64Bytes>();
 
     private List<NetworkObject> _lobbyPlayersNetObjects = new List<NetworkObject>();
     private LobbyPlayer _localLobbyPlayer;
@@ -29,21 +32,22 @@ public class LobbyManager : NetworkBehaviour
     private List<byte> _customDeckCards = new List<byte>();
     private List<byte> _selectedCustomDeckCards = new List<byte>();
     private List<CustomCombinationCard> _customCombinationCards = new List<CustomCombinationCard>();
-    private CardSuit _customDeckSuit = CardSuit.Spades;
+    int _maxCardsInHand;
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        LobbyName.OnValueChanged += OnLobbyNameChanged;
-        LobbyID.OnValueChanged += OnLobbyIDChanged;
+        _lobbyName.OnValueChanged += OnLobbyNameChanged;
+        _lobbyID.OnValueChanged += OnLobbyIDChanged;
 
         NetworkManager.Singleton.OnConnectionEvent += OnConnectionEvent;
         if (IsHost)
         {
-            //grabing session name 
-            LobbyName.Value = AssetLoader.RunTimeDataHolder.LobbySettings.LobbyName;
-            //grabing session ID
+            //grabbing session name 
+            _lobbyName.Value = AssetLoader.RunTimeDataHolder.LobbySettings.LobbyName;
+
+            //grabbing session ID
             if (AuthenticationManager.Instance.SteamAuthentication)
-                LobbyID.Value = SteamClient.SteamId.ToString();
+                _lobbyID.Value = SteamClient.SteamId.ToString();
 
             //spawning host lobby player 
             SpawnLobbyPlayer(NetworkManager.Singleton.LocalClientId);
@@ -55,8 +59,8 @@ public class LobbyManager : NetworkBehaviour
         {
             //sync first tick for client 
             if (AuthenticationManager.Instance.SteamAuthentication)
-                _lobbyUIRefs.LobbyID.text = LobbyID.Value.ToString();
-            _lobbyUIRefs.LobbyName.text = LobbyName.Value.ToString();
+                _lobbyUIRefs.LobbyID.text = _lobbyID.Value.ToString();
+            _lobbyUIRefs.LobbyName.text = _lobbyName.Value.ToString();
         }
         InitStartButtonUI();
         _lobbyUIRefs.CoppyButton.onClick.AddListener(CopyToClipboard);
@@ -73,6 +77,7 @@ public class LobbyManager : NetworkBehaviour
     }
 
     #region Logic
+
     public void SetUpLocalPlayer(LobbyPlayer player)
     {
         _localLobbyPlayer = player;
@@ -85,24 +90,18 @@ public class LobbyManager : NetworkBehaviour
         else
             _lobbyUIRefs.StartButton.onClick.AddListener(_localLobbyPlayer.IsReadyRpc);
     }
-    public void StartGame()
+    private void StartGame()
     {
-        if (SetUpPlayersData())
-        {
-            SetUpDeckInfo();
-            string sceneName = "InGameScene";
-            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+        if (!SetUpPlayersData() || !SetUpDeckInfo())
+            return;
+        NetworkManager.Singleton.SceneManager.LoadScene(InGameScene, LoadSceneMode.Single);
 #if Log
-            LogManager.Log($"[{nameof(LobbyManager)}] - Host is starting a Game!", UnityEngine.Color.green);
+        LogManager.Log($"[{nameof(LobbyManager)}] - Host is starting a Game!", UnityEngine.Color.green);
 #endif
-        }
     }
     private void OnIsReadyChangedCallBack(bool isReady)
     {
-        if (isReady)
-            _lobbyUIRefs.StartButtonText.text = IsReady;
-        else
-            _lobbyUIRefs.StartButtonText.text = NotReady;
+        _lobbyUIRefs.StartButtonText.text = isReady ? IsReady : NotReady;
     }
     private bool SetUpPlayersData()
     {
@@ -113,7 +112,7 @@ public class LobbyManager : NetworkBehaviour
 #endif
             return false;
         }
-        //reseting data 
+        //resetting data 
         AssetLoader.RunTimeDataHolder.ResetRuntimePLayerData();
 
         foreach (var item in _lobbyPlayersNetObjects)
@@ -138,18 +137,64 @@ public class LobbyManager : NetworkBehaviour
 
         return true;
     }
-    private void SetUpDeckInfo()
+    private bool SetUpDeckInfo()
     {
-        //reseting deck info
+        //resetting deck info
         AssetLoader.RunTimeDataHolder.ResetDeckInfo();
 
-        //injecting a Standard Deck info 
         DeckInfo deckInfo = new DeckInfo();
-        deckInfo.DeckType = DeckType.Belote;
-        deckInfo.SuitsNumber = (byte)_lobbyPlayersNetObjects.Count;
-        deckInfo.CustomSuitRanks = null;
+        // Deck type 
+        deckInfo.DeckType = _selectedDeckType;
+        // setting suits number
+        if (byte.TryParse(_lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text, out byte suitsNumber))
+        {
+            #if Log
+            LogManager.Log($"[{nameof(LobbyManager)}] - Suits Number Parsed Successfully =>{suitsNumber} ", UnityEngine.Color.green, LogManager.ValueInformationLog);
+            #endif
+        }
+        else
+        {
+            #if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Failed Parsing Suits Number! suits value=>{_lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text}");
+            #endif
+        }
+        //checking suits number cant be 0 
+        if (suitsNumber <= 0)
+        {
+            #if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Suits Number Cant be 0 or negative suits value=>{deckInfo.SuitsNumber}");
+            #endif
+            return false;
+        }
+        deckInfo.SuitsNumber = suitsNumber;
+
+        //custom cards cant be null 
+        if (deckInfo.DeckType == DeckType.Custom)
+        {
+            deckInfo.CustomSuitRanks = _selectedCustomDeckCards.ToByteArray();
+            
+            if (deckInfo.CustomSuitRanks == null)
+            {
+                #if Log
+                LogManager.LogError($"[{nameof(LobbyManager)}] - => Custom Suit Ranks Cant be null!");
+                #endif
+                return false;
+            }
+        }
         AssetLoader.RunTimeDataHolder.DeckInfo = deckInfo;
+        
+        //checking max cards in hand value it cant be 0
+        if (_maxCardsInHand <= 0)
+        {
+            #if Log
+            LogManager.LogError($"[{nameof(LobbyManager)}] - Max Cards in Hand cant 0 or negative! value=>{_maxCardsInHand}");
+            #endif
+            return false;
+        }
+        AssetLoader.RunTimeDataHolder.MixMaxPlayerCardsInHand =  (byte)_maxCardsInHand;
+        return true;
     }
+    
     private bool PlayerIsValid(LobbyPlayer player)
     {
         if (player == null)
@@ -160,7 +205,7 @@ public class LobbyManager : NetworkBehaviour
             return false;
         }
 
-        if (player.IsReady.Value != true)
+        if (!player.IsReady.Value)
         {
 #if Log
             LogManager.Log($"[{nameof(LobbyManager)}] - Player=>{player} is not ready!", UnityEngine.Color.yellow, LogManager.ValueInformationLog);
@@ -193,28 +238,27 @@ public class LobbyManager : NetworkBehaviour
         }
         return true;
     }
-    private void SpawnLobbyPlayer(ulong ClientID)
+    private void SpawnLobbyPlayer(ulong clientID)
     {
-        var lobbbyPlayerGO = Instantiate(AssetLoader.PrefabContainer.LobbyPlayerPrefab);
-        var lobbyPlayerNetObject = lobbbyPlayerGO.GetComponent<NetworkObject>();
-        lobbyPlayerNetObject.SpawnAsPlayerObject(ClientID, true);
+        var lobbyPlayerGo = Instantiate(AssetLoader.PrefabContainer.LobbyPlayerPrefab);
+        var lobbyPlayerNetObject = lobbyPlayerGo.GetComponent<NetworkObject>();
+        lobbyPlayerNetObject.SpawnAsPlayerObject(clientID, true);
         lobbyPlayerNetObject.transform.SetParent(_lobbyUIRefs.LobbyPlayersHolder, false);
         _lobbyPlayersNetObjects.Add(lobbyPlayerNetObject);
     }
-    private void DespawnLobbyPlayer(ulong ClientID)
+    private void DespawnLobbyPlayer(ulong clientID)
     {
-        var lobbyPlayer = _lobbyPlayersNetObjects.Find(x => x.OwnerClientId == ClientID);
+        var lobbyPlayer = _lobbyPlayersNetObjects.Find(x => x.OwnerClientId == clientID);
         lobbyPlayer.Despawn();
     }
+
     #endregion
 
-    #region Lobby UI  
-    public void InitStartButtonUI()
+    #region Lobby UI
+
+    private void InitStartButtonUI()
     {
-        if (IsHost)
-            _lobbyUIRefs.StartButtonText.text = Start;
-        else
-            _lobbyUIRefs.StartButtonText.text = NotReady;
+        _lobbyUIRefs.StartButtonText.text = IsHost ? Start : NotReady;
     }
     public void SetUpClientIsReadyButton(UnityAction rpc)
     {
@@ -225,9 +269,11 @@ public class LobbyManager : NetworkBehaviour
     {
         GUIUtility.systemCopyBuffer = _lobbyUIRefs.LobbyID.text;
     }
+
     #endregion
 
     #region netcode Call Backs
+
     private void OnConnectionEvent(NetworkManager arg1, ConnectionEventData arg2)
     {
 #if Log
@@ -257,44 +303,40 @@ public class LobbyManager : NetworkBehaviour
     {
         _lobbyUIRefs.LobbyID.text = newID.ToString();
     }
+
     #endregion
 
     #region InGame SetUp UI Logic
 
-    public void ToggleInGameSetUpUIPanel(bool Toggle)
+    public void ToggleInGameSetUpUIPanel(bool toggle)
     {
-        _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(Toggle);
+        _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(toggle);
     }
 
     private void SuitNumber()
     {
-        string CurrentValue = _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text;
-        _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text = NumberBumber(CurrentValue);
+        string currentValue = _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text;
+        _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text = Extention.NumberBumpber(currentValue);
         CalculateMaxCardsInHand();
-    }
-    private string NumberBumber(string numberText)
-    {
-        int number = int.Parse(numberText);
-        return (number == 8 ? 1 : ++number).ToString();
     }
     private void CalculateMaxCardsInHand()
     {
         int playersNumber = _lobbyPlayersNetObjects.Count;
         int totalSuitsNumber = int.Parse(_lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text);
-        int CardsInSuitNumber = 0;
+        int cardsInSuitNumber = 0;
         int mixMaxCardsInHand = 0;
 
         switch (_selectedDeckType)
         {
-            case DeckType.Standard: CardsInSuitNumber = 13; break;
-            case DeckType.Belote: CardsInSuitNumber = 8; break;
-            case DeckType.Custom: CardsInSuitNumber = _customDeckCards.Count; break;
+            case DeckType.Standard: cardsInSuitNumber = 13; break;
+            case DeckType.Belote: cardsInSuitNumber = 8; break;
+            case DeckType.Custom: cardsInSuitNumber = _customDeckCards.Count; break;
         }
 
-        int DeckCount = CardsInSuitNumber * totalSuitsNumber;
+        int deckCount = cardsInSuitNumber * totalSuitsNumber;
         int playerCards = 1;
 
-        while ((DeckCount - (playerCards * playersNumber) > 0))
+        while((deckCount - (playerCards * playersNumber) > 0))
         {
             playerCards++;
         }
@@ -302,43 +344,43 @@ public class LobbyManager : NetworkBehaviour
         _lobbyUIRefs.InGameSetUpUIRefs.MixMaxCardsInHandsText.text = mixMaxCardsInHand.ToString();
         _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.maxValue = mixMaxCardsInHand;
         _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.wholeNumbers = true;
+        if (_maxCardsInHand == 0)
+            _maxCardsInHand = (int)_lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.minValue;
     }
 
 
     private void MaxCardsInHandSlider(float value)
     {
         _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandsText.text = ((int)value).ToString();
+        _maxCardsInHand = (int)value;
     }
     private void Belote(bool isOn)
     {
-        if (isOn)
-        {
-            _selectedDeckType = DeckType.Belote;
-            _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
-        }
+        if (!isOn)
+            return;
+        _selectedDeckType = DeckType.Belote;
+        _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
+        _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
     }
 
-    private void Standart(bool isOn)
+    private void Standard(bool isOn)
     {
-        if (isOn)
-        {
-            _selectedDeckType = DeckType.Standard;
-            _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
-        }
+        if (!isOn)
+            return;
+        _selectedDeckType = DeckType.Standard;
+        _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
+        _lobbyUIRefs.InGameSetUpUIRefs.CustomDeckTypeToggle.SetIsOnWithoutNotify(false);
     }
 
     private void Custom(bool isOn)
     {
-        if (isOn)
-        {
-            _selectedDeckType = DeckType.Custom;
-            _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
-            _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
-        }
+        if (!isOn)
+            return;
+        _selectedDeckType = DeckType.Custom;
+        _lobbyUIRefs.InGameSetUpUIRefs.BeloteDeckTypeToglle.SetIsOnWithoutNotify(false);
+        _lobbyUIRefs.InGameSetUpUIRefs.StandartDeckTypeToggle.SetIsOnWithoutNotify(false);
     }
-    private void ResetCustomComnbination()
+    private void ResetCustomCombination()
     {
         _selectedCustomDeckCards.Clear();
         _customDeckCards.Clear();
@@ -349,6 +391,7 @@ public class LobbyManager : NetworkBehaviour
             item.gameObject.transform.SetParent(_lobbyUIRefs.InGameSetUpUIRefs.FirstCombinationHolder);
             _customDeckCards.Add(item.CardRank);
         }
+
         _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationIndicator.sprite = _lobbyUIRefs.InGameSetUpUIRefs.RedIndicator;
     }
     private void OnCustomCardClicked(CustomCombinationCard card)
@@ -382,7 +425,7 @@ public class LobbyManager : NetworkBehaviour
         {
             CustomCombinationCard customCard = Instantiate(_lobbyUIRefs.InGameSetUpUIRefs.CustomDeckCardPrefab, _lobbyUIRefs.InGameSetUpUIRefs.FirstCombinationHolder);
             customCard.CardRank = (byte)index;
-            customCard.CardImage.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(customCard.CardRank, _customDeckSuit);
+            customCard.CardImage.sprite = AssetLoader.DeckContainerInstance.GetSuitSprite(customCard.CardRank, CustomDeckSuit);
             customCard.CardButton.onClick.RemoveAllListeners();
             customCard.CardButton.onClick.AddListener(() => OnCustomCardClicked(customCard));
             _customCombinationCards.Add(customCard);
@@ -404,7 +447,7 @@ public class LobbyManager : NetworkBehaviour
     }
     private void PhazeTwoNextButton()
     {
-        if(_selectedCustomDeckCards.Count < 8) return;
+        if (_selectedCustomDeckCards.Count < 8) return;
         _lobbyUIRefs.InGameSetUpUIRefs.CustomCombinationPanel.SetActive(false);
         CalculateMaxCardsInHand();
         _lobbyUIRefs.InGameSetUpUIRefs.ThirdPhazeOptionsPanel.SetActive(true);
@@ -418,7 +461,7 @@ public class LobbyManager : NetworkBehaviour
         var inGameUIRefs = _lobbyUIRefs.InGameSetUpUIRefs;
 
         if (_selectedDeckType == DeckType.Custom)
-            ResetCustomComnbination();
+            ResetCustomCombination();
         _selectedDeckType = DeckType.Belote;
         inGameUIRefs.BeloteDeckTypeToglle.isOn = true;
         inGameUIRefs.StandartDeckTypeToggle.isOn = false;
@@ -451,7 +494,7 @@ public class LobbyManager : NetworkBehaviour
         inGameUIRefs.StandartDeckTypeToggle.isOn = false;
         inGameUIRefs.CustomDeckTypeToggle.isOn = false;
         inGameUIRefs.BeloteDeckTypeToglle.onValueChanged.AddListener(Belote);
-        inGameUIRefs.StandartDeckTypeToggle.onValueChanged.AddListener(Standart);
+        inGameUIRefs.StandartDeckTypeToggle.onValueChanged.AddListener(Standard);
         inGameUIRefs.CustomDeckTypeToggle.onValueChanged.AddListener(Custom);
         inGameUIRefs.NextButton.onClick.RemoveAllListeners();
         inGameUIRefs.NextButton.onClick.AddListener(PhazeOneNextButton);
@@ -460,7 +503,7 @@ public class LobbyManager : NetworkBehaviour
         inGameUIRefs.SecondNextButton.onClick.RemoveAllListeners();
         inGameUIRefs.SecondNextButton.onClick.AddListener(ConfirmCustomCombination);
         inGameUIRefs.ResetButton.onClick.RemoveAllListeners();
-        inGameUIRefs.ResetButton.onClick.AddListener(ResetCustomComnbination);
+        inGameUIRefs.ResetButton.onClick.AddListener(ResetCustomCombination);
         InitCustomCombinationCards();
         inGameUIRefs.SecondNextButton.onClick.RemoveAllListeners();
         inGameUIRefs.SecondNextButton.onClick.AddListener(PhazeTwoNextButton);
@@ -496,6 +539,7 @@ public struct LobbyUIRefs
     public Transform LobbyPlayersHolder;
     public InGameSetUpUIRefs InGameSetUpUIRefs;
 }
+
 [System.Serializable]
 public struct InGameSetUpUIRefs
 {

@@ -1,4 +1,5 @@
 //using Fusion;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ public static class Extention
     //    else
     //        return _object.IsValid;
     //}
-    
+
     public static bool IsObjectUsable(NetworkObjectReference networkObjectRef)
     {
         NetworkObject networkObject;
@@ -180,7 +181,7 @@ public static class Extention
             }
             ++deckIndex;
             needJump = false;
-        } while (deckIndex < deckLength);
+        } while(deckIndex < deckLength);
     }
     public static bool AddCard(this CardInfo[] array, CardInfo card)
     {
@@ -292,7 +293,9 @@ public static class Extention
         for (int index = 0; index < array.Length; index++)
         {
             if (AreSameCard(array[index], card))
-            { return true; }
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -303,7 +306,9 @@ public static class Extention
         for (int index = 0; index < array.Length; index++)
         {
             if (array[index].Rank == rank)
-            { return true; }
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -542,7 +547,6 @@ public static class Extention
     //    }
     //    return false;
     //}
-
     public static bool IsNullOrHaveNullElements(this IEnumerable<IPlayer> players)
     {
         if (players == null) return true;
@@ -580,7 +584,9 @@ public static class Extention
         if (arrayCount == 0)
         {
             //returning an rmpty array
-            return new byte[] { };
+            return new byte[]
+            {
+            };
         }
         byte[] convertedArray = new byte[arrayCount];
         int jindex = 0;
@@ -653,7 +659,7 @@ public static class Extention
     //}
     public static void AddPlayerID(this NetworkList<FixedString64Bytes> list, string playerID)
     {
-        if (string.IsNullOrEmpty(playerID)|| list.Contains(playerID)) return;
+        if (string.IsNullOrEmpty(playerID) || list.Contains(playerID)) return;
         list.Add(playerID);
     }
 
@@ -700,6 +706,7 @@ public static class Extention
     }
 
     #endregion UI
+
     public static int ValidCardsCount(this List<byte> list)
     {
         int count = 0;
@@ -714,6 +721,7 @@ public static class Extention
     {
         return list.ValidCardsCount() == 0;
     }
+
     #region byte Array
 
     public static int ValidCardsCount(this byte[] array)
@@ -782,7 +790,7 @@ public static class Extention
         if (bruteValue == 0)
         {
 #if Log
-            LogManager.Log($"Diffused Deck Brute Value is 0!",Color.yellow,LogManager.ValueInformationLog);
+            LogManager.Log($"Diffused Deck Brute Value is 0!", Color.yellow, LogManager.ValueInformationLog);
 #endif
         }
         return bruteValue;
@@ -1294,14 +1302,19 @@ public static class Extention
     public static int ValidPlayerIDCount(this NetworkList<FixedString64Bytes> list)
     {
         int counter = 0;
-        
-        if(list.Count == 0) return counter;
 
-        foreach (var item in list) 
+        if (list.Count == 0) return counter;
+
+        foreach (var item in list)
         {
-            if(!item.IsEmpty)
+            if (!item.IsEmpty)
                 counter++;
         }
         return counter;
+    }
+    public static string NumberBumpber(string numberText)
+    {
+        int number = int.Parse(numberText);
+        return (number == 8 ? 1 : ++number).ToString();
     }
 }

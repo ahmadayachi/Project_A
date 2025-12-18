@@ -1004,13 +1004,21 @@ public class OnlineMode : GameModeBase
 #endif
             return;
         }
-        byte playerCards = 1;
-        int currentDeckSize = CardManager.Deck.Length;
-        while ((currentDeckSize - (playerCards * _gameManager.PlayersNumber) > 0))
+//         byte playerCards = 1;
+//         int currentDeckSize = CardManager.Deck.Length;
+//         while ((currentDeckSize - (playerCards * _gameManager.PlayersNumber) > 0))
+//         {
+//             playerCards++;
+//         }
+//         _gameManager.MaxPlayerCards.Value = (byte)(playerCards - 1);
+        if (AssetLoader.RunTimeDataHolder.MixMaxPlayerCardsInHand == 0)
         {
-            playerCards++;
+            #if Log
+            LogManager.LogError("MixMaxPlayerCardsInHand Cant be 0!");
+            #endif
+            return;
         }
-        _gameManager.MaxPlayerCards.Value = (byte)(playerCards - 1);
+        _gameManager.MaxPlayerCards.Value = AssetLoader.RunTimeDataHolder.MixMaxPlayerCardsInHand;
     }
     private void UploadDeckInfo()
     {

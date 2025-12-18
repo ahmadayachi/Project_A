@@ -263,7 +263,7 @@ public class GameManager : NetworkBehaviour
         //setting CallBackManager
         SetUpCallBackManager();
 
-        //cheking if the host need to start the Game
+        //checking if the host need to start the Game
         if (CanStartGame())
         {
 #if AUTOSTARTGAMECONTROL
@@ -272,7 +272,7 @@ public class GameManager : NetworkBehaviour
                 HostStartGame();
         }
         else
-        //cheking if immidiate simulation set up is needed
+        //checking if immediate simulation set up is needed
         if (NeedSimuationSetUp())
         {
             _gameModeManager.StartSimulationSetUp();

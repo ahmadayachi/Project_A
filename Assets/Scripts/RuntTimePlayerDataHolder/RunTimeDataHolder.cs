@@ -7,7 +7,7 @@ public class RunTimeDataHolder : ScriptableObject
     public List<RunTimePlayerData> RunTimePlayersData = new List<RunTimePlayerData>();
     public DeckInfo DeckInfo;
     public LobbyData LobbySettings;
-    //public PlayerData LocalPlayerInfo;
+    public byte MixMaxPlayerCardsInHand;
     public RunTimePlayerData LocalPlayerInfo;
     public void ResetRuntimePLayerData() 
     {
