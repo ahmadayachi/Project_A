@@ -51,7 +51,7 @@ public class LobbyManager : NetworkBehaviour
 
             //spawning host lobby player 
             SpawnLobbyPlayer(NetworkManager.Singleton.LocalClientId);
-
+            
             //setting InGame SetUp UI Logic
             InGameLogicPanelSetUp();
         }
@@ -172,7 +172,7 @@ public class LobbyManager : NetworkBehaviour
         if (deckInfo.DeckType == DeckType.Custom)
         {
             deckInfo.CustomSuitRanks = _selectedCustomDeckCards.ToByteArray();
-            
+
             if (deckInfo.CustomSuitRanks == null)
             {
                 #if Log
@@ -182,7 +182,7 @@ public class LobbyManager : NetworkBehaviour
             }
         }
         AssetLoader.RunTimeDataHolder.DeckInfo = deckInfo;
-        
+
         //checking max cards in hand value it cant be 0
         if (_maxCardsInHand <= 0)
         {
@@ -191,10 +191,10 @@ public class LobbyManager : NetworkBehaviour
             #endif
             return false;
         }
-        AssetLoader.RunTimeDataHolder.MixMaxPlayerCardsInHand =  (byte)_maxCardsInHand;
+        AssetLoader.RunTimeDataHolder.MixMaxPlayerCardsInHand = (byte)_maxCardsInHand;
         return true;
     }
-    
+
     private bool PlayerIsValid(LobbyPlayer player)
     {
         if (player == null)
@@ -294,6 +294,7 @@ public class LobbyManager : NetworkBehaviour
             case ConnectionEvent.ClientConnected: SpawnLobbyPlayer(arg2.ClientId); break;
             case ConnectionEvent.ClientDisconnected: DespawnLobbyPlayer(arg2.ClientId); break;
         }
+        CalculateMaxCardsInHand();
     }
     private void OnLobbyNameChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
@@ -313,7 +314,7 @@ public class LobbyManager : NetworkBehaviour
         _lobbyUIRefs.InGameSetUpUIRefs.InGameSetUpPanel.SetActive(toggle);
     }
 
-    private void SuitNumber()
+    private void SetUpSuitNumber()
     {
         string currentValue = _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text;
         _lobbyUIRefs.InGameSetUpUIRefs.DeckSuitsNumberText.text = Extention.NumberBumpber(currentValue);
@@ -344,7 +345,8 @@ public class LobbyManager : NetworkBehaviour
         _lobbyUIRefs.InGameSetUpUIRefs.MixMaxCardsInHandsText.text = mixMaxCardsInHand.ToString();
         _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.maxValue = mixMaxCardsInHand;
         _lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.wholeNumbers = true;
-        if (_maxCardsInHand == 0)
+        //initializing with min value 
+        // if (_maxCardsInHand == 0)
             _maxCardsInHand = (int)_lobbyUIRefs.InGameSetUpUIRefs.MaxCardsInHandSlider.minValue;
     }
 
@@ -487,7 +489,7 @@ public class LobbyManager : NetworkBehaviour
 
         //Setting up Phaze one UI
         inGameUIRefs.DeckSuitsNumberText.text = 2.ToString();
-        inGameUIRefs.DeckSuitsNumberButton.onClick.AddListener(SuitNumber);
+        inGameUIRefs.DeckSuitsNumberButton.onClick.AddListener(SetUpSuitNumber);
 
         _selectedDeckType = DeckType.Belote;
         inGameUIRefs.BeloteDeckTypeToglle.isOn = true;
