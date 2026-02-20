@@ -38,9 +38,20 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _FlowSpeed: -0.7
+    - _NoisePower: 5
+    - _NoiseScale: 21.09
     - _QueueControl: 0
     - _QueueOffset: 0
-    m_Colors: []
+    - _distortionScale: 13.79
+    - _emisionIntensity: 3.12
+    - _twirlStrengh: 20
+    m_Colors:
+    - _ColorOne: {r: 0.0056813955, g: 0.2, b: 0, a: 1}
+    - _ColorTwo: {r: 0.001375006, g: 0.007665094, b: 0, a: 1}
+    - _DifuseColor: {r: 0, g: 0, b: 0, a: 1}
+    - _baseColor: {r: 0.06568122, g: 1, b: 0, a: 1}
+    - _flowSpeed: {r: 0.02, g: 0.02, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &7944853591153160998

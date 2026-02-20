@@ -68,7 +68,7 @@ MonoBehaviour:
   m_text: 'Replace me '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fd042ebad4d1bbe49a78d9d72c9d86fd, type: 2}
-  m_sharedMaterial: {fileID: -863687978554005754, guid: fd042ebad4d1bbe49a78d9d72c9d86fd, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 892b52df377486f49b5bc2390be92112, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
